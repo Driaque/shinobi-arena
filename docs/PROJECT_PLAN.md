@@ -2,6 +2,13 @@
 
 Date: October 26, 2026. Working name: Shinobi Arena. Owner: Daniel.
 
+## Current delivery status
+
+Playable local duel and baseline computer opponent are implemented, including specials, rounds,
+procedural art, landscape controls and browser smoke checks. M1 keyboard remapping and M2 asset/audio
+work remain pending. M3 physical-device validation is pending. No online features are implemented.
+See README and COMBAT_RULES for current behaviour.
+
 ## Product
 
 A browser fighter with character selection, responsive movement, character-specific attacks,

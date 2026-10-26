@@ -3,25 +3,35 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#111827">
-  <title>Shinobi Arena · Control Lab</title>
+  <meta name="theme-color" content="#090f1c">
+  <title>Shinobi Arena · Play</title>
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <main id="game" aria-label="Shinobi Arena control prototype">
-    <header><div><small>SHINOBI ARENA / FOUNDATION</small><h1>Control lab</h1></div><button id="fullscreen">Full screen</button></header>
-    <section class="arena" aria-label="Battlefield layout preview">
-      <div class="hud"><div>Fighter 01 <meter min="0" max="100" value="100">100 HP</meter></div><span>ROUND 01 · PREVIEW</span><div>Fighter 02 <meter min="0" max="100" value="100">100 HP</meter></div></div>
-      <div class="fighter one">01</div><div class="fighter two">02</div>
-      <p class="preview">Layout and input prototype · Combat comes next</p>
-      <div class="controls" aria-label="Touch controls">
-        <div class="movement"><button data-action="left" aria-label="Move left">LEFT</button><button data-action="right" aria-label="Move right">RIGHT</button><button data-action="jump">JUMP</button></div>
-        <div class="attacks"><button data-action="block">BLOCK</button><button data-action="attack">HIT</button><button data-action="special1">SKILL 1</button><button data-action="special2">SKILL 2</button></div>
-      </div>
-    </section>
-    <footer><p>A / D: move · W: jump · J: hit · K: block · U / I: skills</p><output id="inputs" aria-label="Active inputs">Ready</output><span id="status" role="status"></span></footer>
-    <section id="rotate" role="dialog" aria-modal="true" aria-labelledby="rotate-title" hidden><div><p class="phone">▭</p><h2 id="rotate-title">Turn your phone sideways</h2><p>The arena uses landscape controls.<br>Rotate your phone to continue.</p></div></section>
-  </main>
-  <script type="module" src="./main.js"></script>
+<main id="game">
+  <header class="topbar">
+    <a class="brand" href="./"><span class="mark" aria-hidden="true">SA</span><span>SHINOBI <b>ARENA</b><small>PLAYABLE COMBAT PROTOTYPE / 0.2</small></span></a>
+    <div class="tools"><label class="mode-label">MODE <select id="mode" aria-label="Game mode"><option value="cpu">VS COMPUTER</option><option value="local">LOCAL TWO PLAYER</option></select></label><button id="pause" aria-label="Pause game">Pause</button><button id="fullscreen">Full screen</button></div>
+  </header>
+  <section class="arena" aria-label="Fighting arena">
+    <canvas id="canvas" width="1280" height="720" aria-label="Naruto versus Sasuke. Use the controls below to play."></canvas>
+    <div class="hud">
+      <div class="fighter-hud"><div class="fighter-label"><strong>NARUTO</strong><span id="hp0">1000</span></div><div class="health"><div id="health0"></div></div><div class="chakra"><div id="chakra0"></div></div><div id="wins0" class="wins" aria-label="Naruto round wins">○ ○</div></div>
+      <div class="timer"><span id="round">ROUND 01</span><strong id="timer">90</strong><small id="mode-name">VS COMPUTER</small></div>
+      <div class="fighter-hud opponent"><div class="fighter-label"><strong>SASUKE</strong><span id="hp1">1000</span></div><div class="health"><div id="health1"></div></div><div class="chakra"><div id="chakra1"></div></div><div id="wins1" class="wins" aria-label="Sasuke round wins">○ ○</div></div>
+    </div>
+    <div id="feedback" role="status" aria-live="polite"></div>
+    <div class="controls" aria-label="Player one touch controls">
+      <div class="movement"><button data-action="left" aria-label="Move left">◀</button><button data-action="right" aria-label="Move right">▶</button><button data-action="jump" aria-label="Jump">JUMP</button></div>
+      <div class="attacks"><button data-action="block">GUARD<small>K</small></button><button data-action="attack" class="hit">HIT<small>J</small></button><button data-action="special1" class="skill">RASENGAN<small>U · 30</small></button><button data-action="special2" class="skill">CLONE<small>I · 35</small></button></div>
+    </div>
+    <div id="overlay" class="overlay"><div class="dialog"><p class="eyebrow" id="overlay-kicker">THE TRAINING GROUNDS</p><h1 id="overlay-title">A rivalry.<br>A rematch.</h1><p id="overlay-description">Close the distance. Read the attack. Make your move.</p><button id="play" class="primary">Enter the arena</button><p class="hint" id="overlay-hint">First to two round wins · 90 seconds per round</p></div></div>
+  </section>
+  <footer><span><b>P1</b> A / D move · W jump · J hit · K guard · U Rasengan · I clone</span><span id="p2-help"><b>CPU</b> Sasuke · Chidori + fireball</span><span>P / Esc pause</span></footer>
+  <details id="help"><summary>How to play & prototype notes</summary><p>Land hits to reduce HP. Guard while grounded to reduce incoming damage; it still causes a little chip damage. Specials use chakra, which slowly regenerates. Tap attacks and specials again for the next move—holding them does not repeat. Jump over fireballs, or guard them. A double knockout or equal HP at time expiry is a draw. Hitstun interrupts attacks.</p><p>Phone: hold sideways; use your left thumb to move and your right thumb to fight. Rotate, switch apps, or lose focus to pause. Tap Resume to continue. Local two-player requires a shared keyboard. No online play yet.</p><p>Art is procedural placeholder animation, not anime sprite artwork. Computer strategy is a simple deterministic baseline. Character selection, remappable keys, audio and online matches are future work.</p></details>
+  <p id="status" role="status"></p>
+</main>
+<section id="rotate" class="rotate" role="dialog" aria-modal="true" aria-labelledby="rotate-title" hidden><div><span class="rotate-icon">↻</span><h2 id="rotate-title">Turn your phone sideways</h2><p>Your match is paused.<br>Landscape gives your thumbs room to fight.</p></div></section>
+<script type="module" src="./main.js"></script>
 </body>
 </html>

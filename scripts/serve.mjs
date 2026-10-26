@@ -11,4 +11,4 @@ createServer(async (req, res) => {
     const data = await readFile(path);
     res.writeHead(200, { 'Content-Type': types[extname(path)] ?? 'application/octet-stream' }).end(data);
   } catch { res.writeHead(404).end('Not found'); }
-}).listen(4173, '127.0.0.1', () => console.log('http://localhost:4173 — run npm run build first'));
+}).listen(Number(process.env.PORT || 4173), '127.0.0.1', () => console.log('Ready — run npm run build first'));

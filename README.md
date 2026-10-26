@@ -1,18 +1,50 @@
 # Shinobi Arena
 
-Working title for a browser-based 2D fighting game and, later, a reusable game platform.
-Desktop keyboard and landscape phone controls are first-class inputs.
+A playable browser fighting prototype with **Naruto vs Sasuke**, desktop keyboard controls,
+landscape phone controls, local two-player and a basic computer opponent.
 
-## Current status
+## Play
 
-Foundation scaffold: responsive control lab, multi-source input state, resource/outcome primitives,
-automated unit tests, static build, and GitHub Actions. **Not a playable fighter yet.**
-No character artwork, fighting animations, AI, multiplayer networking, or backend is implemented.
-Naruto vs Sasuke is the planning example; the scaffold contains neutral placeholders.
+https://driaque.github.io/shinobi-arena/
 
-## Run
+Choose VS COMPUTER or LOCAL TWO PLAYER and enter the arena. First to two round wins.
+Rounds last 90 seconds. Knockout wins; at timeout, higher remaining HP wins; equal HP or a double
+knockout draws. Tap an attack again to use it again after recovery. Specials spend chakra.
 
-Use Node 22 (see `.nvmrc`). No external runtime or development packages are needed yet.
+| Action | Naruto / P1 | Sasuke / P2 |
+| --- | --- | --- |
+| Move | A / D | Left / right arrows |
+| Jump | W | Up arrow |
+| Basic hit | J | N |
+| Guard | K | M |
+| Rasengan / Chidori | U | Comma |
+| Clone / Fireball | I | Period |
+| Pause | P or Escape | P or Escape |
+
+Phone: hold sideways. Left thumb moves/jumps; right thumb attacks/guards. One phone controls Naruto;
+use the computer opponent. Local two-player uses a shared desktop keyboard. Switching apps, losing
+focus or rotating into portrait pauses the local match; resume explicitly.
+
+## Implemented
+
+- 60 Hz simulation separate from rendering and device input.
+- Movement, jump/landing, facing, arena/body collision.
+- Startup/active/recovery attack phases, single-hit swings, hitstun, guard, knockback.
+- Rasengan/Chidori lunges, extended clone strike and fireball projectile.
+- HP, chakra spending/regeneration, timer, round scoring, next round and rematch.
+- Deterministic baseline computer opponent using legal action inputs.
+- Responsive arena, multi-touch capture/cancellation, portrait gate, explicit pause/resume.
+- Procedural character/stage animation without external asset downloads.
+
+## Limits
+
+Prototype artwork, not detailed anime sprites. No online play, character selection, configurable
+key bindings, audio, accounts or saved replays yet. Local two-player can be limited by a keyboard's
+hardware key rollover. Computer strategy is simple. Physical iPhone/Android validation remains necessary.
+
+## Develop
+
+Node 22:
 
 ```sh
 npm ci
@@ -20,37 +52,27 @@ npm run verify
 npm run dev
 ```
 
-Open http://localhost:4173. Rebuild after source edits. The dev server binds to localhost only.
-Keyboard: A/D move, W jump, J attack, K block, U/I specials.
-The control lab shows input states, not movement or combat.
+Open http://localhost:4173. Rebuild after source edits.
 
-## Project map
+Browser checks (complete local match, rematch, pause, emulated mobile multi-touch and rotation):
 
-| Location | Purpose |
-| --- | --- |
-| `apps/web` | Browser interface, landscape gate, input adapter |
-| `packages/input` | Device-independent held-action state |
-| `packages/engine` | Initial headless combat primitives |
-| `tests` | Input and combat-rule tests |
-| `docs/PROJECT_PLAN.md` | Product scope, milestones, acceptance criteria |
-| `docs/MOBILE_DESIGN.md` | Landscape interaction design and device checks |
-| `docs/ARCHITECTURE.md` | Simulation boundaries and networking strategy |
-| `docs/DELIVERY.md` | CI/CD, repository setup, rollback |
-| `docs/BACKLOG.md` | Ordered implementation backlog |
+```sh
+npx playwright install --with-deps chromium --only-shell
+npm run test:browser
+```
 
-## Delivery
+An alternate local Chromium executable can be supplied using `CHROMIUM_PATH`.
+CI and deployment run unit checks, build and browser checks before publishing.
 
-`CI / Verify` checks pull requests and main. `Deploy Pages` verifies main independently and
-deploys the resulting static artifact. Deployment needs GitHub Pages enabled with **GitHub Actions**
-as its source. See `docs/DELIVERY.md`. No cloud secrets are required for this static foundation.
+## Structure
 
-## Portfolio objective
+`packages/engine` owns combat; `packages/input` owns independent input sources and quick-tap capture;
+`apps/web` owns browser events and procedural rendering. Neither engine nor input library imports the DOM.
+Simulation rules version: `duel-0.2.0`.
 
-Show responsive play plus evidence of sound engineering: a deterministic simulation,
-versioned move data, device-independent inputs, recoverable sessions, measurable performance,
-and architectural decisions with explicit tradeoffs. Features are claims only when demonstrated.
+See [project plan](docs/PROJECT_PLAN.md), [combat rules](docs/COMBAT_RULES.md),
+[mobile design](docs/MOBILE_DESIGN.md), [architecture](docs/ARCHITECTURE.md),
+[delivery](docs/DELIVERY.md) and [validation](docs/VALIDATION.md).
 
-## Assets
-
-No third-party character assets are bundled. Record provenance and permitted use for every
-asset added in `docs/ASSET_REGISTER.md`. No open-source license has been selected for this repository yet.
+No third-party character assets are bundled. Asset provenance is recorded in
+[the asset register](docs/ASSET_REGISTER.md). No repository license has been selected yet.

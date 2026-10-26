@@ -2,9 +2,9 @@
 
 ## ADR 001 · Local-first browser fighter
 
-Accepted for the foundation. Native browser modules keep M0 reproducible without a package registry.
+Accepted for the foundation. Native browser modules keep the runtime free of external libraries; Playwright is a development-only test dependency.
 This is a scaffold decision, not a claim that a complete game needs no libraries.
-Evaluate Canvas 2D directly versus a rendering library during M1; a renderer must not own combat rules.
+Canvas 2D is selected for the first playable duel; it owns presentation only, not combat rules.
 Angular can later own the catalogue/account shell; it should not drive each simulation frame.
 C#/.NET is a candidate for platform APIs and session services after the online spike defines needs.
 

@@ -23,6 +23,7 @@ npm run dev
 Pinned action commits; read-only contents permission; checkout credentials not persisted.
 Node version comes from `.nvmrc`; `npm ci` uses the committed lockfile.
 `npm run verify` performs JavaScript syntax checks, unit tests and a static build.
+Both CI and deployment also install Chromium and run `npm run test:browser` before uploading a build.
 Build output is retained for seven days. Old CI runs for the same ref are cancelled.
 No deployment occurs from a pull request; no `pull_request_target` workflow is used.
 
@@ -46,7 +47,8 @@ Protect main with PR reviews and required `Verify` check. Confirm the displayed 
 the first hosted CI run before selecting it. Disable force pushes and branch deletion. Required
 review policy should still allow the maintainer to work with the available collaborators.
 Use short feature branches. Dependabot proposes weekly action/dependency updates; verify before merging.
-No branch protections, environment settings or hosted runs have been verified in this delivery.
+Initial foundation CI passed on GitHub. The user has loaded the initial Pages prototype.
+Branch protections and environment restrictions have not been verified.
 
 ## Rollback
 
@@ -56,8 +58,8 @@ Do not move main backwards or rely on retained CI artifacts as a permanent relea
 
 ## Future checks
 
-Add browser automation once the gameplay/rendering stack is selected: touch/keyboard interaction,
-rotation gate, rematch and a complete computer match. Add measured performance budgets, then fail
+Browser smoke automation now covers a complete local two-player match, rematch, pause, multi-touch,
+rotation gate and control bounds. Extend it to computer play and physical-device evidence. Add measured performance budgets, then fail
 only on repeatable regressions. Add backend migration/integration/security checks when a backend exists.
 
 References:

@@ -23,3 +23,9 @@ test('knockout resolves immediately', () => assert.equal(outcome({hp1:5,hp2:0,re
 test('time expiry selects higher remaining HP', () => assert.equal(outcome({hp1:20,hp2:30,remainingTicks:0}), 'player2'));
 test('equal HP at expiry draws', () => assert.equal(outcome({hp1:20,hp2:20,remainingTicks:0}), 'draw'));
 test('live round remains ongoing', () => assert.equal(outcome({hp1:20,hp2:30,remainingTicks:1}), 'ongoing'));
+
+test('quick tap between ticks is delivered once and reset discards queued taps', () => {
+ const input=createInput();input.press('attack',1);input.release(1);
+ assert.equal(input.snapshot().attack,false);assert.equal(input.consume().attack,true);
+ assert.equal(input.consume().attack,false);input.press('jump',2);input.release(2);input.reset();assert.equal(input.consume().jump,false);
+});
