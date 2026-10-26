@@ -1,5 +1,6 @@
 import { createInput } from './packages/input/index.js';
 import { createMatch, stepMatch, nextRound, computerInput, TICK_RATE, CHARACTERS, WEAPONS, MOVES, moveFor } from './packages/engine/index.js';
+import { createRoster } from './roster.js';
 import { createControls } from './controls.js';
 import { createRenderer } from './renderer.js';
 const $ = selector => document.querySelector(selector);
@@ -10,19 +11,19 @@ const portrait=matchMedia('(orientation: portrait)'), touch=matchMedia('(any-poi
 let controls;
 let state=createMatch(), paused=true, started=false, mode='cpu', cpu={}, lastTime=0, accumulator=0, feedbackUntil=0;
 const shortNames={special1:'RASENGAN',chidori:'CHIDORI',clone:'CLONE',fireball:'FIREBALL',lionFists:'TWIN LIONS',chakraStrike:'PALM STRIKE',snakeStrike:'SNAKES',seal:'SEAL',sharingan:'SHARINGAN',byakugan:'BYAKUGAN'};
-function readLoadouts(){return [0,1].map(i=>({character:$(`#character${i}`).value,weapon:$(`#weapon${i}`).value}));}
+function readLoadouts(){return [0,1].map(i=>({character:$(`#character${i} input:checked`).value,weapon:$(`#weapon${i}`).value}));}
 function describeLoadouts(){
   for(const i of [0,1]){
-    const character=CHARACTERS[$(`#character${i}`).value],weapon=WEAPONS[$(`#weapon${i}`).value];
+    const character=CHARACTERS[$(`#character${i} input:checked`).value],weapon=WEAPONS[$(`#weapon${i}`).value];
+    $(`#selected${i}`).textContent=character.name;
     $(`#kit${i}`).innerHTML=`<strong>${character.title}</strong><br>${character.description}<br><span class="kit-label">${weapon.description}</span>`;
   }
   if(!started)state=createMatch(readLoadouts());
 }
 for(const i of [0,1]){
-  for(const character of Object.values(CHARACTERS))$(`#character${i}`).add(new Option(character.name,character.id));
+  createRoster($(`#character${i}`),i,i===0?'naruto':'sasuke',describeLoadouts);
   for(const weapon of Object.values(WEAPONS))$(`#weapon${i}`).add(new Option(weapon.name,weapon.id));
-  $(`#character${i}`).value=i===0?'naruto':'sasuke';
-  $(`#character${i}`).addEventListener('change',describeLoadouts);$(`#weapon${i}`).addEventListener('change',describeLoadouts);
+  $(`#weapon${i}`).addEventListener('change',describeLoadouts);
 }
 describeLoadouts();
 function clearInputs(){controls?.reset();inputs.forEach(i=>i.reset());cpu={};buttons.forEach(b=>b.classList.remove('active'));}
@@ -61,6 +62,7 @@ $('#mode').addEventListener('change',event=>{
   mode=event.target.value;state=createMatch();paused=true;started=false;clearInputs();
   $('#mode-name').textContent=mode==='cpu'?'VS COMPUTER':'LOCAL TWO PLAYER';
   $('#opponent-label').textContent=mode==='cpu'?'COMPUTER':'PLAYER TWO';
+  document.querySelectorAll('#character1 .pick-mark').forEach(mark=>mark.textContent=mode==='cpu'?'CPU':'P2');
   $('#p2-help').textContent=mode==='cpu'?'CPU Sasuke · Chidori + fireball':'P2 arrows · N hit · M guard · , Chidori · . fireball';
   describeLoadouts();dialog('BUILD YOUR FIGHTING STYLE','Choose your shinobi.','Pick both fighters and equip a weapon before the battle.','Start match');
 });

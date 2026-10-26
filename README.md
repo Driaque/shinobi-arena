@@ -8,6 +8,8 @@ a landscape analog stick and customizable touch controls, local two-player and a
 https://driaque.github.io/shinobi-arena/
 
 Choose VS COMPUTER or LOCAL TWO PLAYER, select both characters, equip each fighter with a weapon, and enter the arena. First to two round wins.
+Both sides have independent visual character grids with portraits and selection badges. Tap a card, or use the keyboard to navigate the radio group. The opponent grid is labelled Computer or Player Two to match the mode.
+
 Available fighters: Naruto, Sasuke, Hinata and Orochimaru. Weapons: kunai, shuriken and katana.
 
 Rounds last 90 seconds. Knockout wins; at timeout, higher remaining HP wins; equal HP or a double

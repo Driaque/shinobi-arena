@@ -12,7 +12,20 @@ try {
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.clock.install();
  await page.goto('http://127.0.0.1:4183');
- await page.selectOption('#mode','local');await page.click('#play');
+ assert.equal(await page.locator('#character0 input[type=radio]').count(),4);
+ assert.equal(await page.locator('#character1 input[type=radio]').count(),4);
+ await page.locator('#character0 input[value="hinata"]').check();
+ assert.equal(await page.locator('#selected0').innerText(),'Hinata');
+ assert.equal(await page.locator('#character1 input:checked').inputValue(),'sasuke','P1 selection does not change opponent');
+ await page.locator('#character0 input[value="naruto"]').check();
+ await page.locator('#character0 input:checked').focus();await page.keyboard.press('ArrowRight');
+ assert.equal(await page.locator('#selected0').innerText(),'Sasuke','native keyboard navigation selects a character');
+ assert.equal(await page.locator('#character1 input:checked').inputValue(),'sasuke');
+ await page.locator('#character0 input[value="naruto"]').check();
+ await page.selectOption('#mode','local');
+ assert.equal(await page.locator('#opponent-label').innerText(),'PLAYER TWO');
+ assert.equal(await page.locator('#character1 .pick-mark').first().innerText(),'P2');
+ await page.click('#play');
  await page.keyboard.down('KeyD');await page.clock.runFor(1700);await page.keyboard.up('KeyD');
  await page.keyboard.down('KeyJ');await page.clock.runFor(40);await page.keyboard.up('KeyJ');await page.clock.runFor(200);
  assert.equal(await page.locator('#hp1').innerText(),'935','basic attack damages opponent');
@@ -36,8 +49,8 @@ try {
  assert.equal(await page.locator('#hp0').innerText(),'1000');assert.equal(await page.locator('#hp1').innerText(),'1000');
  await page.screenshot({path:'test-results/desktop.png'});
  // Pre-battle choices are used by the simulation and action HUD.
- await page.selectOption('#mode','cpu');await page.selectOption('#character0','hinata');await page.selectOption('#weapon0','katana');
- await page.selectOption('#character1','orochimaru');await page.selectOption('#weapon1','shuriken');
+ await page.selectOption('#mode','cpu');await page.locator('#character0 input[value="hinata"]').check();await page.selectOption('#weapon0','katana');
+ await page.locator('#character1 input[value="orochimaru"]').check();await page.selectOption('#weapon1','shuriken');
  await page.screenshot({path:'test-results/loadouts.png'});await page.click('#play');await page.clock.runFor(32);
  assert.equal(await page.locator('#name0').innerText(),'HINATA');assert.equal(await page.locator('#name1').innerText(),'OROCHIMARU');
  assert.match(await page.locator('#weapon-label').innerText(),/KATANA/);assert.equal(await page.locator('#bl-name').innerText(),'BYAKUGAN');
@@ -45,8 +58,8 @@ try {
  assert.match(await page.locator('#effects0').innerText(),/BYAKUGAN/);
  await page.keyboard.down('KeyR');await page.clock.runFor(32);await page.keyboard.up('KeyR');
  assert.match(await page.locator('#replacement-cd').innerText(),/s/);
- await page.selectOption('#mode','local');await page.selectOption('#character0','naruto');await page.selectOption('#weapon0','kunai');
- await page.selectOption('#character1','sasuke');await page.selectOption('#weapon1','kunai');
+ await page.selectOption('#mode','local');await page.locator('#character0 input[value="naruto"]').check();await page.selectOption('#weapon0','kunai');
+ await page.locator('#character1 input[value="sasuke"]').check();await page.selectOption('#weapon1','kunai');
  // CPU actually wins a round against an idle player, using the full browser loop.
  await page.selectOption('#mode','cpu');await page.click('#play');await page.clock.runFor(15000);
  assert.equal(await page.locator('#overlay').isVisible(),true);
@@ -54,7 +67,16 @@ try {
  assert.deepEqual(errors,[],'no desktop page errors');await page.close();
  const context=await browser.newContext({viewport:{width:844,height:390},isMobile:true,hasTouch:true});
  const mobile=await context.newPage();const mobileErrors=[];mobile.on('pageerror',e=>mobileErrors.push(e.message));
- await mobile.clock.install();await mobile.goto('http://127.0.0.1:4183');await mobile.screenshot({path:'test-results/mobile-loadouts.png'});await mobile.click('#play');
+ await mobile.clock.install();await mobile.goto('http://127.0.0.1:4183');await mobile.screenshot({path:'test-results/mobile-loadouts.png'});
+ await mobile.setViewportSize({width:667,height:375});await mobile.clock.runFor(32);
+ await mobile.screenshot({path:'test-results/small-mobile-roster.png'});
+ for(const card of await mobile.locator('.character-card').all()){
+   const r=await card.boundingBox();assert.ok(r.x>=0&&r.x+r.width<=667&&r.height>=48,'roster cards fit a small landscape phone');
+ }
+ await mobile.setViewportSize({width:844,height:390});await mobile.clock.runFor(32);
+ await mobile.locator('#character0 input[value="sasuke"]').check();await mobile.locator('#character1 input[value="sasuke"]').check();
+ assert.equal(await mobile.locator('#selected0').innerText(),'Sasuke');assert.equal(await mobile.locator('#selected1').innerText(),'Sasuke');
+ await mobile.locator('#character0 input[value="naruto"]').check();await mobile.click('#play');
  const cdp=await context.newCDPSession(mobile);
  const box1=await mobile.locator('#joystick').boundingBox(),box2=await mobile.locator('[data-action=attack]').boundingBox();
  const point=(box,id)=>({x:box.x+box.width/2,y:box.y+box.height/2,id});

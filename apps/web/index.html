@@ -10,7 +10,7 @@
 <body>
 <main id="game">
   <header class="topbar">
-    <a class="brand" href="./"><span class="mark" aria-hidden="true">SA</span><span>SHINOBI <b>ARENA</b><small>PLAYABLE COMBAT PROTOTYPE / 0.4</small></span></a>
+    <a class="brand" href="./"><span class="mark" aria-hidden="true">SA</span><span>SHINOBI <b>ARENA</b><small>PLAYABLE COMBAT PROTOTYPE / 0.5</small></span></a>
     <div class="tools"><label class="mode-label">MODE <select id="mode" aria-label="Game mode"><option value="cpu">VS COMPUTER</option><option value="local">LOCAL TWO PLAYER</option></select></label><button id="control-settings">Controls</button><button id="pause" aria-label="Pause game">Pause</button><button id="fullscreen">Full screen</button></div>
   </header>
   <section class="arena" aria-label="Fighting arena">
@@ -31,8 +31,8 @@
       <div class="editor-row"><span id="editor-message" role="status">Drag a control to move it.</span><button id="key-settings">Keyboard</button><button id="reset-layout">Reset layout</button><button id="cancel-controls">Cancel</button><button id="save-controls" class="save-controls">Save</button></div>
     </section>
     <div id="overlay" class="overlay"><div class="dialog"><p class="eyebrow" id="overlay-kicker">BUILD YOUR FIGHTING STYLE</p><h1 id="overlay-title">Choose your shinobi.</h1><p id="overlay-description">Pick both fighters and equip a weapon before the battle.</p><div id="loadout-panel" class="loadout-grid">
-      <section class="loadout-card"><h2>PLAYER ONE</h2><div class="loadout-selects"><label>Character<select id="character0" aria-label="Player one character"></select></label><label>Equipped weapon<select id="weapon0" aria-label="Player one weapon"></select></label></div><p id="kit0" class="kit"></p></section>
-      <section class="loadout-card"><h2 id="opponent-label">COMPUTER</h2><div class="loadout-selects"><label>Character<select id="character1" aria-label="Opponent character"></select></label><label>Equipped weapon<select id="weapon1" aria-label="Opponent weapon"></select></label></div><p id="kit1" class="kit"></p></section>
+      <section class="loadout-card"><div class="roster-heading"><h2>PLAYER ONE</h2><strong id="selected0">Naruto</strong></div><fieldset class="roster-field"><legend>Choose your character</legend><div id="character0" class="character-roster"></div></fieldset><label class="weapon-choice">Equipped weapon<select id="weapon0" aria-label="Player one weapon"></select></label><p id="kit0" class="kit"></p></section>
+      <section class="loadout-card"><div class="roster-heading"><h2 id="opponent-label">COMPUTER</h2><strong id="selected1">Sasuke</strong></div><fieldset class="roster-field"><legend>Choose opponent character</legend><div id="character1" class="character-roster"></div></fieldset><label class="weapon-choice">Equipped weapon<select id="weapon1" aria-label="Opponent weapon"></select></label><p id="kit1" class="kit"></p></section>
       </div><button id="play" class="primary">Enter the arena</button><p class="hint" id="overlay-hint">First to two round wins · 90 seconds per round</p></div></div>
   </section>
   <footer><span><b>P1</b> A/D move · W ×2 jump · Q/E dash · J basic · H weapon · K guard · U/I jutsu · O bloodline · R replace</span><span id="p2-help"><b>CPU</b> Sasuke</span><span>P / Esc pause</span></footer>

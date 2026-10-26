@@ -1,4 +1,4 @@
-# Playable duel validation · 0.4.0
+# Playable duel validation · 0.5.0
 
 Local validation on October 26, 2026:
 
@@ -13,6 +13,8 @@ Local validation on October 26, 2026:
 - Screenshots of desktop and landscape mobile were visually inspected locally.
 - New control tests cover proportional analog movement/dead zone, axis reset, keyboard/axis arbitration,
   default layout bounds/overlap detection, key conflicts/reserved keys, settings round trips and corrupt-data fallback.
+- Roster browser checks cover both four-character grids, independent choices, native arrow-key selection,
+  Computer/Player Two labels, mirror matches, selected loadouts reaching combat, and small landscape card bounds.
 - Browser control checks cover stick + attack multi-touch, release/cancel, drag/resize, rebind/duplicate rejection,
   reload persistence, old/new key behaviour, Cancel rollback, overlap-save rejection and small-screen bounds.
 - New mechanics tests cover double jumping, both directional dashes, Replacement costs/cooldowns/immunity,
