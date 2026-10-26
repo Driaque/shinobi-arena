@@ -1,7 +1,7 @@
 export const ACTIONS = Object.freeze(['left', 'right', 'jump', 'attack', 'block', 'special1', 'special2', 'weapon', 'bloodline', 'replacement', 'dashForward', 'dashBack']);
 export function createInput() {
-  const held = new Map(), pressed = new Set();
-  const snapshot = () => Object.fromEntries(ACTIONS.map(a => [a, (held.get(a)?.size ?? 0) > 0]));
+  const held = new Map(), pressed = new Set(), axes = new Map();
+  const snapshot = () => ({...Object.fromEntries(ACTIONS.map(a => [a, (held.get(a)?.size ?? 0) > 0])),moveX: Math.max(-1,Math.min(1,[...axes.values()].reduce((a,b)=>a+b,0)))});
   return {
     press(action, source) {
       if (!ACTIONS.includes(action)) throw new Error(`Unknown action: ${action}`);
@@ -9,8 +9,9 @@ export function createInput() {
       if (!held.get(action).has(source)) pressed.add(action);
       held.get(action).add(source);
     },
-    release(source) { for (const sources of held.values()) sources.delete(source); },
-    reset() { held.clear(); pressed.clear(); },
+    release(source) { for (const sources of held.values()) sources.delete(source); axes.delete(source); },
+    setAxis(source,value) { if(!Number.isFinite(value))throw new Error('Invalid movement axis');axes.set(source,Math.max(-1,Math.min(1,value))); },
+    reset() { held.clear(); pressed.clear(); axes.clear(); },
     snapshot,
     consume() {
       // Capture even a quick tap released between two simulation ticks.
@@ -21,3 +22,4 @@ export function createInput() {
     }
   };
 }
+

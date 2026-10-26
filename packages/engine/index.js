@@ -2,7 +2,7 @@ import { CHARACTERS, WEAPONS, MOVES, validateLoadouts } from './catalog.js';
 export { CHARACTERS, WEAPONS, MOVES } from './catalog.js';
 export const TICK_RATE = 60;
 export const ARENA = Object.freeze({ width: 1280, height: 720, floor: 570, margin: 46 });
-export const RULES_VERSION = 'duel-0.3.0';
+export const RULES_VERSION = 'duel-0.4.0';
 export function advanceResource(resource, cost) {
   if (![resource, cost].every(Number.isFinite) || resource < 0 || cost < 0) throw new Error('Invalid resource');
   return resource >= cost ? { accepted: true, remaining: resource - cost } : { accepted: false, remaining: resource };
@@ -132,7 +132,8 @@ export function stepMatch(state, inputs = [{}, {}]) {
       if(input.dashBack&&!f.previous.dashBack)dashDirection=-f.facing;
       if(dashDirection&&f.y===0&&!f.dash&&f.dashCooldown===0){f.dash={direction:dashDirection,remaining:8};f.dashCooldown=24;}
 
-      const move = Number(Boolean(input.right)) - Number(Boolean(input.left));
+      const digital = Number(Boolean(input.right)) - Number(Boolean(input.left));
+      const move = (input.left||input.right)?digital:(Number.isFinite(input.moveX)?clamp(input.moveX,-1,1):0);
       if(!f.dash)f.x += move * (f.y > 0 ? 4.5 : 5);
       if(input.jump&&!f.previous.jump&&f.jumps<2){f.vy=17;f.jumps++;f.dash=null;}
       // One press produces one action; holding a button does not spend chakra repeatedly.
@@ -212,3 +213,4 @@ export function computerInput(state, player=1) {
   if(available('special2')&&state.tick%180<8)return {special2:true};
   return state.tick%48<24?{attack:true}:{};
 }
+

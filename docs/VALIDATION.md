@@ -1,8 +1,8 @@
-# Playable duel validation · 0.3.0
+# Playable duel validation · 0.4.0
 
 Local validation on October 26, 2026:
 
-- `npm run verify`: passed JavaScript syntax checks, 46 unit tests and static build.
+- `npm run verify`: passed JavaScript syntax checks, 56 unit tests and static build.
 - `npm run test:browser`: passed using Playwright 1.62.1 with an alternate local Chromium 153 binary.
   The standard browser download endpoint was unavailable in the workspace; CI installs Playwright's
   matching Chromium using its normal installer.
@@ -11,6 +11,10 @@ Local validation on October 26, 2026:
   finger release, touch cancellation, portrait input gate, landscape explicit resume, control bounds
   at-least-48px touch targets at 844×390 and 667×375, character/weapon selection reaching the simulation, Byakugan activation and Replacement cooldown display. No browser page errors were observed.
 - Screenshots of desktop and landscape mobile were visually inspected locally.
+- New control tests cover proportional analog movement/dead zone, axis reset, keyboard/axis arbitration,
+  default layout bounds/overlap detection, key conflicts/reserved keys, settings round trips and corrupt-data fallback.
+- Browser control checks cover stick + attack multi-touch, release/cancel, drag/resize, rebind/duplicate rejection,
+  reload persistence, old/new key behaviour, Cancel rollback, overlap-save rejection and small-screen bounds.
 - New mechanics tests cover double jumping, both directional dashes, Replacement costs/cooldowns/immunity,
   guard penetration, poison/burn ticks and expiry, weakening, Byakugan, unavailable bloodlines, loadout
   preservation/validation, cooldown rejection and effect reapplication without stacking.
@@ -21,3 +25,4 @@ Local validation on October 26, 2026:
 
 Initial foundation GitHub CI passed before this change. No performance/scalability measurements or
 online-play claims are made. Browser smoke automation does not replace interactive combat tuning.
+

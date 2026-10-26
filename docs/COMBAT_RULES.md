@@ -49,7 +49,7 @@ No randomness or LLM service. This is a baseline opponent, not advanced fighting
 
 ## 0.3.0 extension
 
-The current rules version is `duel-0.3.0`. The earlier table documents the original two-fighter baseline;
+The roster/effect extension introduced rules version `duel-0.3.0`. The earlier table documents the original two-fighter baseline;
 Chidori now uses its own guard-piercing move definition. See CHARACTER_KITS.md and catalog.js for the
 expanded roster and current authoritative values. Double jumping, dashing, Replacement and effects
 follow the extension documented there. Loadouts are validated at match creation and preserved between rounds.
@@ -58,3 +58,12 @@ Effects tick before actions; lethal periodic damage stops that fighter starting 
 Replacement is processed before ordinary stun restrictions, allowing it to escape hitstun. It cannot
 revive a fighter. Projectiles snapshot weakening/pierce at launch. Melee uses the attacker's current
 weakening and Byakugan state. All direct hit candidates still resolve simultaneously.
+
+
+## 0.4.0 input extension
+
+Current rules version: `duel-0.4.0`. The simulation accepts a normalized horizontal movement axis.
+Keyboard directions override the axis while held, including neutral when opposite keys are held.
+Analog deflection scales ground/air speed without changing combat reach, jump counts or dash rules.
+Vertical stick travel does not jump. Touch layout and key preferences are local UI configuration,
+not part of match state. See CONTROL_SETTINGS.md.

@@ -52,3 +52,13 @@ Effect instances carry type, duration, potency and next-tick time. Reapplication
 without resetting its periodic damage schedule. Movement/escape use the same device-independent action
 contract on keyboard, touch and computer input. The simulation remains independent of DOM and rendering.
 Balance values are prototype tuning; the architecture does not imply balanced competitive play.
+
+
+## ADR 006 · Analog input and local control preferences
+
+Accepted for 0.4.0. The input frame carries a bounded `moveX` axis alongside action booleans. The engine
+uses keyboard directions when held, otherwise the axis; it knows nothing about joystick pixels or DOM.
+The browser adapter owns radial dead-zone normalization, capture and cancellation. A pure preference
+module handles safe bounds, collision checks, binding conflicts and persisted-data validation.
+Settings use a versioned browser-local schema with separate viewport profiles; editing is a draft and
+requires Save. This is separate from combat/match data and does not require a backend.

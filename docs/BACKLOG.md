@@ -1,5 +1,8 @@
 # Ordered backlog
 
+0.4.0 update: F07 keyboard rebinding is implemented, along with analog movement, a drag/resize
+touch layout editor, conflict checks and per-device/profile persistence. See CONTROL_SETTINGS.md.
+
 Each item should become a separate issue/PR once the remote exists. These are not yet GitHub issues.
 
 | ID | Work | Acceptance | Depends on |
@@ -23,3 +26,4 @@ Each item should become a separate issue/PR once the remote exists. These are no
 
 Definition of done: observable player/developer outcome, relevant correctness tests, docs updated,
 CI passes, no unsupported feature claims. Mobile changes also require listed device evidence.
+

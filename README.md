@@ -1,7 +1,7 @@
 # Shinobi Arena
 
 A playable browser fighting prototype with a **four-character selectable roster**, desktop keyboard controls,
-landscape phone controls, local two-player and a basic computer opponent.
+a landscape analog stick and customizable touch controls, local two-player and a basic computer opponent.
 
 ## Play
 
@@ -12,6 +12,8 @@ Available fighters: Naruto, Sasuke, Hinata and Orochimaru. Weapons: kunai, shuri
 
 Rounds last 90 seconds. Knockout wins; at timeout, higher remaining HP wins; equal HP or a double
 knockout draws. Tap an attack again to use it again after recovery. Specials spend chakra.
+
+Default keyboard bindings (customizable in Controls → Keyboard):
 
 | Action | P1 | P2 |
 | --- | --- | --- |
@@ -26,7 +28,7 @@ knockout draws. Tap an attack again to use it again after recovery. Specials spe
 | Replacement | R | V |
 | Pause | P or Escape | P or Escape |
 
-Phone: hold sideways. Left thumb moves/jumps; right thumb attacks/guards. One phone controls Naruto;
+Phone: hold sideways. Use the left analog stick to move, the separate jump/dash buttons to maneuver, and the right action cluster to fight. Push the stick farther to move faster; vertical stick motion does not jump. Open **Controls** to drag and resize controls, or edit keyboard bindings. Save keeps the settings on this device; Cancel discards the draft. One phone controls Naruto;
 use the computer opponent. Local two-player uses a shared desktop keyboard. Switching apps, losing
 focus or rotating into portrait pauses the local match; resume explicitly.
 
@@ -40,13 +42,14 @@ focus or rotating into portrait pauses the local match; resume explicitly.
 - Rasengan/Chidori, clones, Fireball, Gentle Fist, snake strikes, Sharingan and Byakugan adaptations.
 - HP, chakra spending/regeneration, timer, round scoring, next round and rematch.
 - Deterministic baseline computer opponent using legal action inputs.
-- Responsive arena, multi-touch capture/cancellation, portrait gate, explicit pause/resume.
+- Proportional analog movement with dead zone, independent multi-touch actions, and safe cancellation.
+- Drag/resize control editor, key rebinding for both players, conflict checks and device-local persistence.
+- Responsive arena, portrait gate and explicit pause/resume.
 - Procedural character/stage animation without external asset downloads.
 
 ## Limits
 
-Prototype artwork, not detailed anime sprites. No online play, configurable
-key bindings, audio, accounts or saved replays yet. Local two-player can be limited by a keyboard's
+Prototype artwork, not detailed anime sprites. No online play, audio, accounts or saved replays yet. Local two-player can be limited by a keyboard's
 hardware key rollover. Computer strategy is simple. Physical iPhone/Android validation remains necessary.
 
 ## Develop
@@ -75,11 +78,12 @@ CI and deployment run unit checks, build and browser checks before publishing.
 
 `packages/engine` owns combat; `packages/input` owns independent input sources and quick-tap capture;
 `apps/web` owns browser events and procedural rendering. Neither engine nor input library imports the DOM.
-Simulation rules version: `duel-0.3.0`.
+Simulation rules version: `duel-0.4.0`.
 
 See [project plan](docs/PROJECT_PLAN.md), [combat rules](docs/COMBAT_RULES.md), [character kits](docs/CHARACTER_KITS.md),
-[mobile design](docs/MOBILE_DESIGN.md), [architecture](docs/ARCHITECTURE.md),
+[mobile design](docs/MOBILE_DESIGN.md), [control settings](docs/CONTROL_SETTINGS.md), [architecture](docs/ARCHITECTURE.md),
 [delivery](docs/DELIVERY.md) and [validation](docs/VALIDATION.md).
 
 No third-party character assets are bundled. Asset provenance is recorded in
 [the asset register](docs/ASSET_REGISTER.md). No repository license has been selected yet.
+

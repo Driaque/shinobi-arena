@@ -56,19 +56,19 @@ try {
  const mobile=await context.newPage();const mobileErrors=[];mobile.on('pageerror',e=>mobileErrors.push(e.message));
  await mobile.clock.install();await mobile.goto('http://127.0.0.1:4183');await mobile.screenshot({path:'test-results/mobile-loadouts.png'});await mobile.click('#play');
  const cdp=await context.newCDPSession(mobile);
- const box1=await mobile.locator('[data-action=right]').boundingBox(),box2=await mobile.locator('[data-action=attack]').boundingBox();
+ const box1=await mobile.locator('#joystick').boundingBox(),box2=await mobile.locator('[data-action=attack]').boundingBox();
  const point=(box,id)=>({x:box.x+box.width/2,y:box.y+box.height/2,id});
- const p1=point(box1,1),p2=point(box2,2);
+ const p1={...point(box1,1),x:box1.x+box1.width*.78},p2=point(box2,2);
  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[p1]});
  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[p1,p2]});
- assert.ok((await mobile.locator('[data-action=right]').getAttribute('class')).includes('active'));
+ assert.ok((await mobile.locator('#joystick').getAttribute('class')??'').includes('active'));
  assert.ok((await mobile.locator('[data-action=attack]').getAttribute('class')).includes('active'));
  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[p2]});
  await mobile.clock.runFor(32);
- assert.ok((await mobile.locator('[data-action=right]').getAttribute('class')).includes('active'),'releasing attack preserves movement');
+ assert.ok((await mobile.locator('#joystick').getAttribute('class')??'').includes('active'),'releasing attack preserves analog movement');
  assert.ok(!(await mobile.locator('[data-action=attack]').getAttribute('class')).includes('active'));
  await cdp.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});await mobile.clock.runFor(32);
- assert.ok(!(await mobile.locator('[data-action=right]').getAttribute('class')).includes('active'),'cancel clears held pointer');
+ assert.ok(!(await mobile.locator('#joystick').getAttribute('class')??'').includes('active'),'cancel clears held analog pointer');
  await mobile.setViewportSize({width:390,height:844});await mobile.clock.runFor(100);
  assert.equal(await mobile.locator('#rotate').isVisible(),true);
  assert.equal(await mobile.locator('#game').evaluate(el=>el.inert),true);
@@ -77,6 +77,39 @@ try {
  assert.equal(await mobile.locator('#play').innerText(),'Resume match');
  await mobile.click('#play');await mobile.clock.runFor(100);
  await mobile.screenshot({path:'test-results/mobile-landscape.png'});
+ // Edit the touch layout, rebind a key, and persist both on this device.
+ await mobile.click('#control-settings');assert.equal(await mobile.locator('#layout-editor').isVisible(),true);
+ const editTimer=await mobile.locator('#timer').innerText();await mobile.clock.runFor(500);assert.equal(await mobile.locator('#timer').innerText(),editTimer);
+ const attackBefore=await mobile.locator('[data-control=attack]').boundingBox();
+ await mobile.mouse.move(attackBefore.x+attackBefore.width/2,attackBefore.y+attackBefore.height/2);await mobile.mouse.down();
+ await mobile.mouse.move(attackBefore.x+attackBefore.width/2-10,attackBefore.y+attackBefore.height/2-10,{steps:4});await mobile.mouse.up();
+ await mobile.selectOption('#control-select','attack');
+ await mobile.locator('#control-size').evaluate(el=>{el.value='68';el.dispatchEvent(new Event('input',{bubbles:true}));});
+ await mobile.click('#key-settings');await mobile.locator('[data-bind-player="0"][data-bind-action="jump"]').click();await mobile.keyboard.press('Space');
+ assert.match(await mobile.locator('#key-message').innerText(),/Binding changed/);
+ // A duplicate binding is rejected without stealing another action's key.
+ await mobile.locator('[data-bind-player="0"][data-bind-action="attack"]').click();await mobile.keyboard.press('KeyA');
+ assert.match(await mobile.locator('#key-message').innerText(),/already used/);await mobile.keyboard.press('Escape');
+ await mobile.click('#close-keys');await mobile.screenshot({path:'test-results/control-editor.png'});await mobile.click('#save-controls');
+ assert.equal(await mobile.locator('#layout-editor').isVisible(),false);
+ const saved=await mobile.evaluate(()=>localStorage.getItem('shinobi-arena.controls.v1'));assert.ok(saved);
+ const prefs=JSON.parse(saved);assert.equal(prefs.keys[0].Space,'jump');assert.equal(prefs.keys[0].KeyW,undefined);assert.equal(prefs.layouts.medium.attack.size,68);
+ await mobile.reload();await mobile.clock.runFor(32);
+ assert.equal(Math.round((await mobile.locator('[data-control=attack]').boundingBox()).width),68);
+ assert.equal(await mobile.locator('[data-action=jump] small').innerText(),'Space');
+ await mobile.click('#play');await mobile.keyboard.down('KeyW');await mobile.clock.runFor(32);
+ assert.ok(!(await mobile.locator('[data-action=jump]').getAttribute('class')??'').includes('active'));await mobile.keyboard.up('KeyW');
+ await mobile.keyboard.down('Space');await mobile.clock.runFor(32);
+ assert.ok((await mobile.locator('[data-action=jump]').getAttribute('class')??'').includes('active'));await mobile.keyboard.up('Space');
+ await mobile.click('#control-settings');
+ const attackRect=await mobile.locator('[data-control=attack]').boundingBox(),weaponRect=await mobile.locator('[data-control=weapon]').boundingBox();
+ await mobile.mouse.move(attackRect.x+attackRect.width/2,attackRect.y+attackRect.height/2);await mobile.mouse.down();
+ await mobile.mouse.move(weaponRect.x+weaponRect.width/2,weaponRect.y+weaponRect.height/2,{steps:4});await mobile.mouse.up();
+ await mobile.click('#save-controls');assert.equal(await mobile.locator('#layout-editor').isVisible(),true,'overlap prevents saving');
+ assert.match(await mobile.locator('#editor-message').innerText(),/Separate/);
+ await mobile.click('#reset-layout');await mobile.click('#cancel-controls');
+ assert.equal(await mobile.evaluate(()=>localStorage.getItem('shinobi-arena.controls.v1')),saved,'cancel discards layout reset');
+ await mobile.click('#play');await mobile.clock.runFor(32);
  for(const button of await mobile.locator('[data-action]').all()){
   const box=await button.boundingBox();assert.ok(box.width>=48&&box.height>=48,'touch targets are at least 48px');
   assert.ok(box.x>=0&&box.x+box.width<=844&&box.y>=0&&box.y+box.height<=390,'touch targets fit landscape viewport');
@@ -88,3 +121,4 @@ try {
  assert.deepEqual(mobileErrors,[],'no mobile page errors');await context.close();
  console.log('Browser checks passed: local match, rematch, pause, multi-touch, cancellation, portrait gate, landscape resume and control bounds.');
 } finally {if(browser)await browser.close();server.kill();}
+
