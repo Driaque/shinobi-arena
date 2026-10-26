@@ -41,3 +41,14 @@ engine that forces every game into fighting-game states. Add shared interfaces o
 Today: static browser shell -> GitHub Pages. No backend or cloud credentials.
 Later: separate backend delivery with infrastructure-as-code, short-lived cloud identity, integration tests,
 staging verification and explicit production promotion. Do not place API secrets in a static build.
+
+
+## ADR 005 · Character kits and composable effects
+
+Accepted for 0.3.0. Character and weapon catalogues select trusted move definitions. Loadouts are
+validated before match creation and retained across rounds. Signatures, equipped weapon and bloodline
+are distinct action slots; absence of a bloodline is represented explicitly rather than a fallback attack.
+Effect instances carry type, duration, potency and next-tick time. Reapplication refreshes one instance
+without resetting its periodic damage schedule. Movement/escape use the same device-independent action
+contract on keyboard, touch and computer input. The simulation remains independent of DOM and rendering.
+Balance values are prototype tuning; the architecture does not imply balanced competitive play.

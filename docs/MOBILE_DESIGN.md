@@ -7,11 +7,11 @@
 | Upper left/right | Fighter name, HP and chakra; remain outside thumb regions |
 | Upper centre | Round timer and compact pause/settings button |
 | Middle | Battlefield, fighters and readable combat feedback |
-| Lower left | Left/right movement plus separate jump button |
-| Lower right | Attack, block and two distinct special buttons |
+| Lower left | Left/right, double-jump and explicit back/forward dash buttons |
+| Lower right | Basic, equipped weapon, guard, Replacement, signatures and bloodline |
 | Safe edges | Pad for camera cutout, home indicator and rounded screen corners |
 
-The included control lab establishes layout and input-state handling. It is not final art or gameplay.
+The playable arena uses two-row touch controls. The pre-battle screen selects characters and weapons. Artwork remains procedural.
 Test at 844×390 and 915×412 CSS viewports and a smaller 667×375 viewport, plus physical devices.
 Do not stretch simulation coordinates to match device aspect ratio: use a virtual arena and letterboxing
 or explicitly defined camera framing so a wider phone doesn't change combat reach.

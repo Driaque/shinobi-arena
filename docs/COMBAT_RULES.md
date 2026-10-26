@@ -46,3 +46,15 @@ Rematch resets the entire match. Changing modes discards the current match.
 Evaluates legal visible state every eight ticks. Approaches, guards against visible attack startup,
 uses specials at range, and uses basic attacks nearby. Uses the same costs, stun and cooldown rules.
 No randomness or LLM service. This is a baseline opponent, not advanced fighting-game AI.
+
+## 0.3.0 extension
+
+The current rules version is `duel-0.3.0`. The earlier table documents the original two-fighter baseline;
+Chidori now uses its own guard-piercing move definition. See CHARACTER_KITS.md and catalog.js for the
+expanded roster and current authoritative values. Double jumping, dashing, Replacement and effects
+follow the extension documented there. Loadouts are validated at match creation and preserved between rounds.
+
+Effects tick before actions; lethal periodic damage stops that fighter starting another action.
+Replacement is processed before ordinary stun restrictions, allowing it to escape hitstun. It cannot
+revive a fighter. Projectiles snapshot weakening/pierce at launch. Melee uses the attacker's current
+weakening and Byakugan state. All direct hit candidates still resolve simultaneously.

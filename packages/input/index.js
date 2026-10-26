@@ -1,4 +1,4 @@
-export const ACTIONS = Object.freeze(['left', 'right', 'jump', 'attack', 'block', 'special1', 'special2']);
+export const ACTIONS = Object.freeze(['left', 'right', 'jump', 'attack', 'block', 'special1', 'special2', 'weapon', 'bloodline', 'replacement', 'dashForward', 'dashBack']);
 export function createInput() {
   const held = new Map(), pressed = new Set();
   const snapshot = () => Object.fromEntries(ACTIONS.map(a => [a, (held.get(a)?.size ?? 0) > 0]));

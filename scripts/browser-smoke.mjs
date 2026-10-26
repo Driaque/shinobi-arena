@@ -35,6 +35,18 @@ try {
  await page.clock.runFor(180);
  assert.equal(await page.locator('#hp0').innerText(),'1000');assert.equal(await page.locator('#hp1').innerText(),'1000');
  await page.screenshot({path:'test-results/desktop.png'});
+ // Pre-battle choices are used by the simulation and action HUD.
+ await page.selectOption('#mode','cpu');await page.selectOption('#character0','hinata');await page.selectOption('#weapon0','katana');
+ await page.selectOption('#character1','orochimaru');await page.selectOption('#weapon1','shuriken');
+ await page.screenshot({path:'test-results/loadouts.png'});await page.click('#play');await page.clock.runFor(32);
+ assert.equal(await page.locator('#name0').innerText(),'HINATA');assert.equal(await page.locator('#name1').innerText(),'OROCHIMARU');
+ assert.match(await page.locator('#weapon-label').innerText(),/KATANA/);assert.equal(await page.locator('#bl-name').innerText(),'BYAKUGAN');
+ await page.keyboard.down('KeyO');await page.clock.runFor(180);await page.keyboard.up('KeyO');
+ assert.match(await page.locator('#effects0').innerText(),/BYAKUGAN/);
+ await page.keyboard.down('KeyR');await page.clock.runFor(32);await page.keyboard.up('KeyR');
+ assert.match(await page.locator('#replacement-cd').innerText(),/s/);
+ await page.selectOption('#mode','local');await page.selectOption('#character0','naruto');await page.selectOption('#weapon0','kunai');
+ await page.selectOption('#character1','sasuke');await page.selectOption('#weapon1','kunai');
  // CPU actually wins a round against an idle player, using the full browser loop.
  await page.selectOption('#mode','cpu');await page.click('#play');await page.clock.runFor(15000);
  assert.equal(await page.locator('#overlay').isVisible(),true);
@@ -42,7 +54,7 @@ try {
  assert.deepEqual(errors,[],'no desktop page errors');await page.close();
  const context=await browser.newContext({viewport:{width:844,height:390},isMobile:true,hasTouch:true});
  const mobile=await context.newPage();const mobileErrors=[];mobile.on('pageerror',e=>mobileErrors.push(e.message));
- await mobile.clock.install();await mobile.goto('http://127.0.0.1:4183');await mobile.click('#play');
+ await mobile.clock.install();await mobile.goto('http://127.0.0.1:4183');await mobile.screenshot({path:'test-results/mobile-loadouts.png'});await mobile.click('#play');
  const cdp=await context.newCDPSession(mobile);
  const box1=await mobile.locator('[data-action=right]').boundingBox(),box2=await mobile.locator('[data-action=attack]').boundingBox();
  const point=(box,id)=>({x:box.x+box.width/2,y:box.y+box.height/2,id});
@@ -68,6 +80,10 @@ try {
  for(const button of await mobile.locator('[data-action]').all()){
   const box=await button.boundingBox();assert.ok(box.width>=48&&box.height>=48,'touch targets are at least 48px');
   assert.ok(box.x>=0&&box.x+box.width<=844&&box.y>=0&&box.y+box.height<=390,'touch targets fit landscape viewport');
+ }
+ await mobile.setViewportSize({width:667,height:375});await mobile.clock.runFor(32);
+ for(const button of await mobile.locator('[data-action]').all()){
+   const b=await button.boundingBox();assert.ok(b.width>=48&&b.height>=48&&b.x>=0&&b.x+b.width<=667&&b.y>=0&&b.y+b.height<=375,'controls fit smaller landscape phone');
  }
  assert.deepEqual(mobileErrors,[],'no mobile page errors');await context.close();
  console.log('Browser checks passed: local match, rematch, pause, multi-touch, cancellation, portrait gate, landscape resume and control bounds.');
