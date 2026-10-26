@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111827">
+  <title>Shinobi Arena · Control Lab</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main id="game" aria-label="Shinobi Arena control prototype">
+    <header><div><small>SHINOBI ARENA / FOUNDATION</small><h1>Control lab</h1></div><button id="fullscreen">Full screen</button></header>
+    <section class="arena" aria-label="Battlefield layout preview">
+      <div class="hud"><div>Fighter 01 <meter min="0" max="100" value="100">100 HP</meter></div><span>ROUND 01 · PREVIEW</span><div>Fighter 02 <meter min="0" max="100" value="100">100 HP</meter></div></div>
+      <div class="fighter one">01</div><div class="fighter two">02</div>
+      <p class="preview">Layout and input prototype · Combat comes next</p>
+      <div class="controls" aria-label="Touch controls">
+        <div class="movement"><button data-action="left" aria-label="Move left">LEFT</button><button data-action="right" aria-label="Move right">RIGHT</button><button data-action="jump">JUMP</button></div>
+        <div class="attacks"><button data-action="block">BLOCK</button><button data-action="attack">HIT</button><button data-action="special1">SKILL 1</button><button data-action="special2">SKILL 2</button></div>
+      </div>
+    </section>
+    <footer><p>A / D: move · W: jump · J: hit · K: block · U / I: skills</p><output id="inputs" aria-label="Active inputs">Ready</output><span id="status" role="status"></span></footer>
+    <section id="rotate" role="dialog" aria-modal="true" aria-labelledby="rotate-title" hidden><div><p class="phone">▭</p><h2 id="rotate-title">Turn your phone sideways</h2><p>The arena uses landscape controls.<br>Rotate your phone to continue.</p></div></section>
+  </main>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

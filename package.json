@@ -1,0 +1,14 @@
+{
+  "name": "shinobi-arena",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "check": "node scripts/check.mjs",
+    "test": "node --test",
+    "build": "node scripts/build.mjs",
+    "verify": "npm run check && npm test && npm run build"
+  }
+}
