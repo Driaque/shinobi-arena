@@ -10,7 +10,8 @@ try {
  await mkdir('test-results',{recursive:true});
  const page=await browser.newPage({viewport:{width:1280,height:900}});
  const errors=[];page.on('pageerror',e=>{errors.push(e.message);console.error(e.stack);});
- await page.clock.install();
+ await page.clock.install({time:new Date('2030-01-01T00:00:00Z')});
+ await page.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));
  await page.goto('http://127.0.0.1:4183');
  assert.equal(await page.locator('#character0 input[type=radio]').count(),16);
  assert.equal(await page.locator('#character1 input[type=radio]').count(),16);
@@ -40,6 +41,7 @@ try {
  await page.click('#play');
  // Timed basic taps form a visible hit-confirm chain.
  await page.clock.runFor(500);
+ await page.keyboard.down('KeyD');await page.clock.runFor(200);await page.keyboard.up('KeyD');
  await page.keyboard.down('KeyJ');await page.clock.runFor(100);await page.keyboard.up('KeyJ');await page.clock.runFor(16);
  await page.keyboard.down('KeyJ');await page.clock.runFor(100);await page.keyboard.up('KeyJ');await page.clock.runFor(100);
  await page.keyboard.down('KeyJ');await page.clock.runFor(200);await page.keyboard.up('KeyJ');
@@ -91,7 +93,7 @@ try {
  assert.deepEqual(errors,[],'no desktop page errors');await page.close();
  const context=await browser.newContext({viewport:{width:844,height:390},isMobile:true,hasTouch:true});
  const mobile=await context.newPage();const mobileErrors=[];mobile.on('pageerror',e=>mobileErrors.push(e.message));
- await mobile.clock.install();await mobile.goto('http://127.0.0.1:4183');await mobile.screenshot({path:'test-results/mobile-loadouts.png'});
+ await mobile.clock.install({time:new Date('2030-01-01T00:00:00Z')});await mobile.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));await mobile.goto('http://127.0.0.1:4183');await mobile.screenshot({path:'test-results/mobile-loadouts.png'});
  await mobile.setViewportSize({width:667,height:375});await mobile.clock.runFor(32);
  await mobile.screenshot({path:'test-results/small-mobile-roster.png'});
  for(const card of await mobile.locator('.character-card').all()){

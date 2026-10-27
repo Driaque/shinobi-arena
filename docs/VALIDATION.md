@@ -3,6 +3,8 @@
 Local validation on October 26, 2026:
 
 - `npm run verify`: passed JavaScript syntax checks, 70 unit tests and static build.
+- Browser test clock is explicitly paused and advanced by the harness, keeping combo input timing
+  independent of CI runner wall-clock speed. The combo scenario closes to melee range before tapping.
 - `npm run test:browser`: passed using Playwright 1.62.1 with an alternate local Chromium 153 binary.
   The standard browser download endpoint was unavailable in the workspace; CI installs Playwright's
   matching Chromium using its normal installer.
