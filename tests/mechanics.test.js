@@ -59,7 +59,8 @@ test('fireball applies burn, which expires after four ticks',()=>{
 test('Chakra Point Strike applies a 30 percent outgoing damage nerf',()=>{
  const s=close('hinata');advance(s,9,[{special2:true},{}]);const target=s.fighters[1];
  assert.equal(target.effects[0].type,'weaken');assert.equal(target.effects[0].potency,0.3);
- target.stun=0;target.x=670;advance(s,6,[{}, {attack:true}]);assert.equal(s.fighters[0].hp,954);
+ target.stun=0;target.x=670;s.fighters[0].action=null; // Isolate weaken from recovery-punish damage.
+ advance(s,6,[{}, {attack:true}]);assert.equal(s.fighters[0].hp,954);
 });
 test('Byakugan temporarily lets a weapon penetrate guard',()=>{
  const s=close('hinata');advance(s,25,[{bloodline:true},{}]);assert.equal(s.fighters[0].buffs[0].type,'byakugan');
@@ -103,3 +104,4 @@ test('reapplying poison refreshes one effect without resetting its next damage t
  assert.equal(s.fighters[1].effects.length,1);assert.equal(s.fighters[1].effects[0].potency,9);
  assert.equal(s.fighters[1].effects[0].nextTick,next);assert.ok(s.fighters[1].effects[0].remaining>=350);
 });
+

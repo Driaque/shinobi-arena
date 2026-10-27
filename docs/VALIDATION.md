@@ -1,4 +1,6 @@
-# Playable duel validation · 0.6.0
+# Playable duel validation
+
+## Archived v0.6.0 report
 
 Local validation on October 26, 2026:
 
@@ -40,3 +42,13 @@ online-play claims are made. Browser smoke automation does not replace interacti
 ## v0.7.0 — Silent and Winta
 
 Engine checks cover individual sword chains, guard absorption/reflect and counter expiry, full-pierce bypass, pull/metal vulnerability without accidental DOT, guard/Replacement avoidance, lightning-only amplification, actual-damage lifesteal/HP cap/overkill, awakening expiry/reset/faster chains, and deterministic replay. Browser smoke covers all 18 roster entries, Originals / TNR filter, both concept images, selected Tachi/Kaiken loadouts, real guard reflect/counter HUD and the existing desktop/mobile suite. Mobile screenshots include the original portraits at landscape size. Prototype art and playtest balance remain limitations.
+
+## v0.8.0 — movement, tactics and mobile controls
+
+Added engine regression coverage for simultaneous jump/dash, dash cancellation, air-dash landing reset, movement buffering, consecutive fast taps, stamina exhaustion/recovery, timed parries and pierce bypass, guard break/recovery, weapon guard pressure, whiff/recovery punishes and CPU counterplay against basic-only rushes at six tap rates. Preference checks cover dock bounds, opacity/placement persistence and old custom-key/layout migration including P2 dash conflicts.
+
+Browser smoke now verifies real multi-pointer jump → air dash, a separate battle/deck boundary, repeated-tap viewport scale/scroll stability, dock/overlay switching, opacity save/reload/cancel, and the existing roster/combat/round/editor paths. Existing idle-opponent round checks allow stamina recovery instead of assuming unlimited rapid basics. The weaken test clears recovery state to isolate its 30% modifier from the new punish bonus.
+
+Physical device Safari gesture behavior and human balance feedback remain manual checks; Chromium emulation alone does not establish either.
+
+Local v0.8 result: `npm run verify` passes syntax checks, all 98 unit tests and the static build. `npm run test:browser` passes the complete desktop/mobile suite, with no page errors. Dock/gameplay/editor screenshots were visually reviewed.

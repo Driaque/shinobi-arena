@@ -57,7 +57,7 @@ try {
    for(let attack=0;attack<22;attack++){
      if(await page.locator('#overlay').isVisible())break;
      await page.keyboard.down('KeyD');await page.clock.runFor(attack===0?1700:120);await page.keyboard.up('KeyD');
-     await page.keyboard.down('KeyJ');await page.clock.runFor(40);await page.keyboard.up('KeyJ');await page.clock.runFor(400);
+     await page.keyboard.down('KeyJ');await page.clock.runFor(40);await page.keyboard.up('KeyJ');await page.clock.runFor(1100);
    }
    assert.equal(await page.locator('#overlay').isVisible(),true,'round ends');
    assert.match(await page.locator('#overlay-title').innerText(),/Naruto wins/);
@@ -80,7 +80,7 @@ try {
  await page.selectOption('#mode','local');await page.locator('#character0 input[value="naruto"]').check();await page.selectOption('#weapon0','kunai');
  await page.locator('#character1 input[value="sasuke"]').check();await page.selectOption('#weapon1','kunai');
  // CPU actually wins a round against an idle player, using the full browser loop.
- await page.selectOption('#mode','cpu');await page.click('#play');await page.clock.runFor(15000);
+ await page.selectOption('#mode','cpu');await page.click('#play');await page.clock.runFor(25000);
  assert.equal(await page.locator('#overlay').isVisible(),true);
  assert.match(await page.locator('#overlay-title').innerText(),/Sasuke wins/);
  // Actual damage from seven basic hits charges Naruto's form; no debug state injection.
@@ -88,7 +88,7 @@ try {
  await page.keyboard.down('ArrowLeft');await page.clock.runFor(1700);await page.keyboard.up('ArrowLeft');
  for(let n=0;n<7;n++){
    await page.keyboard.down('ArrowLeft');await page.clock.runFor(120);await page.keyboard.up('ArrowLeft');
-   await page.keyboard.down('KeyN');await page.clock.runFor(40);await page.keyboard.up('KeyN');await page.clock.runFor(400);
+   await page.keyboard.down('KeyN');await page.clock.runFor(40);await page.keyboard.up('KeyN');await page.clock.runFor(1100);
  }
  assert.match(await page.locator('#awakening-label0').innerText(),/READY/);
  await page.keyboard.down('KeyT');await page.clock.runFor(40);await page.keyboard.up('KeyT');
@@ -145,9 +145,32 @@ try {
  await mobile.click('#play');await mobile.clock.runFor(100);
  await mobile.screenshot({path:'test-results/mobile-landscape.png'});
  // Edit the touch layout, rebind a key, and persist both on this device.
+ // Dock targets never cover the actual battle viewport, even at the arena edges.
+ const fight=await mobile.locator('.battle-view').boundingBox();
+ for(const control of await mobile.locator('[data-control]').all()){const rect=await control.boundingBox();assert.ok(rect.y>=fight.y+fight.height,'control stays below fighting viewport');}
+ assert.equal(await mobile.locator('.arena').getAttribute('data-control-placement'),'dock');
+ await mobile.clock.runFor(550); // Finish the earlier basic attack before testing free movement.
+ // Actual touch jump and air dash through independent pointers; no injected combat state.
+ const jumpBox=await mobile.locator('[data-action=jump]').boundingBox(),dashBox=await mobile.locator('[data-action=dashForward]').boundingBox();
+ const jumpPoint=point(jumpBox,10),dashPoint=point(dashBox,11);
+ await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[jumpPoint]});await mobile.clock.runFor(32);
+ assert.match(await mobile.locator('#movement-state').innerText(),/AIR/);
+ await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[jumpPoint,dashPoint]});await mobile.clock.runFor(32);
+ assert.equal(await mobile.locator('#movement-state').innerText(),'AIR DASH');
+ await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await mobile.clock.runFor(1400);
+ // Repeated touch taps keep the visual viewport scale and page position stable.
+ const scale=await mobile.evaluate(()=>visualViewport.scale),scroll=await mobile.evaluate(()=>scrollY);
+ for(let i=0;i<8;i++){await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[jumpPoint]});await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await mobile.clock.runFor(35);}
+ assert.equal(await mobile.evaluate(()=>visualViewport.scale),scale);assert.equal(await mobile.evaluate(()=>scrollY),scroll);
+ assert.equal(await mobile.locator('.controls').evaluate(el=>getComputedStyle(el).touchAction),'none');
+ await mobile.screenshot({path:'test-results/mobile-control-deck.png'});
  await mobile.click('#control-settings');assert.equal(await mobile.locator('#layout-editor').isVisible(),true);
  const editTimer=await mobile.locator('#timer').innerText();await mobile.clock.runFor(500);assert.equal(await mobile.locator('#timer').innerText(),editTimer);
- const attackBefore=await mobile.locator('[data-control=attack]').boundingBox();
+ await mobile.locator('#control-opacity').evaluate(el=>{el.value='35';el.dispatchEvent(new Event('input',{bubbles:true}));});
+ assert.equal(await mobile.locator('#opacity-value').innerText(),'35%');
+ await mobile.selectOption('#control-placement','overlay');assert.equal(await mobile.locator('.arena').getAttribute('data-control-placement'),'overlay');
+ await mobile.selectOption('#control-placement','dock');
+ const attackBefore=await mobile.locator('[data-control=stick]').boundingBox();
  await mobile.mouse.move(attackBefore.x+attackBefore.width/2,attackBefore.y+attackBefore.height/2);await mobile.mouse.down();
  await mobile.mouse.move(attackBefore.x+attackBefore.width/2-10,attackBefore.y+attackBefore.height/2-10,{steps:4});await mobile.mouse.up();
  await mobile.selectOption('#control-select','attack');
@@ -160,10 +183,10 @@ try {
  await mobile.click('#close-keys');await mobile.screenshot({path:'test-results/control-editor.png'});await mobile.click('#save-controls');
  assert.equal(await mobile.locator('#layout-editor').isVisible(),false);
  const saved=await mobile.evaluate(()=>localStorage.getItem('shinobi-arena.controls.v1'));assert.ok(saved);
- const prefs=JSON.parse(saved);assert.equal(prefs.keys[0].Space,'jump');assert.equal(prefs.keys[0].KeyW,undefined);assert.equal(prefs.layouts.medium.attack.size,68);
+ const prefs=JSON.parse(saved);assert.equal(prefs.opacity,.35);assert.equal(prefs.placement,'dock');assert.equal(prefs.keys[0].Space,'jump');assert.equal(prefs.keys[0].KeyW,undefined);assert.equal(prefs.dockLayouts.medium.attack.size,68);
  await mobile.reload();await mobile.clock.runFor(32);
  assert.equal(Math.round((await mobile.locator('[data-control=attack]').boundingBox()).width),68);
- assert.equal(await mobile.locator('[data-action=jump] small').innerText(),'Space');
+ assert.equal(await mobile.locator('[data-action=jump] small').innerText(),'Space');assert.equal(await mobile.locator('.arena').evaluate(el=>el.style.getPropertyValue('--control-opacity')),'0.35');
  await mobile.click('#play');await mobile.keyboard.down('KeyW');await mobile.clock.runFor(32);
  assert.ok(!(await mobile.locator('[data-action=jump]').getAttribute('class')??'').includes('active'));await mobile.keyboard.up('KeyW');
  await mobile.keyboard.down('Space');await mobile.clock.runFor(32);
@@ -174,6 +197,7 @@ try {
  await mobile.mouse.move(weaponRect.x+weaponRect.width/2,weaponRect.y+weaponRect.height/2,{steps:4});await mobile.mouse.up();
  await mobile.click('#save-controls');assert.equal(await mobile.locator('#layout-editor').isVisible(),true,'overlap prevents saving');
  assert.match(await mobile.locator('#editor-message').innerText(),/Separate/);
+ await mobile.locator('#control-opacity').evaluate(el=>{el.value='90';el.dispatchEvent(new Event('input',{bubbles:true}));});
  await mobile.click('#reset-layout');await mobile.click('#cancel-controls');
  assert.equal(await mobile.evaluate(()=>localStorage.getItem('shinobi-arena.controls.v1')),saved,'cancel discards layout reset');
  await mobile.click('#play');await mobile.clock.runFor(32);

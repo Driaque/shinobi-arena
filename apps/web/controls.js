@@ -1,5 +1,5 @@
 import { ACTIONS } from './packages/input/index.js';
-import { STORAGE_KEY, CONTROL_IDS, DEFAULT_KEYS, freshSettings, readSettings, stickVector, defaultLayout, layoutProfile, projectControl, layoutOverlaps, rebind, keyLabel, keyForAction } from './packages/input/preferences.js';
+import { STORAGE_KEY, CONTROL_IDS, DEFAULT_KEYS, freshSettings, readSettings, stickVector, defaultLayout, defaultDockLayout, layoutProfile, projectControl, layoutOverlaps, rebind, keyLabel, keyForAction } from './packages/input/preferences.js';
 export const ACTION_LABELS={awakening:'Awakening',stick:'Movement stick',left:'Move left',right:'Move right',jump:'Double jump',attack:'Basic attack',weapon:'Weapon',block:'Guard',special1:'Signature 1',special2:'Signature 2',bloodline:'Bloodline',replacement:'Replacement',dashForward:'Dash forward',dashBack:'Dash backward'};
 export function createControls({inputs,onPause,isPlaying}) {
   const $=s=>document.querySelector(s),arena=$('.arena'),stick=$('#joystick');
@@ -10,21 +10,26 @@ export function createControls({inputs,onPause,isPlaying}) {
   const current=()=>draft??settings;
   const dimensions=()=>({width:arena.clientWidth,height:arena.clientHeight});
   const profile=()=>layoutProfile(arena.clientWidth);
-  const layout=()=>current().layouts[profile()]??defaultLayout(arena.clientWidth,arena.clientHeight);
-  function editableLayout(){draft.layouts[profile()]??=structuredClone(layout());return draft.layouts[profile()];}
+  const layoutKey=()=>current().placement==='dock'?'dockLayouts':'layouts';
+  const layout=()=>current()[layoutKey()][profile()]??(current().placement==='dock'?defaultDockLayout:defaultLayout)(arena.clientWidth,arena.clientHeight);
+  function editableLayout(){draft[layoutKey()][profile()]??=structuredClone(layout());return draft[layoutKey()][profile()];}
   function message(text){$('#editor-message').textContent=text;}
   function resetStick(){stickPointer=null;inputs[0].release('stick');stick.style.setProperty('--stick-x','0px');stick.style.setProperty('--stick-y','0px');stick.classList.remove('active');}
   function reset(){resetStick();drag=null;inputs.forEach(i=>i.reset());}
-  function collisionMessage(){const {width,height}=dimensions(),pairs=layoutOverlaps(layout(),width,height);return pairs.length?`Separate ${ACTION_LABELS[pairs[0][0]]} and ${ACTION_LABELS[pairs[0][1]]} before saving.`:'';}
+  function collisionMessage(){const {width,height}=dimensions(),pairs=layoutOverlaps(layout(),width,height,current().placement);return pairs.length?`Separate ${ACTION_LABELS[pairs[0][0]]} and ${ACTION_LABELS[pairs[0][1]]} before saving.`:'';}
   function applyLayout(){
     const {width,height}=dimensions(),positions=layout();
+    arena.dataset.controlPlacement=current().placement;
+    arena.style.setProperty('--control-opacity',current().opacity);
+    $('#control-opacity').value=Math.round(current().opacity*100);$('#opacity-value').textContent=`${Math.round(current().opacity*100)}%`;
+    $('#control-placement').value=current().placement;
     for(const [id,node]of Object.entries(nodes)){
-      const p=projectControl(positions[id],width,height,id);
+      const p=projectControl(positions[id],width,height,id,current().placement);
       Object.assign(node.style,{left:`${p.x}px`,top:`${p.y}px`,width:`${p.size}px`,height:`${p.size}px`});
       node.classList.toggle('selected-control',editing&&selected===id);
     }
     if(editing){
-      $('#control-select').value=selected;$('#control-size').min=selected==='stick'?88:48;$('#control-size').max=selected==='stick'?160:90;
+      $('#control-select').value=selected;$('#control-size').min=selected==='stick'?88:48;$('#control-size').max=selected==='stick'?(current().placement==='dock'?120:160):90;
       $('#control-size').value=positions[selected].size;$('#size-value').textContent=`${Math.round(positions[selected].size)} px`;
       message(collisionMessage()||'Drag a control to move it. Gameplay is paused.');
     }
@@ -40,7 +45,7 @@ export function createControls({inputs,onPause,isPlaying}) {
     if(!drag||drag.pointer!==event.pointerId)return;
     const rect=arena.getBoundingClientRect(),{width,height}=dimensions();
     const candidate={...editableLayout()[drag.id],x:(event.clientX-rect.left-drag.offsetX)/width,y:(event.clientY-rect.top-drag.offsetY)/height};
-    const p=projectControl(candidate,width,height,drag.id);
+    const p=projectControl(candidate,width,height,drag.id,current().placement);
     editableLayout()[drag.id]={x:p.x/width,y:p.y/height,size:p.size};applyLayout();
   }
   function moveStick(event){
@@ -107,7 +112,12 @@ export function createControls({inputs,onPause,isPlaying}) {
     catch{$('#status').textContent='Storage is unavailable. These controls apply until this page closes.';}
     close();
   });
-  $('#reset-layout').addEventListener('click',()=>{draft.layouts[profile()]=defaultLayout(arena.clientWidth,arena.clientHeight);applyLayout();});
+  $('#reset-layout').addEventListener('click',()=>{draft[layoutKey()][profile()]=(current().placement==='dock'?defaultDockLayout:defaultLayout)(arena.clientWidth,arena.clientHeight);applyLayout();});
+  $('#control-opacity').addEventListener('input',event=>{draft.opacity=Number(event.target.value)/100;applyLayout();});
+  $('#control-placement').addEventListener('change',event=>{reset();draft.placement=event.target.value;applyLayout();});
+  // Suppress native zoom/scroll only on the live play surface; menus retain normal scrolling.
+  const preventPlayGesture=event=>{if(!editing&&isPlaying()&&!event.target.closest('#overlay,#layout-editor,dialog'))event.preventDefault();};
+  for(const type of ['touchstart','touchmove','gesturestart','gesturechange','gestureend','dblclick'])arena.addEventListener(type,preventPlayGesture,{passive:false});
   for(const id of CONTROL_IDS)$('#control-select').add(new Option(ACTION_LABELS[id],id));
   $('#control-select').addEventListener('change',event=>select(event.target.value));
   $('#control-size').addEventListener('input',event=>{editableLayout()[selected].size=Number(event.target.value);applyLayout();});
@@ -133,3 +143,4 @@ export function createControls({inputs,onPause,isPlaying}) {
   applyLayout();
   return {reset,get editing(){return editing;},binding:(player,action)=>keyLabel(keyForAction(current().keys,player,action))};
 }
+

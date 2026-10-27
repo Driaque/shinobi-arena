@@ -17,9 +17,11 @@ export function createInput() {
       // Capture even a quick tap released between two simulation ticks.
       const frame = snapshot();
       for (const action of pressed) frame[action] = true;
+      frame.pressedActions=[...pressed];
       pressed.clear();
       return frame;
     }
   };
 }
+
 

@@ -21,7 +21,7 @@ Default keyboard bindings (customizable in Controls → Keyboard):
 | --- | --- | --- |
 | Move / double-tap directional dash | A / D | Left / right arrows |
 | Jump / double jump | W twice | Up arrow twice |
-| Explicit back / forward dash | Q / E | Double-tap direction |
+| Explicit back / forward dash | Q / E | [ / ] |
 | Basic hit | J | N |
 | Equipped weapon | H | B |
 | Guard | K | M |
@@ -31,7 +31,7 @@ Default keyboard bindings (customizable in Controls → Keyboard):
 | Awakening (when ready) | T | Y |
 | Pause | P or Escape | P or Escape |
 
-Phone: hold sideways. Use the left analog stick to move, the separate jump/dash buttons to maneuver, and the right action cluster to fight. Push the stick farther to move faster; vertical stick motion does not jump. Open **Controls** to drag and resize controls, or edit keyboard bindings. Save keeps the settings on this device; Cancel discards the draft. One phone controls Naruto;
+Phone: hold sideways. Use the left analog stick to move, the separate jump/dash buttons to maneuver, and the right action cluster to fight. Push the stick farther to move faster; vertical stick motion does not jump. Open **Controls** to adjust opacity, switch below-arena/overlay placement, drag and resize controls, or edit keyboard bindings. Save keeps the settings on this device; Cancel discards the draft. One phone controls P1;
 use the computer opponent. Local two-player uses a shared desktop keyboard. Switching apps, losing
 focus or rotating into portrait pauses the local match; resume explicitly.
 
@@ -94,7 +94,7 @@ CI and deployment run unit checks, build and browser checks before publishing.
 
 `packages/engine` owns combat; `packages/input` owns independent input sources and quick-tap capture;
 `apps/web` owns browser events and procedural rendering. Neither engine nor input library imports the DOM.
-Simulation rules version: `duel-0.7.0`.
+Simulation rules version: `duel-0.8.0`.
 
 See [project plan](docs/PROJECT_PLAN.md), [combat rules](docs/COMBAT_RULES.md), [character kits](docs/CHARACTER_KITS.md),
 [mobile design](docs/MOBILE_DESIGN.md), [control settings](docs/CONTROL_SETTINGS.md), [architecture](docs/ARCHITECTURE.md),
@@ -108,3 +108,9 @@ No third-party character assets are bundled. Asset provenance is recorded in
 ### v0.7.0: The Northern Calamity
 
 18 selectable fighters now include **Silent — Cold Metal** and **Winta — Frozen Sun**, under **Originals / TNR**, with user-supplied concept portraits. Silent has sword counters, Tetsugan guard reflect/absorption and a pulling metal-vulnerability strike. Winta has lightning pressure and a lifestealing strike. Their proposed awakenings change signatures and speed up sword chains. Tachi and Kaiken are selectable equipment. [Character kits and adaptation notes](docs/ORIGINAL_CHARACTERS.md).
+
+### v0.8.0: movement, counterplay and clear mobile controls
+
+Jump and dash work together, including one air dash per landing cycle and fast-tap buffering. Stamina limits basic/weapon spam; timed parries, guard breaks and +20% recovery punishes reward defense, spacing and varied attacks. The CPU responds to startup, recovery and guard. P2 has [ / ] dash shortcuts.
+
+Controls now default to a separate deck **below** the fight, with a camera sized for the remaining viewport. Controls → Opacity adjusts visibility from 25–100%; Placement can restore an overlay. Preferences migrate without losing existing keys/layouts. Live play suppresses native touch zoom/scroll gestures; fullscreen requests landscape where browsers support it.

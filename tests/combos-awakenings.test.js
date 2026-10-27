@@ -75,7 +75,7 @@ test('version-one control settings retain custom layouts and keybindings when ad
  const legacy=freshSettings();legacy.version=1;legacy.layouts.medium=defaultLayout(804,302);legacy.layouts.medium.attack.size=70;
  delete legacy.layouts.medium.awakening;delete legacy.keys[0].KeyT;delete legacy.keys[1].KeyY;
  legacy.keys[0].Space='jump';delete legacy.keys[0].KeyW;
- const upgraded=readSettings(JSON.stringify(legacy));assert.equal(upgraded.version,2);assert.equal(upgraded.keys[0].Space,'jump');assert.equal(upgraded.keys[0].KeyT,'awakening');assert.equal(upgraded.layouts.medium.attack.size,70);assert.ok(upgraded.layouts.medium.awakening);
+ const upgraded=readSettings(JSON.stringify(legacy));assert.equal(upgraded.version,3);assert.equal(upgraded.keys[0].Space,'jump');assert.equal(upgraded.keys[0].KeyT,'awakening');assert.equal(upgraded.layouts.medium.attack.size,70);assert.ok(upgraded.layouts.medium.awakening);
  legacy.keys[0].KeyT='jump';delete legacy.keys[0].Space;const preserved=readSettings(JSON.stringify(legacy));assert.equal(preserved.keys[0].KeyT,'jump');assert.ok(!Object.values(preserved.keys[0]).includes('awakening'));
 });
 

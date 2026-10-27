@@ -52,3 +52,10 @@ Edge-trigger jump and specials; don't repeat them every simulation tick while he
 
 Automated emulation complements these checks but does not replace physical-device evidence.
 
+
+
+## v0.8 unobstructed play
+
+Default touch targets now occupy a separate bottom deck, outside the battle viewport. The responsive camera fills the remaining fight area while retaining horizontal arena coordinates, avoiding miniature letterboxed fighters. Opacity is user-adjustable (25–100%) and placement may switch back to an overlay. Layout editor keeps both placements independently.
+
+Live gameplay uses touch-action:none plus scoped non-passive touch/gesture prevention. Outside gameplay, native menu scrolling/zoom remain available. Portrait is paused behind the rotate gate. A browser cannot always honor an orientation lock; fullscreen requests it when available. Mobile checks emulate simultaneous jump/dash touches and repeated taps without viewport scale or scroll changes; physical iOS/Safari verification remains manual.

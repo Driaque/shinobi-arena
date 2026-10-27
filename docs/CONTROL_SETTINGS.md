@@ -50,3 +50,12 @@ profiles. Saving while storage is unavailable applies settings in memory and rep
 survive closing the page. Missing, corrupt or incompatible settings fall back to defaults.
 
 Physical iPhone/Android testing remains pending; Chromium touch emulation is included in CI.
+
+
+## v0.8 settings version 3
+
+Controls → Placement selects **Below arena** (default separate 136px deck) or **Over arena**. Opacity slider ranges 25–100%, default 65%; active controls brighten slightly. Drag/resize settings are separate for dock and overlay, plus existing viewport profiles. The dock constrains targets below the visible battle area. Use Reset layout for that placement/profile; Save persists the draft, Cancel restores it. Editor labels and selected outline stay readable while adjusting opacity.
+
+Existing v1/v2 custom keyboard mappings and overlay layouts are preserved. New dock layouts start fresh so old overlay coordinates do not obscure the new fighting viewport. Default P2 dash is [ / ]; migration only adds missing bindings if their keys are unused. Storage key stays unchanged; version migration is automatic. Opacity and placement persist alongside keyboard/layout choices.
+
+The play surface prevents native touch scroll, double-tap zoom and gesture zoom while actively fighting; menus/roster retain normal scrolling and page zoom outside the play surface. Fullscreen still attempts a landscape orientation lock where supported. Otherwise portrait pauses the game and asks the player to rotate; browser support determines whether physical orientation can be locked.

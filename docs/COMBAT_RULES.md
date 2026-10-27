@@ -77,3 +77,15 @@ prototype balance choices; roster variety does not establish competitive balance
 ## duel-0.7.0 — originals combat interactions
 
 Silent's Tetsugan stance gives guarded chip absorption, bounded non-recursive reflect and a short one-use sword-counter window. Echoing Rift pulls on clean contact and exposes only metal damage. Winta's Shinrai Ōu enhances lightning; Eclipse Drain heals from actual clean damage, capped at maximum HP and excluding overkill. Healing does not undo accumulated damage charge. New statuses are not treated as poison/burn ticks. See [ORIGINAL_CHARACTERS.md](ORIGINAL_CHARACTERS.md) for exact values and proposed awakening modifiers.
+
+## duel-0.8.0 — movement and counterplay
+
+- Jump can cancel a dash. Ground and air dashes use the same direction/double-tap inputs; one air dash per landing cycle, 24-tick dash cooldown, no invulnerability. Dash costs 18 stamina. Fresh movement taps buffer for 8 ticks while busy. They do not cancel a committed attack. Jump and dash can be pressed together.
+- Input frames retain fresh-press metadata so two release/re-press taps on consecutive simulation ticks are distinct. Holding a key/button still does not auto-repeat attacks or jumps.
+- Stamina starts at 100: basic stages 12 / 12 / 16, equipped attacks 16. Signatures still use chakra. After 45 ticks without exertion, stamina recovers 0.5/tick while not attacking/dashing (guarding is allowed). Low stamina rejects basics/weapons/dash; it does not prevent jumping or chakra techniques.
+- Front guard raised less than 5 ticks before contact parries non-full-piercing attacks. No HP damage; costs 6 guard, interrupts/stuns the attacker 24 ticks. Parry cooldown is 60 ticks. Existing early/held guard still chips normally. Full pierce bypasses parry and guard.
+- Guard starts at 100. Guarded basics consume 22, weapons 36, chakra attacks 42. Full pierce deals damage directly. At zero, guard breaks: the hit lands cleanly, defender suffers at least 42 ticks stun and guard resets to 35. Releasing guard allows +0.6/tick recovery after 90 ticks without a guarded hit. Blocking cannot regenerate guard indefinitely.
+- Whiffed melee attacks and non-penetrating guarded attacks have 12 extra recovery ticks. Confirmed basic hits still chain/cancel as before. Clean attacks landing during an opponent's recovery gain 20% damage. Committed attacks cannot dodge-cancel this punish window.
+- CPU decisions use visible actions every 4 ticks. It blocks incoming non-piercing attacks, retreats from piercing threats, punishes recovery, uses pierce against guard and manages stamina. No hidden damage/HP/resource advantage.
+
+Stamina, guard, movement state and feedback expose these decisions in the HUD. These first balance values need human matchup playtesting; automated anti-spam checks cover several repeated-basic tapping rates rather than claiming every possible strategy is solved.

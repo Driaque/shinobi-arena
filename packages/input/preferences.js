@@ -1,10 +1,10 @@
 import { ACTIONS } from './index.js';
-export const SETTINGS_VERSION = 2;
+export const SETTINGS_VERSION = 3;
 export const STORAGE_KEY = 'shinobi-arena.controls.v1';
 export const CONTROL_IDS = Object.freeze(['stick', ...ACTIONS.filter(a => !['left','right'].includes(a))]);
 export const DEFAULT_KEYS = Object.freeze([
   {KeyA:'left',KeyD:'right',KeyW:'jump',KeyJ:'attack',KeyK:'block',KeyU:'special1',KeyI:'special2',KeyH:'weapon',KeyO:'bloodline',KeyR:'replacement',KeyQ:'dashBack',KeyE:'dashForward',KeyT:'awakening'},
-  {ArrowLeft:'left',ArrowRight:'right',ArrowUp:'jump',KeyN:'attack',KeyM:'block',Comma:'special1',Period:'special2',KeyB:'weapon',Slash:'bloodline',KeyV:'replacement',KeyY:'awakening'}
+  {ArrowLeft:'left',ArrowRight:'right',ArrowUp:'jump',KeyN:'attack',KeyM:'block',Comma:'special1',Period:'special2',KeyB:'weapon',Slash:'bloodline',KeyV:'replacement',KeyY:'awakening',BracketLeft:'dashBack',BracketRight:'dashForward'}
 ]);
 const clamp = (x,a,b) => Math.max(a,Math.min(b,x));
 export function stickVector(dx,dy,radius,deadZone=.18) {
@@ -24,13 +24,18 @@ export function defaultLayout(width,height) {
   };
   return Object.fromEntries(CONTROL_IDS.map(id=>[id,{x:px[id][0]/width,y:px[id][1]/height,size:px[id][2]}]));
 }
-export function projectControl(control,width,height,id) {
-  const maxSize=Math.max(id==='stick'?88:48,Math.min(id==='stick'?160:90,height-108));
-  const size=clamp(control.size,id==='stick'?88:48,maxSize),r=size/2;
-  return {x:clamp(control.x*width,8+r,Math.max(8+r,width-8-r)),y:clamp(control.y*height,82+r,Math.max(82+r,height-8-r)),size};
+export const CONTROL_DECK_HEIGHT=136;
+export function defaultDockLayout(width,height){
+  const px={stick:[65,height-67,96],dashBack:[145,height-103,48],dashForward:[201,height-103,48],jump:[165,height-39,52],awakening:[245,height-39,52],attack:[width-39,height-39,56],weapon:[width-105,height-39,48],block:[width-165,height-39,48],special1:[width-225,height-39,48],replacement:[width-39,height-103,48],bloodline:[width-105,height-103,48],special2:[width-165,height-103,48]};
+  return Object.fromEntries(CONTROL_IDS.map(id=>[id,{x:px[id][0]/width,y:px[id][1]/height,size:px[id][2]}]));
 }
-export function layoutOverlaps(layout,width,height) {
-  const projected=CONTROL_IDS.map(id=>({id,...projectControl(layout[id],width,height,id)}));
+export function projectControl(control,width,height,id,placement='overlay') {
+  const maxSize=Math.max(id==='stick'?88:48,Math.min(id==='stick'?(placement==='dock'?120:160):90,height-108));
+  const size=clamp(control.size,id==='stick'?88:48,maxSize),r=size/2;
+  return {x:clamp(control.x*width,8+r,Math.max(8+r,width-8-r)),y:clamp(control.y*height,placement==='dock'?height-CONTROL_DECK_HEIGHT+4+r:82+r,Math.max(82+r,height-8-r)),size};
+}
+export function layoutOverlaps(layout,width,height,placement='overlay') {
+  const projected=CONTROL_IDS.map(id=>({id,...projectControl(layout[id],width,height,id,placement)}));
   const collisions=[];
   for(let i=0;i<projected.length;i++)for(let j=i+1;j<projected.length;j++){
     const a=projected[i],b=projected[j];
@@ -48,12 +53,12 @@ export function rebind(keys,player,action,code) {
   if(code!==null)result[player][code]=action;
   return result;
 }
-export function freshSettings() {return {version:SETTINGS_VERSION,keys:DEFAULT_KEYS.map(map=>({...map})),layouts:{}};}
+export function freshSettings() {return {version:SETTINGS_VERSION,opacity:.65,placement:'dock',dockLayouts:{},keys:DEFAULT_KEYS.map(map=>({...map})),layouts:{}};}
 export function readSettings(raw) {
   const fallback=freshSettings();
   try {
     const value=JSON.parse(raw);
-    if(![1,SETTINGS_VERSION].includes(value?.version))return fallback;
+    if(![1,2,SETTINGS_VERSION].includes(value?.version))return fallback;
     const keys=[{},{}],used=new Set();
     if(!Array.isArray(value.keys)||value.keys.length!==2)throw new Error('Invalid keys');
     value.keys.forEach((map,i)=>{
@@ -67,6 +72,7 @@ export function readSettings(raw) {
     if(value.version===1){
       for(const [i,code]of ['KeyT','KeyY'].entries())if(!Object.values(keys[i]).includes('awakening')&&!used.has(code)){keys[i][code]='awakening';used.add(code);}
     }
+    if(value.version<3)for(const [code,action]of [['BracketLeft','dashBack'],['BracketRight','dashForward']])if(!Object.values(keys[1]).includes(action)&&!used.has(code)){keys[1][code]=action;used.add(code);}
     const layouts={};
     for(const profile of ['small','medium','large']){
       const candidate=value.layouts?.[profile];if(!candidate)continue;
@@ -91,7 +97,12 @@ export function readSettings(raw) {
       }
       layouts[profile]=layout;
     }
-    return {version:SETTINGS_VERSION,keys,layouts};
+    const dockLayouts={};
+    for(const profile of ['small','medium','large']){
+      const candidate=value.dockLayouts?.[profile];if(!candidate)continue;
+      const result={};for(const id of CONTROL_IDS){const c=candidate[id];if(!c||![c.x,c.y,c.size].every(Number.isFinite))throw new Error('Invalid dock layout');result[id]={x:clamp(c.x,0,1),y:clamp(c.y,0,1),size:clamp(c.size,id==='stick'?88:48,id==='stick'?120:90)};}dockLayouts[profile]=result;
+    }
+    return {version:SETTINGS_VERSION,keys,layouts,dockLayouts,opacity:Number.isFinite(value.opacity)?clamp(value.opacity,.25,1):.65,placement:value.placement==='overlay'?'overlay':'dock'};
   }catch{return fallback;}
 }
 export function keyLabel(code) {
@@ -99,3 +110,4 @@ export function keyLabel(code) {
   return code.replace(/^Key/,'').replace(/^Digit/,'').replace(/^Arrow/,'').replace(/^Numpad/,'Num ').replace('Comma',',').replace('Period','.').replace('Slash','/');
 }
 export function keyForAction(keys,player,action) {return Object.keys(keys[player]).find(k=>keys[player][k]===action)??null;}
+

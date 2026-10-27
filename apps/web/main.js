@@ -1,5 +1,5 @@
 import { createInput } from './packages/input/index.js';
-import { createMatch, stepMatch, nextRound, computerInput, TICK_RATE, CHARACTERS, WEAPONS, MOVES, moveFor, awakeningFor, activeAwakening, awakeningReady } from './packages/engine/index.js';
+import { createMatch, stepMatch, nextRound, computerInput, TICK_RATE, CHARACTERS, WEAPONS, MOVES, moveFor, staminaCost, awakeningFor, activeAwakening, awakeningReady } from './packages/engine/index.js';
 import { createRoster } from './roster.js';
 import { createControls } from './controls.js';
 import { createRenderer } from './renderer.js';
@@ -92,6 +92,7 @@ $('#fullscreen').addEventListener('click',async()=>{
   }
 });
 function paintHud(){
+  document.documentElement.classList.toggle('in-match',started&&!paused);
   const player=state.fighters[0];
   for(const [key,name,meta,bind] of [['special1','s1-name','s1-meta','U'],['special2','s2-name','s2-meta','I'],['bloodline','bl-name','bl-meta','O']]){
     const move=moveFor(player,key),cooldown=player.cooldowns[key]??0;
@@ -105,6 +106,7 @@ function paintHud(){
   $('#awakening-meta').textContent=`${controls?.binding(0,'awakening')??'T'} · ${currentForm?(player.awakeningTicks/60).toFixed(1)+'s':!playerForm?'NONE':player.awakeningUsed?'USED':awakeningReady(player)?'READY':Math.min(100,Math.floor(player.damageTaken/playerForm.threshold*100))+'%'}`;
   $('#basic-label').textContent=player.action?.confirmed&&player.action.chain<3?`COMBO ${player.action.chain+1}`:'BASIC ×3';
   state.fighters.forEach((f,i)=>{
+    $(`#stamina${i}`).value=f.stamina;$(`#guard${i}`).value=f.guard;
     const form=awakeningFor(f),active=activeAwakening(f),meter=$(`#awakening-fill${i}`);
     meter.style.width=`${active?f.awakeningTicks/form.duration*100:form?Math.min(100,f.damageTaken/form.threshold*100):0}%`;
     meter.style.background=form?.color??'#627386';
@@ -117,20 +119,22 @@ function paintHud(){
     $(`#hp${i}`).textContent=Math.ceil(f.hp);$(`#health${i}`).style.width=`${f.hp/10}%`;$(`#chakra${i}`).style.width=`${f.chakra}%`;
     $(`#wins${i}`).textContent=[0,1].map(n=>n<state.wins[i]?'●':'○').join(' ');
   });
+  $('#movement-state').textContent=player.dash?(player.dash.air?'AIR DASH':'DASH'):player.y>0?`AIR · ${player.jumps}/2 JUMPS`:'';
+  $('#canvas').setAttribute('aria-label',`${state.fighters[0].name} versus ${state.fighters[1].name}. ${$('#movement-state').textContent}`);
   $('#timer').textContent=Math.ceil(state.remainingTicks/TICK_RATE).toString().padStart(2,'0');
   $('#round').textContent=`ROUND ${state.round.toString().padStart(2,'0')}`;
   const binding=(player,action)=>controls?.binding(player,action)??'Unbound';
   const footer=document.querySelector('footer>span');
   footer.textContent=`P1 ${binding(0,'left')}/${binding(0,'right')} move · ${binding(0,'jump')} ×2 jump · ${binding(0,'dashBack')}/${binding(0,'dashForward')} dash · ${binding(0,'attack')} basic · ${binding(0,'weapon')} weapon · ${binding(0,'block')} guard · ${binding(0,'special1')}/${binding(0,'special2')} jutsu · ${binding(0,'bloodline')} bloodline · ${binding(0,'replacement')} replace · ${binding(0,'awakening')} awaken`;
-  if(mode==='local')$('#overlay-hint').textContent=`P2 ${binding(1,'left')}/${binding(1,'right')} move · ${binding(1,'jump')} jump · ${binding(1,'attack')} basic · ${binding(1,'weapon')} weapon · ${binding(1,'block')} guard · ${binding(1,'special1')}/${binding(1,'special2')} jutsu · ${binding(1,'bloodline')} bloodline · ${binding(1,'replacement')} replace`;
-  if(mode==='local')$('#p2-help').textContent=`P2 ${binding(1,'left')}/${binding(1,'right')} move · ${binding(1,'jump')} jump · ${binding(1,'attack')}/${binding(1,'weapon')} basic/weapon · ${binding(1,'block')} guard`;
+  if(mode==='local')$('#overlay-hint').textContent=`P2 ${binding(1,'left')}/${binding(1,'right')} move · ${binding(1,'jump')} jump · ${binding(1,'dashBack')}/${binding(1,'dashForward')} dash · ${binding(1,'attack')} basic · ${binding(1,'weapon')} weapon · ${binding(1,'block')} guard · ${binding(1,'special1')}/${binding(1,'special2')} jutsu · ${binding(1,'bloodline')} bloodline · ${binding(1,'replacement')} replace`;
+  if(mode==='local')$('#p2-help').textContent=`P2 ${binding(1,'left')}/${binding(1,'right')} move · ${binding(1,'jump')} jump · ${binding(1,'dashBack')}/${binding(1,'dashForward')} dash · ${binding(1,'attack')}/${binding(1,'weapon')} basic/weapon · ${binding(1,'block')} guard`;
   for(const action of ['jump','dashBack','dashForward','attack','block'])$(`[data-action="${action}"] small`).textContent=binding(0,action);
   const snap=inputs[0].snapshot();buttons.forEach(b=>{
     const key=b.dataset.action,move=moveFor(player,key),cost=key==='replacement'?25:move?MOVES[move].cost:0;
     b.disabled=!controls?.editing&&((key==='bloodline'&&!move)||(key==='awakening'&&!awakeningReady(player)));
     b.classList.toggle('awakening-ready',key==='awakening'&&awakeningReady(player));
     b.classList.toggle('active',snap[key]);b.classList.toggle('cooling',(player.cooldowns[key]??0)>0);
-    b.classList.toggle('unavailable',b.disabled||player.chakra<cost);
+    b.classList.toggle('unavailable',b.disabled||player.chakra<cost||player.stamina<staminaCost(key));
   });
 }
 function frame(now){
@@ -138,10 +142,10 @@ function frame(now){
   if(!paused&&state.status==='playing'){
     accumulator+=Math.min((now-lastTime)/1000,.1);
     while(accumulator>=1/TICK_RATE&&state.status==='playing'){
-      if(state.tick%8===0)cpu=computerInput(state);
+      if(state.tick%4===0)cpu=computerInput(state);
       stepMatch(state,[inputs[0].consume(),mode==='cpu'?cpu:inputs[1].consume()]);accumulator-=1/TICK_RATE;
-      const event=state.events.find(e=>['hit','block','empty','pierce','replacement','unavailable','poison','burn','cooldown','awakeningBlocked'].includes(e.type));
-      if(event){const messages={empty:'NOT ENOUGH CHAKRA',block:'GUARDED',replacement:'REPLACEMENT JUTSU',unavailable:'NO BLOODLINE IN THIS KIT',cooldown:'TECHNIQUE ON COOLDOWN',awakeningBlocked:'AWAKENING NOT READY OR UNABLE TO ACT'};
+      const event=state.events.find(e=>['parry','guardBreak','punish','exhausted','hit','block','empty','pierce','replacement','unavailable','poison','burn','cooldown','awakeningBlocked'].includes(e.type));
+      if(event){const messages={parry:'PARRY · COUNTER NOW',guardBreak:'GUARD BROKEN',punish:'RECOVERY PUNISH · +20%',exhausted:'LOW STAMINA · CREATE SPACE',empty:'NOT ENOUGH CHAKRA',block:'GUARDED',replacement:'REPLACEMENT JUTSU',unavailable:'NO BLOODLINE IN THIS KIT',cooldown:'TECHNIQUE ON COOLDOWN',awakeningBlocked:'AWAKENING NOT READY OR UNABLE TO ACT'};
         $('#feedback').textContent=messages[event.type]??`${event.type==='pierce'?'GUARD PIERCED · ':event.type==='poison'?'POISON · ':event.type==='burn'?'BURN · ':''}${event.damage} DAMAGE`;feedbackUntil=now+700;}
     }
     if(state.status!=='playing')finish();
