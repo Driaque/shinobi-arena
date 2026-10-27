@@ -1,4 +1,4 @@
-# Character kits · 0.6.0
+# Character kits · 0.7.0
 
 Sixteen selectable fighters span Naruto and Boruto. Kits, effect assignments, damage thresholds and
 balance values are gameplay adaptations. The inherited/transplanted dōjutsu slot remains separate from
@@ -59,3 +59,8 @@ for stacking, combo scaling, buffering and defensive interactions.
 
 These support theme choices, not exact prototype effects or asset permissions. Portraits and combat
 rendering remain project-authored procedural artwork.
+
+
+## v0.7.0 — Originals / TNR
+
+Silent (Cold Metal / Tetsugan) and Winta (Frozen Sun / Shinrai Ōu) join the roster. Full character brief, selected kits, proposed awakening rules and deferred ability pool: [ORIGINAL_CHARACTERS.md](ORIGINAL_CHARACTERS.md). Both have individual sword chains, two signatures, a bloodline activation and a damage-unlocked awakening. Tachi and Kaiken join pre-battle equipment.

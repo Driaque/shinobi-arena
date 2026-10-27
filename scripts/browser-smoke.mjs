@@ -13,8 +13,14 @@ try {
  await page.clock.install({time:new Date('2030-01-01T00:00:00Z')});
  await page.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));
  await page.goto('http://127.0.0.1:4183');
- assert.equal(await page.locator('#character0 input[type=radio]').count(),16);
- assert.equal(await page.locator('#character1 input[type=radio]').count(),16);
+ assert.equal(await page.locator('#character0 input[type=radio]').count(),18);
+ assert.equal(await page.locator('#character1 input[type=radio]').count(),18);
+ await page.selectOption('#roster-era','TNR');assert.equal(await page.locator('.character-card:not([hidden])').count(),4);
+ await page.locator('#character0 input[value="silent"]').check();await page.locator('#character1 input[value="winta"]').check();
+ for(const img of await page.locator('.concept-portrait').all())assert.ok(await img.evaluate(el=>el.complete&&el.naturalWidth>0),'concept image loaded');
+ assert.match(await page.locator('#kit0').innerText(),/Cold Metal Ascendant.*proposed/);
+ await page.screenshot({path:'test-results/originals-roster.png'});
+ await page.selectOption('#roster-era','all');
  await page.locator('#roster-search').fill('Boruto');assert.equal(await page.locator('.character-card:not([hidden])').count(),2);
  await page.locator('#roster-search').fill('');await page.selectOption('#roster-era','Boruto');assert.equal(await page.locator('.character-card:not([hidden])').count(),8);
  await page.locator('#character0 input[value="boruto"]').check();await page.locator('#character1 input[value="kawaki"]').check();
@@ -90,10 +96,23 @@ try {
  assert.match(await page.locator('#s1-name').innerText(),/KURAMA/);assert.match(await page.locator('#s2-name').innerText(),/CHAKRA CLAW/);
  await page.screenshot({path:'test-results/kurama.png'});await page.clock.runFor(10100);
  assert.equal(await page.locator('#awakening-label0').innerText(),'AWAKENING USED');assert.equal(await page.locator('#s1-name').innerText(),'RASENGAN');
+ // Original fighters use their selected weapons, signatures and bloodlines in live gameplay.
+ await page.selectOption('#mode','cpu');await page.selectOption('#mode','local');
+ await page.selectOption('#roster-era','TNR');await page.locator('#character0 input[value="silent"]').check();await page.locator('#character1 input[value="winta"]').check();
+ await page.selectOption('#weapon0','tachi');await page.selectOption('#weapon1','kaiken');await page.click('#play');await page.clock.runFor(32);
+ assert.equal(await page.locator('#name0').innerText(),'SILENT');assert.equal(await page.locator('#name1').innerText(),'WINTA');
+ assert.equal(await page.locator('#bl-name').innerText(),'TETSUGAN');assert.match(await page.locator('#weapon-label').innerText(),/TACHI/);
+ await page.keyboard.down('KeyO');await page.clock.runFor(450);await page.keyboard.up('KeyO');assert.match(await page.locator('#effects0').innerText(),/TETSUGAN GUARD/);
+ await page.keyboard.down('ArrowLeft');await page.clock.runFor(1550);await page.keyboard.up('ArrowLeft');
+ await page.keyboard.down('KeyK');await page.keyboard.down('KeyN');await page.clock.runFor(140);await page.keyboard.up('KeyN');
+ assert.ok(Number(await page.locator('#hp1').innerText())<1000,'Silent reflects a guarded sword strike');assert.match(await page.locator('#effects0').innerText(),/COUNTER READY/);
+ await page.keyboard.up('KeyK');await page.screenshot({path:'test-results/originals-combat.png'});
  assert.deepEqual(errors,[],'no desktop page errors');await page.close();
  const context=await browser.newContext({viewport:{width:844,height:390},isMobile:true,hasTouch:true});
  const mobile=await context.newPage();const mobileErrors=[];mobile.on('pageerror',e=>mobileErrors.push(e.message));
  await mobile.clock.install({time:new Date('2030-01-01T00:00:00Z')});await mobile.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));await mobile.goto('http://127.0.0.1:4183');await mobile.screenshot({path:'test-results/mobile-loadouts.png'});
+ await mobile.selectOption('#roster-era','TNR');await mobile.locator('#character0 input[value="silent"]').check();await mobile.locator('#character1 input[value="winta"]').check();
+ await mobile.screenshot({path:'test-results/mobile-originals.png'});await mobile.selectOption('#roster-era','all');
  await mobile.setViewportSize({width:667,height:375});await mobile.clock.runFor(32);
  await mobile.screenshot({path:'test-results/small-mobile-roster.png'});
  for(const card of await mobile.locator('.character-card').all()){
@@ -169,4 +188,5 @@ try {
  assert.deepEqual(mobileErrors,[],'no mobile page errors');await context.close();
  console.log('Browser checks passed: local match, rematch, pause, multi-touch, cancellation, portrait gate, landscape resume and control bounds.');
 } finally {if(browser)await browser.close();server.kill();}
+
 

@@ -72,3 +72,8 @@ expiry, higher HP wins; equal HP/double KO draws without awarding a point. Remat
 The baseline computer observes legal visible state every eight ticks, can chain basics and activate a ready
 awakening, and uses the same resource/stun rules. It has no hidden stat bonuses. Values and timing are
 prototype balance choices; roster variety does not establish competitive balance.
+
+
+## duel-0.7.0 — originals combat interactions
+
+Silent's Tetsugan stance gives guarded chip absorption, bounded non-recursive reflect and a short one-use sword-counter window. Echoing Rift pulls on clean contact and exposes only metal damage. Winta's Shinrai Ōu enhances lightning; Eclipse Drain heals from actual clean damage, capped at maximum HP and excluding overkill. Healing does not undo accumulated damage charge. New statuses are not treated as poison/burn ticks. See [ORIGINAL_CHARACTERS.md](ORIGINAL_CHARACTERS.md) for exact values and proposed awakening modifiers.

@@ -8,8 +8,8 @@ function close(){const s=createMatch();s.fighters[0].x=600;s.fighters[1].x=670;r
 function ready(character='naruto'){
  const s=createMatch([load(character),load('sasuke')]);s.fighters[0].hp=500;s.fighters[0].damageTaken=500;return s;
 }
-test('sixteen roster entries have valid unique identities, move slots and awakening definitions',()=>{
- assert.equal(Object.keys(CHARACTERS).length,16);
+test('eighteen roster entries have valid unique identities, move slots and awakening definitions',()=>{
+ assert.equal(Object.keys(CHARACTERS).length,18);
  assert.equal(Object.values(CHARACTERS).filter(c=>c.era==='Boruto').length,4);
  for(const [id,c]of Object.entries(CHARACTERS)){
   assert.equal(c.id,id);assert.equal(moveFor({character:id,weapon:'kunai',awakeningTicks:0},'awakening'),null);assert.ok(MOVES[c.special1]&&MOVES[c.special2]);if(c.bloodline)assert.ok(MOVES[c.bloodline]);
@@ -86,3 +86,4 @@ test('migration finds room for Awaken without moving a customized existing contr
  const result=readSettings(JSON.stringify(legacy));assert.deepEqual(result.layouts.medium.attack,legacy.layouts.medium.attack);
  assert.deepEqual(layoutOverlaps(result.layouts.medium,804,302),[]);
 });
+

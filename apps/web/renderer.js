@@ -47,7 +47,8 @@ export function createRenderer(canvas) {
     c.translate(0,-bob);const orange=f.character==='naruto',character=CHARACTERS[f.character];
     if(f.invulnerable>0)c.globalAlpha*=.5;
     const cloth=state.tick-f.lastHit<5&&!f.blockedHit?'#fff2d4':form?.color??character.color;
-    const dark=orange?'#223446':'#242d48', skin='#e6b18b';
+    const dark=orange?'#223446':'#242d48', skin=f.character==='silent'?'#d6c2b4':'#e6b18b';
+    if(['silent','winta'].includes(f.character)){c.fillStyle=character.hair;c.fillRect(-26,-125,28,57);}
     // Bent legs, sandals and torso.
     line(-12,-48,-15-stride,-25,dark,17);line(-15-stride,-25,-16+stride,-6,cloth,13);
     line(11,-48,14+stride,-25,dark,17);line(14+stride,-25,20-stride,-6,cloth,13);
@@ -74,8 +75,8 @@ export function createRenderer(canvas) {
       c.restore();
     }
     if(action?.move==='clone'&&attacking&&!ghost){c.save();c.globalAlpha=.35;line(55,-70,180,-70,'#83d7ed',35);c.restore();}
-    if(action&&['kunai','katana','shuriken'].includes(action.move)){
-      const length=action.move==='katana'?90:35;
+    if(action&&(['kunai','katana','shuriken'].includes(action.move)||move.sword)){
+      const length=move.sword&&action.move!=='kaiken'?90:35;
       line(armX-5,armY,armX+length,armY-15,'#dce6ed',action.move==='katana'?5:4);
       line(armX+2,armY-10,armX+5,armY+7,'#cbb16c',4);
     }
@@ -84,6 +85,18 @@ export function createRenderer(canvas) {
     }
     if(attacking&&action&& !['attack','attack2','attack3','special1','chidori','lionFists','kuramaRasengan','karmaRasengan','clone','kunai','katana','shuriken'].includes(action.move)&&!move.projectile&&!move.buff){
       c.strokeStyle=move.color??character.color;c.lineWidth=7;c.beginPath();c.moveTo(25,-65);c.quadraticCurveTo(Math.min(move.reach,220)*.6,-130,Math.min(move.reach,250),-75);c.stroke();
+    }
+    if(['silent','winta'].includes(character.id)){
+      if(!action){line(-22,-70,-55,-22,'#c6d8e4',4);line(-25,-76,-16,-68,'#ae9b78',4);}
+      if(character.id==='silent'){
+        c.fillStyle='#1c2c3e';c.fillRect(-16,-108,32,13);circle(8,-110,2,'#83d7ff');
+        // Ice glyph rather than the Leaf symbol.
+        line(-2,-124,2,-116,'#31596d',1);line(-3,-118,3,-122,'#31596d',1);
+        line(-17,-85,16,-85,'#b6ccdb',4);
+      }else{
+        circle(8,-110,2,'#e9c66f');line(-16,-87,17,-87,'#c7937c',4);
+        if(attacking||form||f.buffs.some(b=>b.type==='shinrai'))for(let i=0;i<3;i++){const offset=(state.tick*7+i*19)%48;line(armX+offset,-80-i*12,armX+offset+8,-91-i*12,'#ff7999',2);line(armX+offset+8,-91-i*12,armX+offset+4,-103-i*12,'#ffd499',2);}
+      }
     }
     if(character.id==='kakashi'){c.fillStyle='#25394a';c.fillRect(-15,-108,30,12);}
     if(character.id==='sarada'){c.strokeStyle='#e45b72';c.lineWidth=2;c.strokeRect(2,-116,14,9);}
@@ -113,4 +126,5 @@ c.save();c.translate(p.x,y);c.scale(p.direction,1);const color=MOVES[p.move].col
     c.font='10px system-ui';c.fillStyle='#b8cbcf55';c.textAlign='center';c.fillText('TRAINING GROUNDS  /  PROCEDURAL ART PROTOTYPE',640,686);
   };
 }
+
 

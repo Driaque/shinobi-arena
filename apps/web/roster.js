@@ -30,7 +30,10 @@ export function createRoster(container, player, initial, onChange) {
     const name=document.createElement('strong');name.textContent=character.name;
     const style=document.createElement('small');style.textContent=`${character.era} · ${character.title}`;copy.append(name,style);
     const selected=document.createElement('span');selected.className='pick-mark';selected.setAttribute('aria-hidden','true');selected.textContent=player===0?'P1':'CPU';
-    card.append(input,canvas,copy,selected);input.addEventListener('change',onChange);container.append(card);
+    let visual=canvas;
+    if(character.portrait){const img=document.createElement('img');img.className='character-portrait concept-portrait';img.src=character.portrait;img.alt='';img.width=144;img.height=152;img.addEventListener('error',()=>img.replaceWith(canvas),{once:true});visual=img;}
+    card.append(input,visual,copy,selected);input.addEventListener('change',onChange);container.append(card);
   }
   const empty=document.createElement('p');empty.className='roster-empty';empty.textContent='No matching fighters.';empty.hidden=true;container.after(empty);
 }
+

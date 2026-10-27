@@ -27,3 +27,12 @@ Each item should become a separate issue/PR once the remote exists. These are no
 Definition of done: observable player/developer outcome, relevant correctness tests, docs updated,
 CI passes, no unsupported feature claims. Mobile changes also require listed device evidence.
 
+
+
+### Originals / TNR follow-up
+
+- Playtest Silent/Winta matchups and adjust the proposed real-time kit values.
+- Add explicit offensive/defensive stance switching for Silent; current bloodline activation is the defensive stance.
+- Expand mapped ability pool (e.g. Inner Peace, Phantom Step, dedicated stun techniques).
+- Replace concept portraits/procedural bodies with approved animation assets.
+- Design team/assist mode before implementing the proposed Northern Calamity ultimate.

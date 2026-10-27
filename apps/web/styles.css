@@ -22,3 +22,6 @@
 @media(max-width:620px) and (orientation:portrait){.character-roster{grid-template-columns:repeat(3,minmax(0,1fr));max-height:225px}.character-card{min-height:78px}.roster-toolbar{flex-wrap:wrap}.roster-toolbar input{flex-basis:50%}}
 .character-roster{max-height:220px}.loadout-card .kit{min-height:66px}
 @media(max-height:520px) and (orientation:landscape){.character-roster{max-height:88px}.loadout-card .kit{display:none}.roster-toolbar{font-size:9px}}
+
+
+.concept-portrait { object-fit:cover; object-position:50% 28%; }

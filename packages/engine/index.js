@@ -2,7 +2,7 @@ import { CHARACTERS, WEAPONS, MOVES, AWAKENINGS, validateLoadouts } from './cata
 export { CHARACTERS, WEAPONS, MOVES, AWAKENINGS } from './catalog.js';
 export const TICK_RATE = 60;
 export const ARENA = Object.freeze({ width: 1280, height: 720, floor: 570, margin: 46 });
-export const RULES_VERSION = 'duel-0.6.0';
+export const RULES_VERSION = 'duel-0.7.0';
 export function advanceResource(resource, cost) {
   if (![resource, cost].every(Number.isFinite) || resource < 0 || cost < 0) throw new Error('Invalid resource');
   return resource >= cost ? { accepted: true, remaining: resource - cost } : { accepted: false, remaining: resource };
@@ -53,7 +53,7 @@ export function moveFor(f, key) {
   const character=CHARACTERS[f.character];
   const override=activeAwakening(f)?.overrides[key];
   if(override)return override;
-  return key==='weapon'?WEAPONS[f.weapon].move:key==='attack'?'attack':character[key];
+  return key==='weapon'?WEAPONS[f.weapon].move:key==='attack'?(character.basicChain?.[0]??'attack'):character[key];
 }
 function startAction(state, f, key, override=null, chain=0) {
   const move=override??moveFor(f,key);
@@ -85,7 +85,7 @@ function applyEffect(state,target,hit) {
 }
 function tickEffects(state,f) {
   for(const effect of f.effects){
-    if(effect.type!=='weaken'&&state.tick>=effect.nextTick){
+    if(['poison','burn'].includes(effect.type)&&state.tick>=effect.nextTick){
       const damage=receiveDamage(f,effect.potency);effect.nextTick+=60;
       state.events.push({type:effect.type,target:f.id,damage});
     }
@@ -138,7 +138,7 @@ export function stepMatch(state, inputs = [{}, {}]) {
     if (f.stun > 0) f.stun--;
     f.chakra = Math.min(100, f.chakra + (activeAwakening(f)?.regen??0.035));
     if (f.action) {
-      f.action.age++;
+      f.action.age+=f.action.chain>0?(activeAwakening(f)?.chainSpeed??1):1;
       const m = MOVES[f.action.move];
       if (f.action.age >= m.startup + m.active + m.recovery) {
         if(!f.action.confirmed&&!m.buff)clearCombo(f);
@@ -146,7 +146,7 @@ export function stepMatch(state, inputs = [{}, {}]) {
       }
       if(f.action?.confirmed&&!wasStunned&&f.action.chain>0&&f.action.age>=m.startup+m.active&&f.buffer){
         const key=f.buffer.key,chain=f.action.chain;
-        if(key==='attack'&&chain<3){startAction(state,f,key,chain===1?'attack2':'attack3',chain+1);f.buffer=null;}
+        if(key==='attack'&&chain<3){startAction(state,f,key,CHARACTERS[f.character].basicChain?.[chain]??(chain===1?'attack2':'attack3'),chain+1);f.buffer=null;}
         else if(['weapon','special1','special2'].includes(key)){startAction(state,f,key);f.buffer=null;}
       }
     }
@@ -175,7 +175,7 @@ export function stepMatch(state, inputs = [{}, {}]) {
     if (f.action) {
       const a = f.action, m = MOVES[a.move];
       if (m.dash && a.age >= m.startup && a.age < m.startup + m.active) f.x += f.facing * m.dash;
-      if(m.buff&&a.age===m.startup&&!a.fired){a.fired=true;f.buffs=[{type:m.buff,remaining:m.duration}];}
+      if(m.buff&&a.age===m.startup&&!a.fired){a.fired=true;f.buffs=[...f.buffs.filter(b=>b.type!==m.buff),{type:m.buff,remaining:m.duration}];}
       if (m.projectile && a.age === m.startup && !a.fired) {
         a.fired = true;
         state.projectiles.push({ id: state.nextId++, owner: f.id, x: f.x + f.facing * 60,
@@ -209,11 +209,25 @@ export function stepMatch(state, inputs = [{}, {}]) {
     const pierce=hit.pierce??(attacker.buffs.some(b=>b.type==='byakugan')?1:0);
     const continuing=attacker.combo.hits>0&&attacker.combo.target===target.id&&hit.targetStunned&&state.tick-attacker.combo.lastTick<=30;
     const scaling=continuing?Math.max(.55,1-attacker.combo.hits*.1):1;
-    const base=Math.ceil(hit.damage*weak*(hit.power??activeAwakening(attacker)?.damage??1)*scaling);
+    const counter=hit.sword&&attacker.buffs.some(b=>b.type==='counter')?1.35:1;
+    const lightning=hit.element==='lightning'&&attacker.buffs.some(b=>b.type==='shinrai')?1.15:1;
+    const vulnerable=hit.element==='metal'?1+(target.effects.find(e=>e.type==='metalVulnerable')?.potency??0):1;
+    const base=Math.ceil(hit.damage*weak*(hit.power??activeAwakening(attacker)?.damage??1)*scaling*counter*lightning*vulnerable);
+    if(hit.sword)attacker.buffs=attacker.buffs.filter(b=>b.type!=='counter');
     const rawDamage=hit.blocked?Math.ceil(base*(0.08+0.92*pierce)):base;
     const penetrated=hit.blocked&&pierce>0;
     if(!hit.blocked||pierce>=1)applyEffect(state,target,hit);
-    const damage=receiveDamage(target,rawDamage);
+    const counterGuard=hit.blocked&&pierce<1&&target.buffs.some(b=>b.type==='tetsugan');
+    const damage=receiveDamage(target,counterGuard?rawDamage*.8:rawDamage);
+    if(counterGuard&&target.hp>0){
+      target.buffs=[...target.buffs.filter(b=>b.type!=='counter'),{type:'counter',remaining:90}];
+      const reflected=receiveDamage(attacker,base*.3*(1-pierce));
+      state.events.push({type:'reflect',target:attacker.id,damage:reflected});
+    }
+    if(hit.lifesteal&&(!hit.blocked||pierce>=1)&&attacker.hp>0){
+      const healed=Math.min(1000-attacker.hp,Math.floor(damage*hit.lifesteal));attacker.hp+=healed;
+      if(healed)state.events.push({type:'lifesteal',target:attacker.id,healed});
+    }
     if(!hit.blocked||pierce>=1){
       attacker.combo={hits:continuing?attacker.combo.hits+1:1,damage:(continuing?attacker.combo.damage:0)+damage,lastTick:state.tick,target:target.id};
       if(attacker.action)attacker.action.confirmed=true;
@@ -222,6 +236,7 @@ export function stepMatch(state, inputs = [{}, {}]) {
     target.x = clamp(target.x + hit.direction * hit.knockback * (hit.blocked ? 0.3 : 1), ARENA.margin, ARENA.width - ARENA.margin);
     target.lastDamage=damage;target.lastHit = state.tick; target.blockedHit = hit.blocked&&!penetrated;
     if((!hit.blocked||pierce>=1)&&hit.launch)target.vy=hit.launch;
+    if((!hit.blocked||pierce>=1)&&hit.pull)target.x=clamp(target.x-hit.direction*Math.min(hit.pull,Math.max(0,Math.abs(target.x-attacker.x)-52)),ARENA.margin,ARENA.width-ARENA.margin);
     if (!hit.blocked||pierce>=1) { target.buffer=null;target.action = null; target.blocking = false;target.dash=null; }
     state.events.push({ type: penetrated?'pierce':hit.blocked ? 'block' : 'hit', target: target.id, damage, move: hit.move });
   }
@@ -255,4 +270,5 @@ export function computerInput(state, player=1) {
   if(available('special2')&&state.tick%180<8)return {special2:true};
   return state.tick%48<24?{attack:true}:{};
 }
+
 

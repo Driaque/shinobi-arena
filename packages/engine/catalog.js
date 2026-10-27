@@ -24,17 +24,23 @@ export const CHARACTERS = Object.freeze({
   boruto:{id:'boruto',name:'Boruto',title:'Next-generation versatility',color:'#c777a0',hair:'#e6cb6a',era:'Boruto',awakening:'karmaBlue',description:'Boruto Stream closes distance; Vanishing Rasengan is a ranged attack. Damage unlocks Karma.',special1:'borutoStream',special2:'vanishingRasengan',bloodline:null},
   sarada:{id:'sarada',name:'Sarada',title:'Uchiha precision',color:'#cb5967',hair:'#263045',era:'Boruto',awakening:null,description:'Chidori pierces guard; Fireball burns. Sharingan adds weakening pressure.',special1:'chidori',special2:'fireball',bloodline:'sharingan'},
   mitsuki:{id:'mitsuki',name:'Mitsuki',title:'Serpentine reach',color:'#a1c9cf',hair:'#dce9ea',era:'Boruto',awakening:'sage',description:'Snake Lightning pierces guard; Wind Scythe controls distance. Damage unlocks Sage Mode.',special1:'snakeLightning',special2:'windScythe',bloodline:null},
+  silent:{id:'silent',name:'Silent',title:'Cold Metal',color:'#779fb9',hair:'#c4ced8',era:'TNR',portrait:'assets/silent-concept.jpg',awakening:'coldMetal',basicChain:['silentSlash1','silentSlash2','silentSlash3'],description:'Precision counterattacker. Tetsugan stance absorbs chip and reflects guarded strikes; a successful guard empowers the next sword hit. Echoing Rift pulls and exposes metal vulnerability. Awakening is a proposed adaptation.',special1:'harmoniousSlash',special2:'echoingRift',bloodline:'tetsugan'},
+  winta:{id:'winta',name:'Winta',title:'Frozen Sun',color:'#983d54',hair:'#171e29',era:'TNR',portrait:'assets/winta-concept.jpg',awakening:'frozenSun',basicChain:['wintaSlash1','wintaSlash2','wintaSlash3'],description:'Elemental pressure fighter. Mizukumi dashes through openings; Eclipse Drain restores HP on a clean hit. Shinrai Ōu strengthens lightning attacks. Awakening is a proposed adaptation.',special1:'mizukumi',special2:'eclipseDrain',bloodline:'shinraiOu'},
   kawaki:{id:'kawaki',name:'Kawaki',title:'Karma-powered pressure',color:'#879c88',hair:'#202c39',era:'Boruto',awakening:'karmaRed',description:'Body Blade pierces guard; Energy Blast pressures at range. Damage unlocks Karma Overdrive.',special1:'bodyBlade',special2:'energyBlast',bloodline:null}
 
 });
 export const WEAPONS = Object.freeze({
   kunai:{ id:'kunai',name:'Kunai',move:'kunai',description:'Quick close-range thrust · 75 damage' },
   shuriken:{ id:'shuriken',name:'Shuriken',move:'shuriken',description:'Ranged throw · 55 damage · no chakra cost' },
+  tachi:{id:'tachi',name:'Tachi',move:'tachi',description:'Metal sword · 105 damage · deliberate recovery'},
+  kaiken:{id:'kaiken',name:'Kaiken',move:'kaiken',description:'Fast metal dagger · 65 damage · short reach'},
   katana:{ id:'katana',name:'Katana',move:'katana',description:'Long reach, slower recovery · 100 damage' }
 });
 const strike=(name,overrides={})=>({name,startup:10,active:5,recovery:23,damage:110,reach:140,cost:25,knockback:32,cooldown:150,...overrides});
 const projectile=(name,overrides={})=>strike(name,{startup:16,active:1,recovery:26,reach:0,projectile:true,speed:12,life:85,...overrides});
 export const AWAKENINGS=Object.freeze({
+ coldMetal:{name:'Cold Metal Ascendant',chainSpeed:1.25,proposed:true,color:'#a3ddf3',threshold:400,duration:600,damage:1.15,speed:1.08,defence:.85,regen:.06,overrides:{special1:'ascendantSlash',special2:'ascendantRift'}},
+ frozenSun:{name:'Frozen Sun Dominion',chainSpeed:1.25,proposed:true,color:'#ff627f',threshold:400,duration:600,damage:1.15,speed:1.2,defence:.95,regen:.08,overrides:{special1:'dominionMizukumi',special2:'dominionDrain'}},
  kurama:{name:'Kurama Chakra Mode',color:'#ffad42',threshold:400,duration:600,damage:1.2,speed:1.12,defence:.9,regen:.08,overrides:{special1:'kuramaRasengan',special2:'chakraClaw'}},
  susanoo:{name:'Susanoo',color:'#ba8cf0',threshold:450,duration:600,damage:1.15,speed:.95,defence:.75,regen:.06,overrides:{}},
  gates:{name:'Eight Gates',color:'#7ae2a6',threshold:400,duration:480,damage:1.3,speed:1.3,defence:1,regen:.035,overrides:{}},
@@ -43,6 +49,24 @@ export const AWAKENINGS=Object.freeze({
  sage:{name:'Sage Mode',color:'#8bedd5',threshold:400,duration:600,damage:1.15,speed:1.25,defence:.9,regen:.1,overrides:{}}
 });
 export const MOVES = Object.freeze({
+  silentSlash1:strike('Silent · Opening Cut',{startup:5,active:4,recovery:13,damage:65,reach:100,cost:0,knockback:24,cooldown:0,sword:true,element:'metal'}),
+  silentSlash2:strike('Silent · Returning Edge',{startup:5,active:4,recovery:15,damage:50,reach:115,cost:0,knockback:10,cooldown:0,hitstun:20,sword:true,element:'metal'}),
+  silentSlash3:strike('Silent · Rising Steel',{startup:8,active:4,recovery:24,damage:90,reach:140,cost:0,knockback:60,cooldown:0,launch:10,hitstun:22,sword:true,element:'metal'}),
+  wintaSlash1:strike('Winta · Spark Cut',{startup:5,active:4,recovery:13,damage:65,reach:100,cost:0,knockback:24,cooldown:0,sword:true,element:'lightning',color:'#ff879b'}),
+  wintaSlash2:strike('Winta · Crossing Current',{startup:5,active:4,recovery:15,damage:50,reach:115,cost:0,knockback:10,cooldown:0,hitstun:20,sword:true,element:'lightning',color:'#ff879b'}),
+  wintaSlash3:strike('Winta · Storm Rise',{startup:8,active:4,recovery:24,damage:90,reach:140,cost:0,knockback:60,cooldown:0,launch:10,hitstun:22,sword:true,element:'lightning',color:'#ff879b'}),
+  harmoniousSlash:strike('Harmonious Slash',{damage:125,startup:9,reach:165,pierce:.5,sword:true,element:'metal',color:'#a3ddf3'}),
+  echoingRift:strike('Echoing Rift',{damage:70,startup:16,reach:270,knockback:0,pull:90,effect:'metalVulnerable',duration:180,potency:.2,cost:30,element:'metal',color:'#a3ddf3'}),
+  tetsugan:strike('Tetsugan · Middle Guard',{startup:8,active:1,recovery:15,damage:0,reach:0,cost:30,buff:'tetsugan',duration:180,cooldown:480}),
+  mizukumi:strike('Mizukumi',{damage:125,startup:9,active:8,dash:12,reach:130,cost:25,sword:true,element:'lightning',color:'#ff627f'}),
+  eclipseDrain:strike('Eclipse Drain',{damage:100,startup:13,reach:160,cost:30,lifesteal:.35,element:'water',color:'#ae8ee8'}),
+  shinraiOu:strike('Shinrai Ōu',{startup:8,active:1,recovery:15,damage:0,reach:0,cost:30,buff:'shinrai',duration:300,cooldown:600}),
+  ascendantSlash:strike('Ascendant · Harmonious Slash',{damage:145,startup:7,reach:180,pierce:.5,sword:true,element:'metal',color:'#a3ddf3'}),
+  ascendantRift:strike('Ascendant · Echoing Rift',{damage:85,startup:13,reach:300,knockback:0,pull:110,effect:'metalVulnerable',duration:180,potency:.2,cost:30,element:'metal',color:'#a3ddf3'}),
+  dominionMizukumi:strike('Dominion · Mizukumi',{damage:145,startup:7,active:8,dash:15,reach:145,cost:25,sword:true,element:'lightning',color:'#ff627f'}),
+  dominionDrain:strike('Dominion · Eclipse Drain',{damage:115,startup:11,reach:180,cost:30,lifesteal:.4,element:'water',color:'#ff627f'}),
+  tachi:strike('Tachi slash',{startup:11,active:5,recovery:25,damage:105,reach:165,cost:0,knockback:38,cooldown:50,sword:true,element:'metal'}),
+  kaiken:strike('Kaiken cut',{startup:5,active:4,recovery:13,damage:65,reach:100,cost:0,knockback:20,cooldown:30,sword:true,element:'metal'}),
   attack:{name:'Basic attack',startup:5,active:4,recovery:13,damage:65,reach:90,cost:0,knockback:24},
   attack2:strike('Combo body strike',{startup:5,active:4,recovery:15,damage:50,reach:105,cost:0,knockback:10,cooldown:0,hitstun:20}),
   attack3:strike('Combo launching kick',{startup:8,active:4,recovery:24,damage:90,reach:130,cost:0,knockback:60,cooldown:0,launch:10,hitstun:22}),
@@ -82,7 +106,7 @@ export const MOVES = Object.freeze({
   kuramaRasengan:strike('Kurama Rasengan',{damage:175,startup:10,active:9,dash:13,reach:145,cost:30,knockback:65,cooldown:120,color:'#ffba57'}),
   chakraClaw:strike('Chakra Claw',{damage:130,reach:250,cost:25,knockback:50,cooldown:150,color:'#ffba57'}),
   karmaRasengan:strike('Karma Rasengan',{damage:165,startup:10,active:8,dash:12,reach:140,pierce:.5,cost:30,color:'#6fc8ff'}),
-  katana:{name:'Katana slash' ,startup:10,active:5,recovery:24,damage:100,reach:150,cost:0,knockback:38,cooldown:48}
+  katana:{name:'Katana slash' ,sword:true,element:'metal',startup:10,active:5,recovery:24,damage:100,reach:150,cost:0,knockback:38,cooldown:48}
 });
 export function validateLoadouts(loadouts) {
   if(!Array.isArray(loadouts)||loadouts.length!==2)throw new Error('Two loadouts required');
@@ -91,4 +115,5 @@ export function validateLoadouts(loadouts) {
     return {character:l.character,weapon:l.weapon};
   });
 }
+
 

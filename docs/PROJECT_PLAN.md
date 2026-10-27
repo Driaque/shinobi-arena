@@ -5,7 +5,7 @@ Date: October 26, 2026. Working name: Shinobi Arena. Owner: Daniel.
 ## Current delivery status
 
 Playable local duel and baseline computer opponent are implemented, including character/weapon
-selection (16 fighters), buffered combos, damage-unlocked awakenings, double jumps/dashes,
+selection (18 fighters, including Silent and Winta), buffered combos, damage-unlocked awakenings, double jumps/dashes,
 Replacement, effects, bloodline techniques, specials, rounds,
 procedural art, analog movement, editable touch layouts, keyboard remapping and browser smoke checks. M2 asset/audio
 work remain pending. M3 physical-device validation is pending. No online features are implemented.
@@ -115,4 +115,5 @@ Art/animation production and combat feel are major workstreams. Start with place
 move before expanding. Local two-player control support does not establish online feasibility.
 Do not add rankings, monetization, tournaments, chat, or Kubernetes to the initial release.
 Estimate calendar dates after M1 reveals asset and implementation effort.
+
 
