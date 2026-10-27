@@ -1,55 +1,61 @@
-# Character kits · 0.3.0
+# Character kits · 0.6.0
 
-These are gameplay adaptations using anime themes. Damage, effects, timers and loadouts are original
-balance choices, not statements that every move has precisely this effect in the anime.
+Sixteen selectable fighters span Naruto and Boruto. Kits, effect assignments, damage thresholds and
+balance values are gameplay adaptations. The inherited/transplanted dōjutsu slot remains separate from
+awakening; a tailed beast, Karma, the Gates or Sage Mode is not automatically labelled a bloodline.
 
-| Character | Signature 1 | Signature 2 | Bloodline slot | Style |
-| --- | --- | --- | --- | --- |
-| Naruto | Rasengan: rushing burst | Shadow Clone Strike: extended melee reach | None in this kit | Close-range pressure |
-| Sasuke | Chidori: rushing guard pierce | Fireball: projectile + burn | Sharingan Genjutsu: damage + weakening | Guard pressure and ranged chip |
-| Hinata | Twin Lion Fists: guard pierce | Chakra Point Strike: damage + weakening | Byakugan: temporary guard penetration | Precision and suppression |
-| Orochimaru | Striking Shadow Snakes: extended reach + poison | Five-Pronged Seal: damage + weakening | None in this kit | Attrition and suppression |
+| Character | Era | Signature 1 | Signature 2 | Bloodline / dōjutsu | Awakening |
+| --- | --- | --- | --- | --- | --- |
+| Naruto | Naruto | Rasengan | Shadow Clone Strike | — | Kurama Chakra Mode |
+| Sasuke | Naruto | Chidori | Fireball | Sharingan | Susanoo |
+| Hinata | Naruto | Twin Lion Fists | Chakra Point Strike | Byakugan | — |
+| Orochimaru | Naruto | Striking Shadow Snakes | Five-Pronged Seal | — | — |
+| Kakashi | Naruto | Lightning Blade | Lightning Hound | Sharingan (transplanted) | — |
+| Sakura | Naruto | Cherry Blossom Impact | Heaven Kick | — | — |
+| Gaara | Naruto | Sand Burial | Sand Shower | — | — |
+| Itachi | Naruto | Crow Assault | Amaterasu | Sharingan | Susanoo |
+| Rock Lee | Naruto | Leaf Whirlwind | Primary Lotus | — | Eight Gates |
+| Shikamaru | Naruto | Shadow Possession | Shadow Stitching | — | — |
+| Minato | Naruto | Flying Raijin Strike | Rasengan | — | — |
+| Madara | Naruto | Uchiha Reversal | Dragon Flame | Sharingan | Susanoo |
+| Boruto | Boruto | Boruto Stream | Vanishing Rasengan | — | Karma |
+| Sarada | Boruto | Chidori | Fireball | Sharingan | — |
+| Mitsuki | Boruto | Snake Lightning | Wind Scythe | — | Sage Mode |
+| Kawaki | Boruto | Body Blade | Energy Blast | — | Karma Overdrive |
 
-Naruto's tailed-beast power is not labelled a bloodline. Orochimaru's snake techniques occupy signature
-slots. A character without an inherited technique has a visibly unavailable bloodline button; the system
-does not invent one to fill every slot. Mirror matches are allowed.
+Search and era filtering affect both roster grids without changing either player's selection. Grids scroll
+independently. Mirror matches are allowed. Weapon choice survives rounds; rematch allows reselection.
 
-Before a new match, each fighter selects a character and weapon. The computer also uses its chosen kit.
-Next round preserves loadouts; rematch lets players reselect them. An active round cannot change equipment.
+## Forms
 
-| Weapon | Attack | Tradeoff |
-| --- | --- | --- |
-| Kunai | Melee thrust, 75 damage | Quick and short-range |
-| Shuriken | Projectile, 55 damage | Ranged, can be jumped or guarded |
-| Katana | Melee slash, 100 damage | More reach, slower recovery |
+| Form | HP lost to unlock | Duration | Damage × | Movement × | Incoming damage × | Chakra / tick |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Kurama Chakra Mode | 400 | 10s | 1.20 | 1.12 | .90 | .08 |
+| Susanoo | 450 | 10s | 1.15 | .95 | .75 | .06 |
+| Eight Gates | 400 | 8s | 1.30 | 1.30 | 1.00 | .035 |
+| Karma | 400 | 10s | 1.20 | 1.15 | .90 | .10 |
+| Karma Overdrive | 400 | 10s | 1.20 | 1.10 | .85 | .08 |
+| Sage Mode | 400 | 10s | 1.15 | 1.25 | .90 | .10 |
 
-Every fighter retains a separate 65-damage unarmed basic attack regardless of equipment.
-Weapons cost no chakra, but have recovery and cooldowns. Signatures and bloodline actions have chakra
-costs and cooldowns displayed on the player's controls. Defaults and values live in `packages/engine/catalog.js`.
+Naruto gains Kurama Rasengan and Chakra Claw during his form. Boruto gains Karma Rasengan. Other forms
+currently modify stats/aura while retaining their base move sets. One use per round; no health restoration
+or direct-hit immunity. Taking damage to unlock a form is this game's comeback mechanic, not a claim
+about how every transformation is triggered in the anime. It is separate from a future ultimate-move slot.
 
-## Shared movement / escape
+## Weapons and effects
 
-- Two jump impulses per landing; release/repress jump to use the second one.
-- Double-tap either direction within 14 ticks to dash; Q/E or touch buttons explicitly dash backward/forward.
-- Ground dash: eight ticks at 17 world units/tick; 24-tick cooldown. No invulnerability.
-- Replacement: 25 chakra, eight-second cooldown, retreat up to 170 units, eighteen ticks of direct-hit
-  immunity. Can escape hitstun; cancels the current attack/dash. Existing poison/burn are not cleansed.
-
-## Effects
-
-- Pierce: bypasses guard reduction. Chidori and Twin Lion Fists fully pierce guard. Byakugan grants five
-  seconds of guard penetration to the user's melee/weapon/projectile attacks. Replacement still evades them.
-- Weaken (nerf): outgoing direct damage is reduced by 30% for four or five seconds, depending on the move.
-- Poison: nine damage each second for six seconds (54 total after application).
-- Burn: twelve damage each second for four seconds (48 total after application).
-- Ordinary guarded hits do not apply negative effects. Full guard penetration permits effect application.
-- Reapplying the same effect refreshes duration/maximum strength, without stacking duplicates or delaying
-  its already-scheduled next damage tick. Poison and burn are distinct and may coexist.
-- New rounds and rematches clear effects, buffs, cooldowns and invulnerability.
+Every fighter has a separate 65-damage basic attack and chooses kunai (75-damage thrust), shuriken
+(55-damage projectile) or katana (100-damage slash). Weapons cost no chakra but have recovery/cooldowns.
+Pierce, weakening, poison and burn are assigned to individual moves in catalog.js. See COMBAT_RULES.md
+for stacking, combo scaling, buffering and defensive interactions.
 
 ## Theme references
 
-- Official Chidori description: https://naruto-official.com/en/news/01_1715
-- Official Hinata / Twin Lion Fists reference: https://naruto-official.com/en/news/01_2199
+- https://naruto-official.com/en/news/01_1715 — Chidori
+- https://naruto-official.com/en/news/01_2199 — Hinata / Twin Lion Fists
+- https://naruto-official.com/en/news/01_1491 — Boruto/Kawaki Karma and Kurama Link Mode
+- https://naruto-official.com/en/news/01_1490 — Kurama and Susanoo
+- https://en.bandainamcoent.eu/naruto/news/sarada-uchiha-mitsuki-and-momoshiki-otsutsuki-coming-naruto-x-boruto-ultimate-ninja — Mitsuki Sage Mode
 
-These are thematic references, not permission to reuse third-party artwork. All rendering remains project-authored geometry.
+These support theme choices, not exact prototype effects or asset permissions. Portraits and combat
+rendering remain project-authored procedural artwork.

@@ -1,5 +1,5 @@
 import { createInput } from './packages/input/index.js';
-import { createMatch, stepMatch, nextRound, computerInput, TICK_RATE, CHARACTERS, WEAPONS, MOVES, moveFor } from './packages/engine/index.js';
+import { createMatch, stepMatch, nextRound, computerInput, TICK_RATE, CHARACTERS, WEAPONS, MOVES, moveFor, awakeningFor, activeAwakening, awakeningReady } from './packages/engine/index.js';
 import { createRoster } from './roster.js';
 import { createControls } from './controls.js';
 import { createRenderer } from './renderer.js';
@@ -16,7 +16,8 @@ function describeLoadouts(){
   for(const i of [0,1]){
     const character=CHARACTERS[$(`#character${i} input:checked`).value],weapon=WEAPONS[$(`#weapon${i}`).value];
     $(`#selected${i}`).textContent=character.name;
-    $(`#kit${i}`).innerHTML=`<strong>${character.title}</strong><br>${character.description}<br><span class="kit-label">${weapon.description}</span>`;
+    const form=awakeningFor({character:character.id});
+    $(`#kit${i}`).innerHTML=`<strong>${character.title}</strong><br><span class="kit-description">${character.description}<br></span><span class="kit-label">${weapon.description}</span>${form?`<br><span class="form-note">Awakening: ${form.name} · ${form.threshold} HP lost</span>`:''}`;
   }
   if(!started)state=createMatch(readLoadouts());
 }
@@ -25,7 +26,18 @@ for(const i of [0,1]){
   for(const weapon of Object.values(WEAPONS))$(`#weapon${i}`).add(new Option(weapon.name,weapon.id));
   $(`#weapon${i}`).addEventListener('change',describeLoadouts);
 }
-describeLoadouts();
+function filterRoster(){
+  const query=$('#roster-search').value.trim().toLowerCase(),era=$('#roster-era').value;
+  let count=0;for(const character of Object.values(CHARACTERS)){
+    const show=(!query||`${character.name} ${character.title}`.toLowerCase().includes(query))&&(era==='all'||character.era===era);
+    for(const card of document.querySelectorAll(`.character-card[data-character="${character.id}"]`))card.hidden=!show;
+    if(show)count++;
+  }
+  $('#roster-count').textContent=`${count} fighter${count===1?'':'s'}`;
+  for(const empty of document.querySelectorAll('.roster-empty'))empty.hidden=count>0;
+}
+$('#roster-search').addEventListener('input',filterRoster);$('#roster-era').addEventListener('change',filterRoster);
+describeLoadouts();filterRoster();
 function clearInputs(){controls?.reset();inputs.forEach(i=>i.reset());cpu={};buttons.forEach(b=>b.classList.remove('active'));}
 function dialog(kicker,title,description,button){
   $('#overlay-kicker').textContent=kicker;$('#overlay-title').textContent=title;
@@ -83,13 +95,21 @@ function paintHud(){
   const player=state.fighters[0];
   for(const [key,name,meta,bind] of [['special1','s1-name','s1-meta','U'],['special2','s2-name','s2-meta','I'],['bloodline','bl-name','bl-meta','O']]){
     const move=moveFor(player,key),cooldown=player.cooldowns[key]??0;
-    $(`#${name}`).textContent=move?shortNames[move]:'BLOODLINE';
+    $(`#${name}`).textContent=move?(shortNames[move]??MOVES[move].name.toUpperCase()):'BLOODLINE';
     $(`#${meta}`).textContent=move?`${controls?.binding(0,key)??bind} · ${cooldown>0?(cooldown/60).toFixed(1)+'s':MOVES[move].cost}`:`${controls?.binding(0,key)??bind} · NONE`;
   }
   $('#weapon-label').textContent=`${controls?.binding(0,'weapon')??'H'} · ${WEAPONS[player.weapon].name.toUpperCase()}`;
   $('#replacement-cd').textContent=player.cooldowns.replacement>0?`${controls?.binding(0,'replacement')??'R'} · ${(player.cooldowns.replacement/60).toFixed(1)}s`:`${controls?.binding(0,'replacement')??'R'} · 25`;
   $('#p2-help').textContent=mode==='cpu'?`CPU ${state.fighters[1].name} · ${WEAPONS[state.fighters[1].weapon].name}`:'P2 arrows · N/B basic/weapon · M guard · ,/. signatures · / bloodline · V replace';
+  const playerForm=awakeningFor(player),currentForm=activeAwakening(player);
+  $('#awakening-meta').textContent=`${controls?.binding(0,'awakening')??'T'} · ${currentForm?(player.awakeningTicks/60).toFixed(1)+'s':!playerForm?'NONE':player.awakeningUsed?'USED':awakeningReady(player)?'READY':Math.min(100,Math.floor(player.damageTaken/playerForm.threshold*100))+'%'}`;
+  $('#basic-label').textContent=player.action?.confirmed&&player.action.chain<3?`COMBO ${player.action.chain+1}`:'BASIC ×3';
   state.fighters.forEach((f,i)=>{
+    const form=awakeningFor(f),active=activeAwakening(f),meter=$(`#awakening-fill${i}`);
+    meter.style.width=`${active?f.awakeningTicks/form.duration*100:form?Math.min(100,f.damageTaken/form.threshold*100):0}%`;
+    meter.style.background=form?.color??'#627386';
+    $(`#awakening-label${i}`).textContent=active?`${active.name.toUpperCase()} · ${(f.awakeningTicks/60).toFixed(1)}s`:!form?'NO AWAKENING':f.awakeningUsed?'AWAKENING USED':awakeningReady(f)?`${form.name.toUpperCase()} · READY`:`${form.name.toUpperCase()} · ${Math.floor(Math.min(100,f.damageTaken/form.threshold*100))}%`;
+    $(`#combo${i}`).textContent=f.combo.hits>1&&state.tick-f.combo.lastTick<60?`${f.combo.hits} HITS · ${f.combo.damage} DAMAGE`:'';
     $(`#name${i}`).textContent=f.name.toUpperCase();
     const labels=[...f.effects.map(e=>`${e.type.toUpperCase()} ${(e.remaining/60).toFixed(1)}s`),...f.buffs.map(b=>`${b.type.toUpperCase()} ${(b.remaining/60).toFixed(1)}s`)];
     if(f.invulnerable>0)labels.push('SUBSTITUTION');
@@ -101,13 +121,14 @@ function paintHud(){
   $('#round').textContent=`ROUND ${state.round.toString().padStart(2,'0')}`;
   const binding=(player,action)=>controls?.binding(player,action)??'Unbound';
   const footer=document.querySelector('footer>span');
-  footer.textContent=`P1 ${binding(0,'left')}/${binding(0,'right')} move · ${binding(0,'jump')} ×2 jump · ${binding(0,'dashBack')}/${binding(0,'dashForward')} dash · ${binding(0,'attack')} basic · ${binding(0,'weapon')} weapon · ${binding(0,'block')} guard · ${binding(0,'special1')}/${binding(0,'special2')} jutsu · ${binding(0,'bloodline')} bloodline · ${binding(0,'replacement')} replace`;
+  footer.textContent=`P1 ${binding(0,'left')}/${binding(0,'right')} move · ${binding(0,'jump')} ×2 jump · ${binding(0,'dashBack')}/${binding(0,'dashForward')} dash · ${binding(0,'attack')} basic · ${binding(0,'weapon')} weapon · ${binding(0,'block')} guard · ${binding(0,'special1')}/${binding(0,'special2')} jutsu · ${binding(0,'bloodline')} bloodline · ${binding(0,'replacement')} replace · ${binding(0,'awakening')} awaken`;
   if(mode==='local')$('#overlay-hint').textContent=`P2 ${binding(1,'left')}/${binding(1,'right')} move · ${binding(1,'jump')} jump · ${binding(1,'attack')} basic · ${binding(1,'weapon')} weapon · ${binding(1,'block')} guard · ${binding(1,'special1')}/${binding(1,'special2')} jutsu · ${binding(1,'bloodline')} bloodline · ${binding(1,'replacement')} replace`;
   if(mode==='local')$('#p2-help').textContent=`P2 ${binding(1,'left')}/${binding(1,'right')} move · ${binding(1,'jump')} jump · ${binding(1,'attack')}/${binding(1,'weapon')} basic/weapon · ${binding(1,'block')} guard`;
   for(const action of ['jump','dashBack','dashForward','attack','block'])$(`[data-action="${action}"] small`).textContent=binding(0,action);
   const snap=inputs[0].snapshot();buttons.forEach(b=>{
     const key=b.dataset.action,move=moveFor(player,key),cost=key==='replacement'?25:move?MOVES[move].cost:0;
-    b.disabled=key==='bloodline'&&!move&&!controls?.editing;
+    b.disabled=!controls?.editing&&((key==='bloodline'&&!move)||(key==='awakening'&&!awakeningReady(player)));
+    b.classList.toggle('awakening-ready',key==='awakening'&&awakeningReady(player));
     b.classList.toggle('active',snap[key]);b.classList.toggle('cooling',(player.cooldowns[key]??0)>0);
     b.classList.toggle('unavailable',b.disabled||player.chakra<cost);
   });
@@ -119,8 +140,8 @@ function frame(now){
     while(accumulator>=1/TICK_RATE&&state.status==='playing'){
       if(state.tick%8===0)cpu=computerInput(state);
       stepMatch(state,[inputs[0].consume(),mode==='cpu'?cpu:inputs[1].consume()]);accumulator-=1/TICK_RATE;
-      const event=state.events.find(e=>['hit','block','empty','pierce','replacement','unavailable','poison','burn','cooldown'].includes(e.type));
-      if(event){const messages={empty:'NOT ENOUGH CHAKRA',block:'GUARDED',replacement:'REPLACEMENT JUTSU',unavailable:'NO BLOODLINE IN THIS KIT',cooldown:'TECHNIQUE ON COOLDOWN'};
+      const event=state.events.find(e=>['hit','block','empty','pierce','replacement','unavailable','poison','burn','cooldown','awakeningBlocked'].includes(e.type));
+      if(event){const messages={empty:'NOT ENOUGH CHAKRA',block:'GUARDED',replacement:'REPLACEMENT JUTSU',unavailable:'NO BLOODLINE IN THIS KIT',cooldown:'TECHNIQUE ON COOLDOWN',awakeningBlocked:'AWAKENING NOT READY OR UNABLE TO ACT'};
         $('#feedback').textContent=messages[event.type]??`${event.type==='pierce'?'GUARD PIERCED · ':event.type==='poison'?'POISON · ':event.type==='burn'?'BURN · ':''}${event.damage} DAMAGE`;feedbackUntil=now+700;}
     }
     if(state.status!=='playing')finish();

@@ -32,6 +32,14 @@ Use Clear to remove a binding, or restore default keys in the draft. Escape canc
 P and Escape remain pause controls; Tab stays available for navigation. Space can be bound to jump.
 Select Done to return to the touch editor, then Save to keep all changes. HUD key hints update to match.
 
+## Awakening control
+
+P1 defaults to T and P2 to Y; the touch Awaken button is available only when the selected character’s
+meter is ready. It can be moved/resized or rebound like other actions. Settings schema version 2
+upgrades version-one layouts while retaining their positions and bindings. The new default key is
+added only if it is unused; an existing custom T/Y binding is never stolen. If necessary, bind Awaken
+manually in Keyboard.
+
 ## Persistence and responsive layouts
 
 Settings are versioned in localStorage under `shinobi-arena.controls.v1`, scoped to this browser and site.

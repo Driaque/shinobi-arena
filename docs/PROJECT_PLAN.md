@@ -5,7 +5,8 @@ Date: October 26, 2026. Working name: Shinobi Arena. Owner: Daniel.
 ## Current delivery status
 
 Playable local duel and baseline computer opponent are implemented, including character/weapon
-selection, double jumps/dashes, Replacement, effects, bloodline techniques, specials, rounds,
+selection (16 fighters), buffered combos, damage-unlocked awakenings, double jumps/dashes,
+Replacement, effects, bloodline techniques, specials, rounds,
 procedural art, analog movement, editable touch layouts, keyboard remapping and browser smoke checks. M2 asset/audio
 work remain pending. M3 physical-device validation is pending. No online features are implemented.
 See README and COMBAT_RULES for current behaviour.

@@ -1,10 +1,10 @@
 import { ACTIONS } from './index.js';
-export const SETTINGS_VERSION = 1;
+export const SETTINGS_VERSION = 2;
 export const STORAGE_KEY = 'shinobi-arena.controls.v1';
 export const CONTROL_IDS = Object.freeze(['stick', ...ACTIONS.filter(a => !['left','right'].includes(a))]);
 export const DEFAULT_KEYS = Object.freeze([
-  {KeyA:'left',KeyD:'right',KeyW:'jump',KeyJ:'attack',KeyK:'block',KeyU:'special1',KeyI:'special2',KeyH:'weapon',KeyO:'bloodline',KeyR:'replacement',KeyQ:'dashBack',KeyE:'dashForward'},
-  {ArrowLeft:'left',ArrowRight:'right',ArrowUp:'jump',KeyN:'attack',KeyM:'block',Comma:'special1',Period:'special2',KeyB:'weapon',Slash:'bloodline',KeyV:'replacement'}
+  {KeyA:'left',KeyD:'right',KeyW:'jump',KeyJ:'attack',KeyK:'block',KeyU:'special1',KeyI:'special2',KeyH:'weapon',KeyO:'bloodline',KeyR:'replacement',KeyQ:'dashBack',KeyE:'dashForward',KeyT:'awakening'},
+  {ArrowLeft:'left',ArrowRight:'right',ArrowUp:'jump',KeyN:'attack',KeyM:'block',Comma:'special1',Period:'special2',KeyB:'weapon',Slash:'bloodline',KeyV:'replacement',KeyY:'awakening'}
 ]);
 const clamp = (x,a,b) => Math.max(a,Math.min(b,x));
 export function stickVector(dx,dy,radius,deadZone=.18) {
@@ -20,7 +20,7 @@ export function defaultLayout(width,height) {
   const px={
     stick:[left,bottom,112], jump:[left+135,height-40,52], dashBack:[left-52,height-170,48],dashForward:[left+110,height-165,48],
     attack:[width-65,height-55,64],weapon:[width-142,height-36,52],block:[width-37,height-140,48],
-    replacement:[width-107,height-190,48],special1:[width-205,height-85,52],special2:[width-185,height-162,52],bloodline:[width-258,height-180,48]
+    replacement:[width-107,height-190,48],special1:[width-205,height-85,52],special2:[width-185,height-162,52],bloodline:[width-258,height-180,48],awakening:[left+235,height-40,54]
   };
   return Object.fromEntries(CONTROL_IDS.map(id=>[id,{x:px[id][0]/width,y:px[id][1]/height,size:px[id][2]}]));
 }
@@ -53,7 +53,7 @@ export function readSettings(raw) {
   const fallback=freshSettings();
   try {
     const value=JSON.parse(raw);
-    if(value?.version!==SETTINGS_VERSION)return fallback;
+    if(![1,SETTINGS_VERSION].includes(value?.version))return fallback;
     const keys=[{},{}],used=new Set();
     if(!Array.isArray(value.keys)||value.keys.length!==2)throw new Error('Invalid keys');
     value.keys.forEach((map,i)=>{
@@ -64,14 +64,30 @@ export function readSettings(raw) {
         keys[i][code]=action;used.add(code);actions.add(action);
       }
     });
+    if(value.version===1){
+      for(const [i,code]of ['KeyT','KeyY'].entries())if(!Object.values(keys[i]).includes('awakening')&&!used.has(code)){keys[i][code]='awakening';used.add(code);}
+    }
     const layouts={};
     for(const profile of ['small','medium','large']){
       const candidate=value.layouts?.[profile];if(!candidate)continue;
       const layout={};
       for(const id of CONTROL_IDS){
-        const c=candidate[id];
+        const size=profile==='small'?[627,287]:profile==='medium'?[804,302]:[1238,684];
+        const c=candidate[id]??(value.version===1&&id==='awakening'?defaultLayout(...size).awakening:null);
         if(!c||![c.x,c.y,c.size].every(Number.isFinite))throw new Error('Invalid layout');
         layout[id]={x:clamp(c.x,0,1),y:clamp(c.y,0,1),size:clamp(c.size,id==='stick'?88:48,id==='stick'?160:90)};
+      }
+      if(value.version===1&&!candidate.awakening){
+        const [width,height]=profile==='small'?[627,287]:profile==='medium'?[804,302]:[1238,684];
+        if(layoutOverlaps(layout,width,height).some(pair=>pair.includes('awakening'))){
+          const desired=projectControl(layout.awakening,width,height,'awakening'),points=[];
+          for(let y=height-35;y>=110;y-=24)for(let x=35;x<width-35;x+=24)points.push({x,y});
+          points.sort((a,b)=>Math.hypot(a.x-desired.x,a.y-desired.y)-Math.hypot(b.x-desired.x,b.y-desired.y));
+          for(const point of points){
+            const trial={...layout,awakening:{x:point.x/width,y:point.y/height,size:54}};
+            if(!layoutOverlaps(trial,width,height).some(pair=>pair.includes('awakening'))){layout.awakening=trial.awakening;break;}
+          }
+        }
       }
       layouts[profile]=layout;
     }

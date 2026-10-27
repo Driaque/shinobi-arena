@@ -62,3 +62,13 @@ The browser adapter owns radial dead-zone normalization, capture and cancellatio
 module handles safe bounds, collision checks, binding conflicts and persisted-data validation.
 Settings use a versioned browser-local schema with separate viewport profiles; editing is a draft and
 requires Save. This is separate from combat/match data and does not require a backend.
+
+## ADR 007 · Explicit comeback forms and hit-confirm chains
+
+Accepted for 0.6.0. Awakening definitions are data, referenced from eligible character kits. Actual damage
+is centralized so charge excludes overkill and respects defence. Activation state, duration and usage are
+per fighter/per round. Move overrides resolve through the same action dispatcher and revert on expiry.
+The input buffer is tick-bounded; only confirmed basics can cancel into configured follow-ups. Combo
+continuation depends on the target still being in hitstun, with explicit scaling and no DOT hit counting.
+All of this remains headless/replayable. Presentation adds aura, counters and optional camera shake;
+reduced-motion preference disables shake. Control schema migration preserves existing preferences.

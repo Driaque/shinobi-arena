@@ -1,69 +1,74 @@
-# Combat rules · duel-0.2.0
+# Combat rules · duel-0.6.0
 
-World coordinates: 1280×720; floor at y=570. Character y is height above the floor. Simulation runs
-at 60 fixed ticks/second. Render rate does not determine movement or attack timing. A frame stall
-admits at most 100 ms of catch-up time per animation frame; hidden/local games pause.
+The deterministic simulation runs at 60 ticks/second in a 1280×720 world. Floor y=570; fighter y is height
+above the floor. Render frequency does not determine combat outcomes. Local pause/portrait/focus loss
+stops the match; resume is explicit. Data definitions live in `packages/engine/catalog.js`.
 
-## Movement and defence
+## Movement, guard and escape
 
-Ground speed: 5 units/tick; airborne speed: 4.5. Jump begins with upward velocity 17, gravity 0.9/tick.
-Opposite directions cancel. Jump is edge-triggered and cannot retrigger while held. Grounded/near-height
-fighters stay at least 52 units apart, including at arena boundaries. Fighters may cross while sufficiently
-vertically separated. Idle fighters turn toward the opponent; attacks retain their facing.
+Ground speed is 5 units/tick, airborne speed 4.5, modified by an active awakening. Analog deflection scales
+horizontal speed; held keyboard directions override it and opposite keys neutralize each other. Two jumps
+are available per landing. Ground dash lasts eight ticks at 17 units/tick with a 24-tick cooldown and no
+invulnerability. Double-tap either direction or use explicit back/forward buttons.
 
-Guard requires holding block while grounded, not attacking and not stunned. A guarded hit requires
-facing the incoming attack. Guard chips ceil(8% of damage) and reduces knockback to 30%; guard
-impact causes seven ticks of stun. Unguarded hits cause eighteen ticks of stun and interrupt an action.
-This prototype has no throws, invulnerability, air blocking or high/low guard mixups.
+Grounded guard requires no action/dash/stun and facing the incoming attack. Normal guard takes ceil(8%)
+chip damage and 30% knockback; guard impact stuns for seven ticks. Unguarded hits interrupt actions and
+usually stun for eighteen ticks. Guard-piercing attacks bypass reduction according to their pierce fraction.
+Full pierce also permits effects through guard. There are no throws or air-blocking yet.
 
-## Actions
+Replacement costs 25 chakra, has an eight-second cooldown, retreats up to 170 units and grants eighteen
+ticks of direct-hit immunity. It cancels the current action/buffer/dash and clears hitstun. It breaks the
+opponent's combo. It does not cure poison/burn or prevent periodic damage.
 
-A fresh input press starts an action if the fighter can act. Inputs during recovery/stun are not queued
-for a later combo. Device-level quick taps between simulation ticks are captured for the next tick.
-Chakra is spent at action start and not refunded on interruption. Chakra regenerates 0.035/tick,
-up to 100. Both fighters begin with 1000 HP and 100 chakra.
+## Actions and combos
 
-| Move | Startup | Active | Recovery | Damage | Chakra | Reach |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Basic hit | 5 | 4 | 13 | 65 | 0 | 90 |
-| Rasengan / Chidori | 12 | 9 | 24 | 150 | 30 | 118, plus active lunge |
-| Clone strike | 16 | 7 | 24 | 120 | 35 | 210 |
-| Fireball | 17 | 1 | 28 | 110 | 25 | Projectile |
+Basic, weapon, signatures and bloodline/dōjutsu are separate slots. A fresh press enters a ten-tick buffer;
+holding does not repeat. Chakra is spent at action start and not refunded when interrupted. Each swing
+can hit a target once. Projectiles disappear on impact/bounds/expiry; launched projectiles survive a
+caster's interruption. Normal chakra regeneration is 0.035/tick, up to 100.
 
-Basic and lunge attacks have a vertical tolerance of 100 units and only hit in front of the fighter.
-Each melee swing hits a target at most once. Fireballs move 12 units/tick, expire after 100 ticks or
-leaving the arena, and disappear on impact. Projectiles already launched survive the caster's interruption.
-Their hit checks include target height, allowing jumps over them.
+Basic chain:
 
-Both fighters update movement/actions before hit candidates are collected. All hit and block decisions
-are gathered before damage is applied, so same-tick hits can trade. Double knockout draws.
-Round outcome is checked after all hits. At zero timer, higher HP wins. First to two round wins ends
-the match; draws award no points. Next round resets HP/resources/positions and timer, preserving wins.
-Rematch resets the entire match. Changing modes discards the current match.
+| Stage | Startup / active / recovery | Base damage | Reach | Follow-up |
+| --- | --- | ---: | ---: | --- |
+| Basic strike | 5 / 4 / 13 | 65 | 90 | Body strike |
+| Body strike | 5 / 4 / 15 | 50 | 105 | Launching kick |
+| Launching kick | 8 / 4 / 24 | 90 | 130 | Ender; launches and knocks back |
 
-## Computer
+Tap Basic again after the first hit; early taps within the buffer are accepted. Once the active phase ends,
+a confirmed basic hit can cancel recovery into the next basic stage, a weapon or a signature. Blocked hits
+and whiffs do not qualify. Stage three cannot cancel into another basic stage. A normal attack pressed
+late in recovery may begin after recovery if its buffer has not expired.
 
-Evaluates legal visible state every eight ticks. Approaches, guards against visible attack startup,
-uses specials at range, and uses basic attacks nearby. Uses the same costs, stun and cooldown rules.
-No randomness or LLM service. This is a baseline opponent, not advanced fighting-game AI.
+The combo counter continues only while the same opponent is still in hitstun and the last hit was within
+30 ticks. Damage scales 100%, 90%, 80%, 70%... with a 55% floor. A standard connected three-hit basic
+chain deals 65 + 45 + 72 = 182 damage before other modifiers. Gaps reset the counter. DOT does not count
+as a combo hit. Visible counters last sixty ticks after the last confirmed hit.
 
-## 0.3.0 extension
+Hit/block candidates resolve together, so same-tick strikes can trade and double KO draws. Lethal periodic
+damage is processed before actions; it cannot be escaped by activating a form after death.
 
-The roster/effect extension introduced rules version `duel-0.3.0`. The earlier table documents the original two-fighter baseline;
-Chidori now uses its own guard-piercing move definition. See CHARACTER_KITS.md and catalog.js for the
-expanded roster and current authoritative values. Double jumping, dashing, Replacement and effects
-follow the extension documented there. Loadouts are validated at match creation and preserved between rounds.
+## Effects and awakenings
 
-Effects tick before actions; lethal periodic damage stops that fighter starting another action.
-Replacement is processed before ordinary stun restrictions, allowing it to escape hitstun. It cannot
-revive a fighter. Projectiles snapshot weakening/pierce at launch. Melee uses the attacker's current
-weakening and Byakugan state. All direct hit candidates still resolve simultaneously.
+Weaken reduces outgoing direct damage 30%. Poison deals nine damage/second for six seconds. Baseline
+Fireball burn deals twelve/second for four seconds; Amaterasu has its own data values. Same-type effects
+refresh duration/max potency without duplicating instances or postponing the next DOT tick.
 
+Actual HP lost—including chip and periodic damage, excluding prevented damage and overkill—fills the
+awakening charge on eligible fighters. Press Awaken when the threshold is reached and the fighter is free
+of action/dash/hitstun. One activation per round; no healing, invulnerability or cooldown reset. Forms modify
+speed, damage, defence and chakra regeneration. Naruto/Boruto also replace selected signatures while active.
+Most forms last 600 ticks; Eight Gates lasts 480. See CHARACTER_KITS.md for thresholds and modifiers.
+Projectiles snapshot outgoing awakening/weakening/pierce at launch; target defence is evaluated on impact.
 
-## 0.4.0 input extension
+The form timer runs only while the simulation runs. Expiry restores base signatures/stats. New rounds
+reset charge, activation eligibility, effects, cooldowns and combo state while retaining selected loadouts.
 
-Current rules version: `duel-0.4.0`. The simulation accepts a normalized horizontal movement axis.
-Keyboard directions override the axis while held, including neutral when opposite keys are held.
-Analog deflection scales ground/air speed without changing combat reach, jump counts or dash rules.
-Vertical stick travel does not jump. Touch layout and key preferences are local UI configuration,
-not part of match state. See CONTROL_SETTINGS.md.
+## Victory and computer play
+
+90-second rounds; first to two wins. Knockout wins immediately after all same-tick hits resolve. At time
+expiry, higher HP wins; equal HP/double KO draws without awarding a point. Rematch reopens loadout selection.
+
+The baseline computer observes legal visible state every eight ticks, can chain basics and activate a ready
+awakening, and uses the same resource/stun rules. It has no hidden stat bonuses. Values and timing are
+prototype balance choices; roster variety does not establish competitive balance.

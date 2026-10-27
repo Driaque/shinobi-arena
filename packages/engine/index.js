@@ -1,8 +1,8 @@
-import { CHARACTERS, WEAPONS, MOVES, validateLoadouts } from './catalog.js';
-export { CHARACTERS, WEAPONS, MOVES } from './catalog.js';
+import { CHARACTERS, WEAPONS, MOVES, AWAKENINGS, validateLoadouts } from './catalog.js';
+export { CHARACTERS, WEAPONS, MOVES, AWAKENINGS } from './catalog.js';
 export const TICK_RATE = 60;
 export const ARENA = Object.freeze({ width: 1280, height: 720, floor: 570, margin: 46 });
-export const RULES_VERSION = 'duel-0.4.0';
+export const RULES_VERSION = 'duel-0.6.0';
 export function advanceResource(resource, cost) {
   if (![resource, cost].every(Number.isFinite) || resource < 0 || cost < 0) throw new Error('Invalid resource');
   return resource >= cost ? { accepted: true, remaining: resource - cost } : { accepted: false, remaining: resource };
@@ -18,7 +18,7 @@ export function outcome({ hp1, hp2, remainingTicks }) {
 function fighter(id, loadout) {
   const character=CHARACTERS[loadout.character];
   return { id, name: character.name, character: loadout.character, weapon: loadout.weapon, x: id === 0 ? 360 : 920, y: 0, vy: 0,
-    hp: 1000, chakra: 100, facing: id === 0 ? 1 : -1, stun: 0, blocking: false,
+    hp: 1000, chakra: 100, damageTaken:0, awakeningTicks:0, awakeningUsed:false, awakeningFlash:0, buffer:null, combo:{hits:0,damage:0,lastTick:-100,target:null}, facing: id === 0 ? 1 : -1, stun: 0, blocking: false,
     jumps: 0, dash: null, dashCooldown: 0, taps: {left:-100,right:-100}, cooldowns: {}, effects: [], buffs: [], invulnerable: 0, replacement: null, action: null, previous: {}, lastHit: -100, blockedHit: false };
 }
 export function createMatch(loadouts=[{character:'naruto',weapon:'kunai'},{character:'sasuke',weapon:'kunai'}]) {
@@ -49,18 +49,34 @@ function separate(a, b) {
   }
 }
 export function moveFor(f, key) {
+  if(!['attack','weapon','special1','special2','bloodline'].includes(key))return null;
   const character=CHARACTERS[f.character];
+  const override=activeAwakening(f)?.overrides[key];
+  if(override)return override;
   return key==='weapon'?WEAPONS[f.weapon].move:key==='attack'?'attack':character[key];
 }
-function startAction(state, f, key) {
-  const move=moveFor(f,key);
-  if(!move){state.events.push({type:'unavailable',target:f.id});return;}
-  if(f.cooldowns[key]>0){state.events.push({type:'cooldown',target:f.id});return;}
+function startAction(state, f, key, override=null, chain=0) {
+  const move=override??moveFor(f,key);
+  if(!move){state.events.push({type:'unavailable',target:f.id});return false;}
+  if(f.cooldowns[key]>0){state.events.push({type:'cooldown',target:f.id});return false;}
   const config=MOVES[move], spent=advanceResource(f.chakra,config.cost);
-  if(!spent.accepted){state.events.push({type:'empty',target:f.id});return;}
+  if(!spent.accepted){state.events.push({type:'empty',target:f.id});return false;}
   f.chakra=spent.remaining;f.cooldowns[key]=config.cooldown??0;
-  f.action={move,age:0,hit:false,fired:false};f.blocking=false;
+  f.action={move,age:0,hit:false,confirmed:false,fired:false,chain:chain||(key==='attack'?1:0)};f.blocking=false;return true;
 }
+export function awakeningFor(f) {return AWAKENINGS[CHARACTERS[f.character].awakening]??null;}
+export function activeAwakening(f) {return f.awakeningTicks>0?awakeningFor(f):null;}
+export function awakeningReady(f) {const form=awakeningFor(f);return Boolean(form&&!f.awakeningUsed&&f.hp>0&&f.damageTaken>=form.threshold);}
+function receiveDamage(f,amount) {
+  const loss=Math.min(f.hp,Math.max(0,Math.ceil(amount*(activeAwakening(f)?.defence??1))));
+  f.hp-=loss;f.damageTaken+=loss;return loss;
+}
+function awaken(state,f) {
+  if(!awakeningReady(f)||f.stun>0||f.action||f.dash){state.events.push({type:'awakeningBlocked',target:f.id});return;}
+  const form=awakeningFor(f);f.awakeningTicks=form.duration;f.awakeningUsed=true;f.awakeningFlash=30;
+  state.events.push({type:'awakening',target:f.id,name:form.name});
+}
+function clearCombo(f) {f.combo={hits:0,damage:0,lastTick:-100,target:null};}
 function applyEffect(state,target,hit) {
   if(!hit.effect)return;
   const existing=target.effects.find(e=>e.type===hit.effect);
@@ -70,7 +86,7 @@ function applyEffect(state,target,hit) {
 function tickEffects(state,f) {
   for(const effect of f.effects){
     if(effect.type!=='weaken'&&state.tick>=effect.nextTick){
-      const damage=effect.potency;f.hp=Math.max(0,f.hp-damage);effect.nextTick+=60;
+      const damage=receiveDamage(f,effect.potency);effect.nextTick+=60;
       state.events.push({type:effect.type,target:f.id,damage});
     }
     effect.remaining--;
@@ -80,13 +96,14 @@ function tickEffects(state,f) {
   f.buffs=f.buffs.map(b=>({...b,remaining:b.remaining-1})).filter(b=>b.remaining>0);
 }
 function substitute(state,f,other) {
-  if(f.cooldowns.replacement>0){state.events.push({type:'cooldown',target:f.id});return;}
+  if(f.cooldowns.replacement>0){state.events.push({type:'cooldown',target:f.id});return false;}
   const spent=advanceResource(f.chakra,25);
-  if(!spent.accepted){state.events.push({type:'empty',target:f.id});return;}
+  if(!spent.accepted){state.events.push({type:'empty',target:f.id});return false;}
   f.replacement={x:f.x,y:f.y,remaining:36};f.chakra=spent.remaining;
   const away=f.x<=other.x?-1:1;
   f.x=clamp(f.x+away*170,ARENA.margin,ARENA.width-ARENA.margin);
-  f.stun=0;f.action=null;f.dash=null;f.blocking=false;f.invulnerable=18;
+  f.stun=0;f.action=null;f.buffer=null;f.dash=null;f.blocking=false;f.invulnerable=18;
+  clearCombo(other);
   f.cooldowns.replacement=480;state.events.push({type:'replacement',target:f.id});
 }
 function collectMelee(attacker, target, hits) {
@@ -106,17 +123,32 @@ export function stepMatch(state, inputs = [{}, {}]) {
   for(const f of state.fighters)tickEffects(state,f); state.remainingTicks = Math.max(0, state.remainingTicks - 1);
   for (const f of state.fighters) {
     const input = inputs[f.id] ?? {}, other = state.fighters[1 - f.id];
+    if(f.awakeningTicks>0)f.awakeningTicks--;
+    if(f.awakeningFlash>0)f.awakeningFlash--;
+    if(f.buffer&&state.tick>f.buffer.expires)f.buffer=null;
+    for(const key of ['bloodline','special1','special2','weapon','attack']){
+      if(input[key]&&!f.previous[key]){f.buffer={key,expires:state.tick+10};break;}
+    }
+    if(input.awakening&&!f.previous.awakening)awaken(state,f);
     for(const key of Object.keys(f.cooldowns))f.cooldowns[key]=Math.max(0,f.cooldowns[key]-1);
     f.dashCooldown=Math.max(0,f.dashCooldown-1);f.invulnerable=Math.max(0,f.invulnerable-1);
     if(f.replacement&&--f.replacement.remaining<=0)f.replacement=null;
     if(f.hp>0&&input.replacement&&!f.previous.replacement)substitute(state,f,other);
     const wasStunned = f.stun > 0;
     if (f.stun > 0) f.stun--;
-    f.chakra = Math.min(100, f.chakra + 0.035);
+    f.chakra = Math.min(100, f.chakra + (activeAwakening(f)?.regen??0.035));
     if (f.action) {
       f.action.age++;
       const m = MOVES[f.action.move];
-      if (f.action.age >= m.startup + m.active + m.recovery) f.action = null;
+      if (f.action.age >= m.startup + m.active + m.recovery) {
+        if(!f.action.confirmed&&!m.buff)clearCombo(f);
+        f.action = null;
+      }
+      if(f.action?.confirmed&&!wasStunned&&f.action.chain>0&&f.action.age>=m.startup+m.active&&f.buffer){
+        const key=f.buffer.key,chain=f.action.chain;
+        if(key==='attack'&&chain<3){startAction(state,f,key,chain===1?'attack2':'attack3',chain+1);f.buffer=null;}
+        else if(['weapon','special1','special2'].includes(key)){startAction(state,f,key);f.buffer=null;}
+      }
     }
     if (!f.action && !f.dash && !wasStunned) f.facing = other.x >= f.x ? 1 : -1;
     f.blocking = Boolean(input.block && f.y === 0 && !f.action && !f.dash && !wasStunned);
@@ -134,14 +166,12 @@ export function stepMatch(state, inputs = [{}, {}]) {
 
       const digital = Number(Boolean(input.right)) - Number(Boolean(input.left));
       const move = (input.left||input.right)?digital:(Number.isFinite(input.moveX)?clamp(input.moveX,-1,1):0);
-      if(!f.dash)f.x += move * (f.y > 0 ? 4.5 : 5);
+      if(!f.dash)f.x += move * (f.y > 0 ? 4.5 : 5)*(activeAwakening(f)?.speed??1);
       if(input.jump&&!f.previous.jump&&f.jumps<2){f.vy=17;f.jumps++;f.dash=null;}
-      // One press produces one action; holding a button does not spend chakra repeatedly.
-      for (const key of ['bloodline','special1','special2','weapon','attack']) {
-        if (!f.dash && input[key] && !f.previous[key]) { startAction(state, f, key); break; }
-      }
+      // Fresh presses are buffered briefly; confirms can cancel recovery into follow-ups.
+      if(!f.dash&&f.buffer){const key=f.buffer.key;f.buffer=null;startAction(state,f,key);}
     }
-    if(f.dash){f.x+=f.dash.direction*17;if(--f.dash.remaining<=0)f.dash=null;}
+    if(f.dash){f.x+=f.dash.direction*17*(activeAwakening(f)?.speed??1);if(--f.dash.remaining<=0)f.dash=null;}
     if (f.action) {
       const a = f.action, m = MOVES[a.move];
       if (m.dash && a.age >= m.startup && a.age < m.startup + m.active) f.x += f.facing * m.dash;
@@ -149,7 +179,7 @@ export function stepMatch(state, inputs = [{}, {}]) {
       if (m.projectile && a.age === m.startup && !a.fired) {
         a.fired = true;
         state.projectiles.push({ id: state.nextId++, owner: f.id, x: f.x + f.facing * 60,
-          y: f.y + 65, direction: f.facing, life: m.life, move: a.move, weak: f.effects.some(e=>e.type==='weaken')?0.7:1, pierce: f.buffs.some(b=>b.type==='byakugan')?1:(m.pierce??0) });
+          y: f.y + 65, direction: f.facing, life: m.life, move: a.move, power:activeAwakening(f)?.damage??1, weak: f.effects.some(e=>e.type==='weaken')?0.7:1, pierce: f.buffs.some(b=>b.type==='byakugan')?1:(m.pierce??0) });
       }
     }
     if (f.y > 0 || f.vy > 0) { f.y += f.vy; f.vy -= 0.9; }
@@ -165,27 +195,34 @@ export function stepMatch(state, inputs = [{}, {}]) {
     p.x += p.direction * MOVES[p.move].speed; p.life--;
     const target = state.fighters[1 - p.owner];
     if (target.invulnerable===0 && Math.abs(p.x - target.x) < 48 && p.y >= target.y && p.y <= target.y + 120) {
-      hits.push({ attacker: p.owner, target: target.id, direction: p.direction, ...MOVES[p.move], move: p.move, weak: p.weak, pierce:p.pierce });
+      hits.push({ attacker: p.owner, target: target.id, direction: p.direction, ...MOVES[p.move], move: p.move, weak: p.weak, power:p.power, pierce:p.pierce });
       p.life = 0;
     }
   }
   state.projectiles = state.projectiles.filter(p => p.life > 0 && p.x > -50 && p.x < ARENA.width + 50);
   // Freeze block decisions before applying damage so simultaneous actions resolve fairly.
-  const resolved = hits.map(h => ({ ...h, blocked: state.fighters[h.target].blocking && state.fighters[h.target].facing === -h.direction }));
+  const resolved = hits.map(h => ({ ...h, targetStunned:state.fighters[h.target].stun>0, blocked: state.fighters[h.target].blocking && state.fighters[h.target].facing === -h.direction }));
   for (const hit of resolved) {
     const target = state.fighters[hit.target];
     const attacker=state.fighters[hit.attacker];
     const weak=hit.weak??(1-(attacker.effects.find(e=>e.type==='weaken')?.potency??0));
     const pierce=hit.pierce??(attacker.buffs.some(b=>b.type==='byakugan')?1:0);
-    const base=Math.ceil(hit.damage*weak);
-    const damage=hit.blocked?Math.ceil(base*(0.08+0.92*pierce)):base;
+    const continuing=attacker.combo.hits>0&&attacker.combo.target===target.id&&hit.targetStunned&&state.tick-attacker.combo.lastTick<=30;
+    const scaling=continuing?Math.max(.55,1-attacker.combo.hits*.1):1;
+    const base=Math.ceil(hit.damage*weak*(hit.power??activeAwakening(attacker)?.damage??1)*scaling);
+    const rawDamage=hit.blocked?Math.ceil(base*(0.08+0.92*pierce)):base;
     const penetrated=hit.blocked&&pierce>0;
     if(!hit.blocked||pierce>=1)applyEffect(state,target,hit);
-    target.hp = Math.max(0, target.hp - damage);
-    target.stun = Math.max(target.stun, hit.blocked ? 7 : 18);
+    const damage=receiveDamage(target,rawDamage);
+    if(!hit.blocked||pierce>=1){
+      attacker.combo={hits:continuing?attacker.combo.hits+1:1,damage:(continuing?attacker.combo.damage:0)+damage,lastTick:state.tick,target:target.id};
+      if(attacker.action)attacker.action.confirmed=true;
+    }else clearCombo(attacker);
+    target.stun = Math.max(target.stun, hit.blocked&&pierce<1 ? 7 : (hit.hitstun??18));
     target.x = clamp(target.x + hit.direction * hit.knockback * (hit.blocked ? 0.3 : 1), ARENA.margin, ARENA.width - ARENA.margin);
-    target.lastHit = state.tick; target.blockedHit = hit.blocked&&!penetrated;
-    if (!hit.blocked||pierce>=1) { target.action = null; target.blocking = false;target.dash=null; }
+    target.lastDamage=damage;target.lastHit = state.tick; target.blockedHit = hit.blocked&&!penetrated;
+    if((!hit.blocked||pierce>=1)&&hit.launch)target.vy=hit.launch;
+    if (!hit.blocked||pierce>=1) { target.buffer=null;target.action = null; target.blocking = false;target.dash=null; }
     state.events.push({ type: penetrated?'pierce':hit.blocked ? 'block' : 'hit', target: target.id, damage, move: hit.move });
   }
   separate(...state.fighters);
@@ -201,8 +238,13 @@ export function stepMatch(state, inputs = [{}, {}]) {
 export function computerInput(state, player=1) {
   const self=state.fighters[player],opponent=state.fighters[1-player];
   const distance=Math.abs(self.x-opponent.x);
+  if(awakeningReady(self)&&!self.stun&&!self.action&&!self.dash)return {awakening:true};
   if(self.stun>0&&!self.cooldowns.replacement&&self.chakra>=25)return {replacement:true};
-  if(self.stun||self.action||self.dash)return {};
+  if(self.stun||self.dash)return {};
+  if(self.action){
+    const m=MOVES[self.action.move];
+    return self.action.confirmed&&self.action.chain>0&&self.action.chain<3&&self.action.age>=m.startup?{attack:!self.previous.attack}:{};
+  }
   if(opponent.action&&opponent.action.age>=5&&distance<190)return {block:true};
   const available=key=>{const m=moveFor(self,key);return m&&!self.cooldowns[key]&&self.chakra>=MOVES[m].cost;};
   if(distance>260&&available('special2')&&MOVES[moveFor(self,'special2')].projectile)return {special2:true};

@@ -9,11 +9,16 @@ try {
  browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH,args:['--no-sandbox','--disable-dev-shm-usage']}: {})});
  await mkdir('test-results',{recursive:true});
  const page=await browser.newPage({viewport:{width:1280,height:900}});
- const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ const errors=[];page.on('pageerror',e=>{errors.push(e.message);console.error(e.stack);});
  await page.clock.install();
  await page.goto('http://127.0.0.1:4183');
- assert.equal(await page.locator('#character0 input[type=radio]').count(),4);
- assert.equal(await page.locator('#character1 input[type=radio]').count(),4);
+ assert.equal(await page.locator('#character0 input[type=radio]').count(),16);
+ assert.equal(await page.locator('#character1 input[type=radio]').count(),16);
+ await page.locator('#roster-search').fill('Boruto');assert.equal(await page.locator('.character-card:not([hidden])').count(),2);
+ await page.locator('#roster-search').fill('');await page.selectOption('#roster-era','Boruto');assert.equal(await page.locator('.character-card:not([hidden])').count(),8);
+ await page.locator('#character0 input[value="boruto"]').check();await page.locator('#character1 input[value="kawaki"]').check();
+ assert.equal(await page.locator('#selected0').innerText(),'Boruto');assert.equal(await page.locator('#selected1').innerText(),'Kawaki');
+ await page.selectOption('#roster-era','all');await page.locator('#character1 input[value="sasuke"]').check();
  await page.locator('#character0 input[value="hinata"]').check();
  assert.equal(await page.locator('#selected0').innerText(),'Hinata');
  assert.equal(await page.locator('#character1 input:checked').inputValue(),'sasuke','P1 selection does not change opponent');
@@ -33,6 +38,12 @@ try {
  const timer=await page.locator('#timer').innerText();await page.clock.runFor(3000);
  assert.equal(await page.locator('#timer').innerText(),timer,'pause freezes timer');
  await page.click('#play');
+ // Timed basic taps form a visible hit-confirm chain.
+ await page.clock.runFor(500);
+ await page.keyboard.down('KeyJ');await page.clock.runFor(100);await page.keyboard.up('KeyJ');await page.clock.runFor(16);
+ await page.keyboard.down('KeyJ');await page.clock.runFor(100);await page.keyboard.up('KeyJ');await page.clock.runFor(100);
+ await page.keyboard.down('KeyJ');await page.clock.runFor(200);await page.keyboard.up('KeyJ');
+ assert.match(await page.locator('#combo0').innerText(),/3 HITS/);await page.screenshot({path:'test-results/combo.png'});
  // A real complete match, using local P1 attacks against idle P2.
  for(let round=0;round<2;round++){
    for(let attack=0;attack<22;attack++){
@@ -64,6 +75,19 @@ try {
  await page.selectOption('#mode','cpu');await page.click('#play');await page.clock.runFor(15000);
  assert.equal(await page.locator('#overlay').isVisible(),true);
  assert.match(await page.locator('#overlay-title').innerText(),/Sasuke wins/);
+ // Actual damage from seven basic hits charges Naruto's form; no debug state injection.
+ await page.selectOption('#mode','local');await page.click('#play');
+ await page.keyboard.down('ArrowLeft');await page.clock.runFor(1700);await page.keyboard.up('ArrowLeft');
+ for(let n=0;n<7;n++){
+   await page.keyboard.down('ArrowLeft');await page.clock.runFor(120);await page.keyboard.up('ArrowLeft');
+   await page.keyboard.down('KeyN');await page.clock.runFor(40);await page.keyboard.up('KeyN');await page.clock.runFor(400);
+ }
+ assert.match(await page.locator('#awakening-label0').innerText(),/READY/);
+ await page.keyboard.down('KeyT');await page.clock.runFor(40);await page.keyboard.up('KeyT');
+ assert.match(await page.locator('#awakening-label0').innerText(),/KURAMA CHAKRA MODE/);
+ assert.match(await page.locator('#s1-name').innerText(),/KURAMA/);assert.match(await page.locator('#s2-name').innerText(),/CHAKRA CLAW/);
+ await page.screenshot({path:'test-results/kurama.png'});await page.clock.runFor(10100);
+ assert.equal(await page.locator('#awakening-label0').innerText(),'AWAKENING USED');assert.equal(await page.locator('#s1-name').innerText(),'RASENGAN');
  assert.deepEqual(errors,[],'no desktop page errors');await page.close();
  const context=await browser.newContext({viewport:{width:844,height:390},isMobile:true,hasTouch:true});
  const mobile=await context.newPage();const mobileErrors=[];mobile.on('pageerror',e=>mobileErrors.push(e.message));
