@@ -52,3 +52,7 @@ Browser smoke now verifies real multi-pointer jump → air dash, a separate batt
 Physical device Safari gesture behavior and human balance feedback remain manual checks; Chromium emulation alone does not establish either.
 
 Local v0.8 result: `npm run verify` passes syntax checks, all 98 unit tests and the static build. `npm run test:browser` passes the complete desktop/mobile suite, with no page errors. Dock/gameplay/editor screenshots were visually reviewed.
+
+## v0.9.0 — CPU difficulty
+
+`npm run verify`: syntax checks, **108 unit tests**, and static build pass. Added coverage for all four policies, Easy fallback/default and grace period, recovery gaps, combo limits and pressure differences, reaction thresholds, equal starting fighter stats, pure/deterministic CPU decisions, resource budgets for every character/mode, difficulty preservation between rounds, and a learner winning on Easy with spaced basics. The existing anti-spam stress test now explicitly selects Xtreme. Browser scenarios cover the four options, saved difficulty, disabling the selector for local P2 and pausing/preserving an active mobile fight when difficulty changes.

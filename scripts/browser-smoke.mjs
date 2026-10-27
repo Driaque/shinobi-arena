@@ -13,6 +13,10 @@ try {
  await page.clock.install({time:new Date('2030-01-01T00:00:00Z')});
  await page.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));
  await page.goto('http://127.0.0.1:4183');
+ assert.equal(await page.locator('#difficulty').inputValue(),'easy','new players start on Easy');
+ assert.equal(await page.locator('#difficulty option').count(),4);
+ for(const level of ['medium','difficult','xtreme','easy']){await page.selectOption('#difficulty',level);await page.clock.runFor(32);assert.match(await page.locator('#mode-name').innerText(),new RegExp(level.toUpperCase()));}
+ await page.reload();assert.equal(await page.locator('#difficulty').inputValue(),'easy','difficulty persists on reload');
  assert.equal(await page.locator('#character0 input[type=radio]').count(),18);
  assert.equal(await page.locator('#character1 input[type=radio]').count(),18);
  await page.selectOption('#roster-era','TNR');assert.equal(await page.locator('.character-card:not([hidden])').count(),4);
@@ -36,6 +40,7 @@ try {
  await page.locator('#character0 input[value="naruto"]').check();
  await page.selectOption('#mode','local');
  assert.equal(await page.locator('#opponent-label').innerText(),'PLAYER TWO');
+ assert.equal(await page.locator('#difficulty').isDisabled(),true,'local P2 ignores CPU difficulty');
  assert.equal(await page.locator('#character1 .pick-mark').first().innerText(),'P2');
  await page.click('#play');
  await page.keyboard.down('KeyD');await page.clock.runFor(1700);await page.keyboard.up('KeyD');
@@ -80,7 +85,7 @@ try {
  await page.selectOption('#mode','local');await page.locator('#character0 input[value="naruto"]').check();await page.selectOption('#weapon0','kunai');
  await page.locator('#character1 input[value="sasuke"]').check();await page.selectOption('#weapon1','kunai');
  // CPU actually wins a round against an idle player, using the full browser loop.
- await page.selectOption('#mode','cpu');await page.click('#play');await page.clock.runFor(25000);
+ await page.selectOption('#mode','cpu');await page.selectOption('#difficulty','xtreme');await page.click('#play');await page.clock.runFor(25000);
  assert.equal(await page.locator('#overlay').isVisible(),true);
  assert.match(await page.locator('#overlay-title').innerText(),/Sasuke wins/);
  // Actual damage from seven basic hits charges Naruto's form; no debug state injection.
@@ -122,6 +127,11 @@ try {
  await mobile.locator('#character0 input[value="sasuke"]').check();await mobile.locator('#character1 input[value="sasuke"]').check();
  assert.equal(await mobile.locator('#selected0').innerText(),'Sasuke');assert.equal(await mobile.locator('#selected1').innerText(),'Sasuke');
  await mobile.locator('#character0 input[value="naruto"]').check();await mobile.click('#play');
+ assert.equal(await mobile.locator('#difficulty').inputValue(),'easy');
+ await mobile.clock.runFor(500);assert.equal(await mobile.locator('#hp0').innerText(),'1000','Easy opening leaves room to learn');
+ await mobile.selectOption('#difficulty','medium');await mobile.clock.runFor(32);assert.equal(await mobile.locator('#play').innerText(),'Resume match');
+ const keptHp=await mobile.locator('#hp0').innerText();await mobile.selectOption('#difficulty','easy');await mobile.click('#play');await mobile.clock.runFor(32);assert.equal(await mobile.locator('#hp0').innerText(),keptHp,'difficulty change preserves the fight');
+ await mobile.screenshot({path:'test-results/mobile-difficulty.png'});
  const cdp=await context.newCDPSession(mobile);
  const box1=await mobile.locator('#joystick').boundingBox(),box2=await mobile.locator('[data-action=attack]').boundingBox();
  const point=(box,id)=>({x:box.x+box.width/2,y:box.y+box.height/2,id});

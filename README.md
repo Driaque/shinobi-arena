@@ -94,7 +94,7 @@ CI and deployment run unit checks, build and browser checks before publishing.
 
 `packages/engine` owns combat; `packages/input` owns independent input sources and quick-tap capture;
 `apps/web` owns browser events and procedural rendering. Neither engine nor input library imports the DOM.
-Simulation rules version: `duel-0.8.0`.
+Simulation rules version: `duel-0.9.0`.
 
 See [project plan](docs/PROJECT_PLAN.md), [combat rules](docs/COMBAT_RULES.md), [character kits](docs/CHARACTER_KITS.md),
 [mobile design](docs/MOBILE_DESIGN.md), [control settings](docs/CONTROL_SETTINGS.md), [architecture](docs/ARCHITECTURE.md),
@@ -114,3 +114,7 @@ No third-party character assets are bundled. Asset provenance is recorded in
 Jump and dash work together, including one air dash per landing cycle and fast-tap buffering. Stamina limits basic/weapon spam; timed parries, guard breaks and +20% recovery punishes reward defense, spacing and varied attacks. The CPU responds to startup, recovery and guard. P2 has [ / ] dash shortcuts.
 
 Controls now default to a separate deck **below** the fight, with a camera sized for the remaining viewport. Controls → Opacity adjusts visibility from 25–100%; Placement can restore an overlay. Preferences migrate without losing existing keys/layouts. Live play suppresses native touch zoom/scroll gestures; fullscreen requests landscape where browsers support it.
+
+### v0.9.0: choose your CPU difficulty
+
+The top bar now offers **Easy / Medium / Difficult / Xtreme**, with **Easy** selected by default. Easy gives you a three-second opening, single attacks and long pauses to learn your controls. Higher modes add longer combos, faster reactions and tighter counterplay. The CPU gets no bonus HP, damage or resources, and every mode respects stamina and cooldowns. Changing difficulty pauses and preserves your current fight; your choice is saved on this device. [Difficulty tuning](docs/DIFFICULTY.md).

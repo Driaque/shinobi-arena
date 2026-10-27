@@ -89,3 +89,7 @@ Silent's Tetsugan stance gives guarded chip absorption, bounded non-recursive re
 - CPU decisions use visible actions every 4 ticks. It blocks incoming non-piercing attacks, retreats from piercing threats, punishes recovery, uses pierce against guard and manages stamina. No hidden damage/HP/resource advantage.
 
 Stamina, guard, movement state and feedback expose these decisions in the HUD. These first balance values need human matchup playtesting; automated anti-spam checks cover several repeated-basic tapping rates rather than claiming every possible strategy is solved.
+
+## duel-0.9.0 — paced CPU difficulty
+
+Match state records Easy (default), Medium, Difficult or Xtreme. Attack strings record their end tick; AI policies wait an explicit gap before starting another string. Combo continuations check their actual stamina cost. Easy caps strings at one basic, Medium at two, Difficult/Xtreme at three. Reaction latency, initial grace period, approach duty cycle, technique use and defensive decisions vary by policy. Fighter stats, costs and cooldowns are shared with the player. See [DIFFICULTY.md](DIFFICULTY.md) for exact timings.

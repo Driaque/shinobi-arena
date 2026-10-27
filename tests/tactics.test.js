@@ -52,7 +52,7 @@ test('whiffs have longer recovery, and a clean recovery hit earns 20 percent',()
  const s=createMatch();advance(s,24,[{attack:true},{}]);assert.ok(s.fighters[0].action);s.fighters[0].x=600;s.fighters[1].x=670;advance(s,6,[{}, {attack:true}]);assert.equal(s.fighters[0].hp,922);
 });
 test('basic-only rushing loses to CPU counterplay at several tapping rates',()=>{
- for(const period of [2,8,16,24,32,48]){const s=createMatch();let cpu={};for(let t=0;t<5401&&s.status==='playing';t++){if(t%4===0)cpu=computerInput(s);stepMatch(s,[{right:true,attack:t%period===0},cpu]);}assert.equal(s.result,'player2',`tap period ${period}`);}
+ for(const period of [2,8,16,24,32,48]){const s=createMatch();let cpu={};for(let t=0;t<5401&&s.status==='playing';t++){if(t%4===0)cpu=computerInput(s,1,'xtreme');stepMatch(s,[{right:true,attack:t%period===0},cpu]);}assert.equal(s.result,'player2',`tap period ${period}`);}
 });
 test('tactical meters and air actions reset between rounds',()=>{
  const s=createMatch();s.fighters[0].stamina=1;s.fighters[0].guard=1;s.fighters[0].airDashUsed=true;s.fighters[1].hp=0;stepMatch(s);nextRound(s);assert.equal(s.fighters[0].stamina,100);assert.equal(s.fighters[0].guard,100);assert.equal(s.fighters[0].airDashUsed,false);

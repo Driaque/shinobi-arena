@@ -1,8 +1,10 @@
+import {difficultyFor} from './difficulty.js';
+export {DIFFICULTIES,difficultyFor} from './difficulty.js';
 import { CHARACTERS, WEAPONS, MOVES, AWAKENINGS, validateLoadouts } from './catalog.js';
 export { CHARACTERS, WEAPONS, MOVES, AWAKENINGS } from './catalog.js';
 export const TICK_RATE = 60;
 export const ARENA = Object.freeze({ width: 1280, height: 720, floor: 570, margin: 46 });
-export const RULES_VERSION = 'duel-0.8.0';
+export const RULES_VERSION = 'duel-0.9.0';
 export function advanceResource(resource, cost) {
   if (![resource, cost].every(Number.isFinite) || resource < 0 || cost < 0) throw new Error('Invalid resource');
   return resource >= cost ? { accepted: true, remaining: resource - cost } : { accepted: false, remaining: resource };
@@ -18,12 +20,12 @@ export function outcome({ hp1, hp2, remainingTicks }) {
 function fighter(id, loadout) {
   const character=CHARACTERS[loadout.character];
   return { id, name: character.name, character: loadout.character, weapon: loadout.weapon, x: id === 0 ? 360 : 920, y: 0, vy: 0,
-    hp: 1000, chakra: 100, stamina:100, guard:100, lastExertion:-100, lastGuardHit:-100, guardStart:-100, parryCooldown:0, airDashUsed:false, jumpBuffer:0, dashBuffer:null, damageTaken:0, awakeningTicks:0, awakeningUsed:false, awakeningFlash:0, buffer:null, combo:{hits:0,damage:0,lastTick:-100,target:null}, facing: id === 0 ? 1 : -1, stun: 0, blocking: false,
+    hp: 1000, chakra: 100, stamina:100, guard:100, actionsStarted:0, lastActionEnd:-1000, lastExertion:-100, lastGuardHit:-100, guardStart:-100, parryCooldown:0, airDashUsed:false, jumpBuffer:0, dashBuffer:null, damageTaken:0, awakeningTicks:0, awakeningUsed:false, awakeningFlash:0, buffer:null, combo:{hits:0,damage:0,lastTick:-100,target:null}, facing: id === 0 ? 1 : -1, stun: 0, blocking: false,
     jumps: 0, dash: null, dashCooldown: 0, taps: {left:-100,right:-100}, cooldowns: {}, effects: [], buffs: [], invulnerable: 0, replacement: null, action: null, previous: {}, lastHit: -100, blockedHit: false };
 }
-export function createMatch(loadouts=[{character:'naruto',weapon:'kunai'},{character:'sasuke',weapon:'kunai'}]) {
+export function createMatch(loadouts=[{character:'naruto',weapon:'kunai'},{character:'sasuke',weapon:'kunai'}],{difficulty='easy'}={}) {
   const selected=validateLoadouts(loadouts);
-  return { version: RULES_VERSION, tick: 0, round: 1, remainingTicks: 90 * TICK_RATE,
+  return { version: RULES_VERSION, difficulty:difficultyFor(difficulty).id, tick: 0, round: 1, remainingTicks: 90 * TICK_RATE,
     loadouts: selected, fighters: selected.map((l,i)=>fighter(i,l)), wins: [0, 0], status: 'playing', result: null,
     projectiles: [], nextId: 1, events: [] };
 }
@@ -67,6 +69,7 @@ function startAction(state, f, key, override=null, chain=0) {
   if(!spent.accepted){state.events.push({type:'empty',target:f.id});return false;}
   f.stamina=energy.remaining;if(effort)f.lastExertion=state.tick;
   f.chakra=spent.remaining;f.cooldowns[key]=config.cooldown??0;
+  if(chain<2)f.actionsStarted++;
   f.action={move,age:0,hit:false,confirmed:false,fired:false,recoveryPenalty:0,chain:chain||(key==='attack'?1:0)};f.blocking=false;return true;
 }
 export function awakeningFor(f) {return AWAKENINGS[CHARACTERS[f.character].awakening]??null;}
@@ -159,7 +162,7 @@ export function stepMatch(state, inputs = [{}, {}]) {
       if(f.action.age>=m.startup+m.active&&!f.action.hit&&!m.projectile&&!m.buff)f.action.recoveryPenalty=12;
       if (f.action.age >= m.startup + m.active + m.recovery + (f.action.recoveryPenalty??0)) {
         if(!f.action.confirmed&&!m.buff)clearCombo(f);
-        f.action = null;
+        f.action = null;f.lastActionEnd=state.tick;
       }
       if(f.action?.confirmed&&!wasStunned&&f.action.chain>0&&f.action.age>=m.startup+m.active&&f.buffer){
         const key=f.buffer.key,chain=f.action.chain;
@@ -227,7 +230,7 @@ export function stepMatch(state, inputs = [{}, {}]) {
     const parried=hit.blocked&&pierce<1&&state.tick-target.guardStart<5&&target.parryCooldown===0;
     if(parried){
       target.parryCooldown=60;target.guard=Math.max(0,target.guard-6);target.lastGuardHit=state.tick;
-      attacker.stun=Math.max(attacker.stun,24);attacker.action=null;attacker.dash=null;attacker.buffer=null;clearCombo(attacker);
+      attacker.stun=Math.max(attacker.stun,24);attacker.action=null;attacker.lastActionEnd=state.tick;attacker.dash=null;attacker.buffer=null;clearCombo(attacker);
       state.events.push({type:'parry',target:target.id});continue;
     }
     const continuing=attacker.combo.hits>0&&attacker.combo.target===target.id&&hit.targetStunned&&state.tick-attacker.combo.lastTick<=30;
@@ -266,7 +269,7 @@ export function stepMatch(state, inputs = [{}, {}]) {
     target.lastDamage=damage;target.lastHit = state.tick; target.blockedHit = hit.blocked&&!penetrated;
     if((!hit.blocked||pierce>=1)&&hit.launch)target.vy=hit.launch;
     if((!hit.blocked||pierce>=1)&&hit.pull)target.x=clamp(target.x-hit.direction*Math.min(hit.pull,Math.max(0,Math.abs(target.x-attacker.x)-52)),ARENA.margin,ARENA.width-ARENA.margin);
-    if (!hit.blocked||pierce>=1) { target.buffer=null;target.action = null; target.blocking = false;target.dash=null; }
+    if (!hit.blocked||pierce>=1) { target.buffer=null;if(target.action)target.lastActionEnd=state.tick;target.action = null; target.blocking = false;target.dash=null; }
     state.events.push({ type: guardBroken?'guardBreak':penetrated?'pierce':hit.blocked?'block':hit.punish?'punish':'hit', target: target.id, damage, move: hit.move });
   }
   separate(...state.fighters);
@@ -279,40 +282,49 @@ export function stepMatch(state, inputs = [{}, {}]) {
   }
   return state;
 }
-export function computerInput(state, player=1) {
+export function computerInput(state, player=1, difficulty=state.difficulty??'easy') {
   const self=state.fighters[player],opponent=state.fighters[1-player];
+  const policy=difficultyFor(difficulty);
+  if(state.tick<policy.openingTicks)return {};
+  // Keep held movement/guard between decision ticks; fresh combat presses still pass through normal engine rules.
+  if(state.tick%policy.decisionTicks!==0)return {...self.previous};
   const distance=Math.abs(self.x-opponent.x);
-  if(awakeningReady(self)&&!self.stun&&!self.action&&!self.dash)return {awakening:true};
-  if(self.stun>0&&!self.cooldowns.replacement&&self.chakra>=25)return {replacement:true};
+  const canReact=opponent.action&&opponent.action.age>=policy.reactionTicks;
+  const canSpecial=self.actionsStarted%policy.specialEvery===policy.specialEvery-1;
+  const waiting=state.tick-self.lastActionEnd<policy.attackGap;
+  if(policy.awakening&&!waiting&&awakeningReady(self)&&!self.stun&&!self.action&&!self.dash)return {awakening:true};
+  if(policy.replacement&&state.tick-self.lastHit>=policy.reactionTicks&&self.stun>0&&!self.cooldowns.replacement&&self.chakra>=25)return {replacement:true};
   if(self.stun||self.dash)return {};
   if(self.action){
     const m=MOVES[self.action.move];
-    return self.action.confirmed&&self.action.chain>0&&self.action.chain<3&&self.action.age>=m.startup?{attack:!self.previous.attack}:{};
+    return self.action.confirmed&&self.action.chain>0&&self.action.chain<policy.maxCombo&&self.stamina>=staminaCost('attack',self.action.chain+1)&&self.action.age>=m.startup?{attack:!self.previous.attack}:{};
   }
-  const available=key=>{const m=moveFor(self,key);return m&&!self.cooldowns[key]&&!self.previous[key]&&self.chakra>=MOVES[m].cost&&self.stamina>=staminaCost(key);};
+  const available=key=>{const m=moveFor(self,key);return m&&!self.cooldowns[key]&&!self.previous[key]&&self.chakra>=MOVES[m].cost&&self.stamina>=staminaCost(key)&&(!['special1','special2','bloodline'].includes(key)||canSpecial);};
   const approach={left:opponent.x<self.x,right:opponent.x>self.x};
   const threat=opponent.action?MOVES[opponent.action.move]:null;
-  if(threat&&!threat.buff&&opponent.action.age<threat.startup+threat.active&&distance<(threat.projectile?230:threat.reach+35)){
+  if(canReact&&threat&&!threat.buff&&opponent.action.age<threat.startup+threat.active&&distance<(threat.projectile?230:threat.reach+35)){
     if((threat.pierce??0)>=1&&self.stamina>=18&&!self.dashCooldown)return {dashBack:true};
     return {block:true};
   }
-  if(threat&&opponent.action.age>=threat.startup+threat.active&&distance<180){
+  if(!waiting&&policy.punish&&canReact&&threat&&opponent.action.age>=threat.startup+threat.active&&distance<180){
     if(distance<=MOVES[moveFor(self,'weapon')].reach&&available('weapon'))return {weapon:true};
     if(available('special1'))return {special1:true};
     if(distance<=90&&available('attack'))return {attack:true};
     return approach;
   }
-  if(opponent.blocking&&available('special1')&&(MOVES[moveFor(self,'special1')].pierce??0)>0)return {special1:true};
+  if(!waiting&&policy.punish&&opponent.blocking&&available('special1')&&(MOVES[moveFor(self,'special1')].pierce??0)>0)return {special1:true};
+  // Deliberate breathing room after every completed attack, including specials.
+  if(waiting)return {};
   if(self.stamina<18){
     if(distance<150&&self.guard>35)return {block:true};
     if(distance<230)return {left:opponent.x>self.x,right:opponent.x<self.x};
     return {};
   }
   if(distance>260&&available('special2')&&MOVES[moveFor(self,'special2')].projectile)return {special2:true};
-  if(distance>175)return approach;
+  if(distance>175)return state.tick%policy.cycleTicks<policy.approachTicks?approach:{};
   if(state.tick%240<8&&available('bloodline'))return {bloodline:true};
   if(distance>85&&available('special1'))return {special1:true};
-  if(distance>75)return {left:opponent.x<self.x,right:opponent.x>self.x};
+  if(distance>75)return state.tick%policy.cycleTicks<policy.approachTicks?approach:{};
   if(available('special2')&&state.tick%180<8)return {special2:true};
   return state.tick%48<24?{attack:true}:{};
 }

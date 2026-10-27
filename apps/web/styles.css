@@ -58,3 +58,8 @@ button,select,.character-card{touch-action:manipulation}
 
 .editing-controls .controls [data-control]{opacity:max(.35,var(--control-opacity,.65))!important}
 .editing-controls .controls .selected-control{opacity:1!important}
+
+.difficulty-label{display:flex;gap:8px;align-items:center;font-size:9px;letter-spacing:1px;color:#8ba0ba}
+.difficulty-label select{min-width:94px}.difficulty-label:has(select:disabled){opacity:.45}
+@media(max-height:520px) and (orientation:landscape){.difficulty-label{font-size:0;gap:0}.difficulty-label select{min-width:76px;max-width:86px;font-size:9px;padding:7px 4px}.tools{gap:5px}.topbar{gap:8px}}
+@media(max-width:700px){.brand small{display:none}.brand{letter-spacing:1px}.tools .difficulty-label select{min-width:72px;max-width:80px}.topbar .tools button{padding:7px 6px}}

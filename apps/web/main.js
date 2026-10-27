@@ -1,5 +1,5 @@
 import { createInput } from './packages/input/index.js';
-import { createMatch, stepMatch, nextRound, computerInput, TICK_RATE, CHARACTERS, WEAPONS, MOVES, moveFor, staminaCost, awakeningFor, activeAwakening, awakeningReady } from './packages/engine/index.js';
+import { createMatch, stepMatch, nextRound, computerInput, difficultyFor, TICK_RATE, CHARACTERS, WEAPONS, MOVES, moveFor, staminaCost, awakeningFor, activeAwakening, awakeningReady } from './packages/engine/index.js';
 import { createRoster } from './roster.js';
 import { createControls } from './controls.js';
 import { createRenderer } from './renderer.js';
@@ -9,7 +9,11 @@ const buttons=[...document.querySelectorAll('[data-action]')];
 const render=createRenderer($('#canvas'));
 const portrait=matchMedia('(orientation: portrait)'), touch=matchMedia('(any-pointer: coarse)');
 let controls;
-let state=createMatch(), paused=true, started=false, mode='cpu', cpu={}, lastTime=0, accumulator=0, feedbackUntil=0;
+let difficulty='easy';
+try{difficulty=difficultyFor(localStorage.getItem('shinobi-arena.difficulty.v1')).id;}catch{}
+$('#difficulty').value=difficulty;
+const newMatch=(loadouts)=>createMatch(loadouts,{difficulty});
+let state=newMatch(), paused=true, started=false, mode='cpu', cpu={}, lastTime=0, accumulator=0, feedbackUntil=0;
 const shortNames={harmoniousSlash:'HARMONIOUS',echoingRift:'ECHOING RIFT',tetsugan:'TETSUGAN',mizukumi:'MIZUKUMI',eclipseDrain:'ECLIPSE DRAIN',shinraiOu:'SHINRAI ŌU',ascendantSlash:'ASCENDANT CUT',ascendantRift:'METAL RIFT',dominionMizukumi:'DOMINION DASH',dominionDrain:'DOMINION DRAIN',special1:'RASENGAN',chidori:'CHIDORI',clone:'CLONE',fireball:'FIREBALL',lionFists:'TWIN LIONS',chakraStrike:'PALM STRIKE',snakeStrike:'SNAKES',seal:'SEAL',sharingan:'SHARINGAN',byakugan:'BYAKUGAN'};
 function readLoadouts(){return [0,1].map(i=>({character:$(`#character${i} input:checked`).value,weapon:$(`#weapon${i}`).value}));}
 function describeLoadouts(){
@@ -19,7 +23,7 @@ function describeLoadouts(){
     const form=awakeningFor({character:character.id});
     $(`#kit${i}`).innerHTML=`<strong>${character.title}</strong><br><span class="kit-description">${character.description}<br></span><span class="kit-label">${weapon.description}</span>${form?`<br><span class="form-note">Awakening: ${form.name}${form.proposed?' (proposed)':''} · ${form.threshold} HP lost</span>`:''}`;
   }
-  if(!started)state=createMatch(readLoadouts());
+  if(!started)state=newMatch(readLoadouts());
 }
 for(const i of [0,1]){
   createRoster($(`#character${i}`),i,i===0?'naruto':'sasuke',describeLoadouts);
@@ -42,7 +46,7 @@ function clearInputs(){controls?.reset();inputs.forEach(i=>i.reset());cpu={};but
 function dialog(kicker,title,description,button){
   $('#overlay-kicker').textContent=kicker;$('#overlay-title').textContent=title;
   $('#overlay-description').textContent=description;$('#play').textContent=button;
-  $('#overlay-hint').textContent=mode==='cpu'?'First to two wins · Pick a character and weapon for each fighter':'P2 arrows · N basic · B weapon · M guard · , / . signatures · / bloodline · V replace';
+  $('#overlay-hint').textContent=mode==='cpu'?`${difficultyFor(difficulty).name} · ${difficultyFor(difficulty).description}`:'P2 arrows · N basic · B weapon · M guard · , / . signatures · / bloodline · V replace';
   $('#loadout-panel').hidden=started&&state.status!=='matchOver';
   $('#overlay').hidden=false;
 }
@@ -65,14 +69,20 @@ function finish(){
 }
 $('#play').addEventListener('click',()=>{
   if(touch.matches&&portrait.matches)return;
-  if(!started||state.status==='matchOver')state=createMatch(readLoadouts());
+  if(!started||state.status==='matchOver')state=newMatch(readLoadouts());
   else if(state.status==='roundOver')nextRound(state);
   clearInputs();paused=false;started=true;accumulator=0;lastTime=performance.now();$('#overlay').hidden=true;$('#play').blur();$('#feedback').textContent='';
 });
 $('#pause').addEventListener('click',pause);
+$('#difficulty').addEventListener('change',event=>{
+  pause();clearInputs();difficulty=difficultyFor(event.target.value).id;state.difficulty=difficulty;
+  try{localStorage.setItem('shinobi-arena.difficulty.v1',difficulty);}catch{}
+  if(mode==='cpu')$('#overlay-hint').textContent=`${difficultyFor(difficulty).name} · ${difficultyFor(difficulty).description}`;
+});
+
 $('#mode').addEventListener('change',event=>{
-  mode=event.target.value;state=createMatch();paused=true;started=false;clearInputs();
-  $('#mode-name').textContent=mode==='cpu'?'VS COMPUTER':'LOCAL TWO PLAYER';
+  mode=event.target.value;$('#difficulty').disabled=mode==='local';state=newMatch();paused=true;started=false;clearInputs();
+  $('#mode-name').textContent=mode==='cpu'?`CPU · ${difficultyFor(difficulty).name.toUpperCase()}`:'LOCAL TWO PLAYER';
   $('#opponent-label').textContent=mode==='cpu'?'COMPUTER':'PLAYER TWO';
   document.querySelectorAll('#character1 .pick-mark').forEach(mark=>mark.textContent=mode==='cpu'?'CPU':'P2');
   $('#p2-help').textContent=mode==='cpu'?'CPU Sasuke · Chidori + fireball':'P2 arrows · N hit · M guard · , Chidori · . fireball';
@@ -93,6 +103,9 @@ $('#fullscreen').addEventListener('click',async()=>{
 });
 function paintHud(){
   document.documentElement.classList.toggle('in-match',started&&!paused);
+  $('#difficulty').disabled=mode==='local'||Boolean(controls?.editing);
+  $('#difficulty').title=difficultyFor(difficulty).description;
+  $('#mode-name').textContent=mode==='cpu'?`CPU · ${difficultyFor(difficulty).name.toUpperCase()}`:'LOCAL TWO PLAYER';
   const player=state.fighters[0];
   for(const [key,name,meta,bind] of [['special1','s1-name','s1-meta','U'],['special2','s2-name','s2-meta','I'],['bloodline','bl-name','bl-meta','O']]){
     const move=moveFor(player,key),cooldown=player.cooldowns[key]??0;
@@ -101,7 +114,7 @@ function paintHud(){
   }
   $('#weapon-label').textContent=`${controls?.binding(0,'weapon')??'H'} · ${WEAPONS[player.weapon].name.toUpperCase()}`;
   $('#replacement-cd').textContent=player.cooldowns.replacement>0?`${controls?.binding(0,'replacement')??'R'} · ${(player.cooldowns.replacement/60).toFixed(1)}s`:`${controls?.binding(0,'replacement')??'R'} · 25`;
-  $('#p2-help').textContent=mode==='cpu'?`CPU ${state.fighters[1].name} · ${WEAPONS[state.fighters[1].weapon].name}`:'P2 arrows · N/B basic/weapon · M guard · ,/. signatures · / bloodline · V replace';
+  $('#p2-help').textContent=mode==='cpu'?`CPU ${state.fighters[1].name} · ${difficultyFor(difficulty).name} · ${WEAPONS[state.fighters[1].weapon].name}`:'P2 arrows · N/B basic/weapon · M guard · ,/. signatures · / bloodline · V replace';
   const playerForm=awakeningFor(player),currentForm=activeAwakening(player);
   $('#awakening-meta').textContent=`${controls?.binding(0,'awakening')??'T'} · ${currentForm?(player.awakeningTicks/60).toFixed(1)+'s':!playerForm?'NONE':player.awakeningUsed?'USED':awakeningReady(player)?'READY':Math.min(100,Math.floor(player.damageTaken/playerForm.threshold*100))+'%'}`;
   $('#basic-label').textContent=player.action?.confirmed&&player.action.chain<3?`COMBO ${player.action.chain+1}`:'BASIC ×3';
@@ -142,7 +155,7 @@ function frame(now){
   if(!paused&&state.status==='playing'){
     accumulator+=Math.min((now-lastTime)/1000,.1);
     while(accumulator>=1/TICK_RATE&&state.status==='playing'){
-      if(state.tick%4===0)cpu=computerInput(state);
+      if(mode==='cpu')cpu=computerInput(state);
       stepMatch(state,[inputs[0].consume(),mode==='cpu'?cpu:inputs[1].consume()]);accumulator-=1/TICK_RATE;
       const event=state.events.find(e=>['parry','guardBreak','punish','exhausted','hit','block','empty','pierce','replacement','unavailable','poison','burn','cooldown','awakeningBlocked'].includes(e.type));
       if(event){const messages={parry:'PARRY · COUNTER NOW',guardBreak:'GUARD BROKEN',punish:'RECOVERY PUNISH · +20%',exhausted:'LOW STAMINA · CREATE SPACE',empty:'NOT ENOUGH CHAKRA',block:'GUARDED',replacement:'REPLACEMENT JUTSU',unavailable:'NO BLOODLINE IN THIS KIT',cooldown:'TECHNIQUE ON COOLDOWN',awakeningBlocked:'AWAKENING NOT READY OR UNABLE TO ACT'};
@@ -152,6 +165,7 @@ function frame(now){
   }else accumulator=0;
   lastTime=now;if(now>feedbackUntil)$('#feedback').textContent='';render(state);paintHud();requestAnimationFrame(frame);
 }
+$('#overlay-hint').textContent=`${difficultyFor(difficulty).name} · ${difficultyFor(difficulty).description}`;
 orientation();requestAnimationFrame(frame);
 
 
