@@ -79,3 +79,10 @@ Syntax checks, **147 unit/integration tests**, static build, and desktop/mobile/
 The online browser test uses independent desktop and landscape mobile contexts: queue/cancel/requeue, Silent vs Winta with independent weapons, P1 keyboard and P2 analog/actions, damage synchronized between both browsers, disconnect and requeue, then return to CPU. It observes the real network state to approach within melee range rather than assuming fixed wall-clock movement. Screenshots are retained in CI artifacts.
 
 These checks use a local server and emulated touch. Public internet latency, hosting availability, physical phones and production capacity remain unverified. A static deployment does not make the multiplayer server live. See ONLINE_MULTIPLAYER.md for the separate hosting requirement.
+
+
+## Internet deployment
+
+The confirmed Render workspace now hosts `https://shinobi-arena-online.onrender.com` on one free Ohio service. `/health` responded successfully and the public WSS upgrade returned the expected protocol/rules greeting. Internet QA exposed a cancel/immediate-requeue race: a new connection could arrive before the old queue entry was removed. The client now sends explicit cancellation and waits for the old close acknowledgement before reconnecting, with generation guards and a bounded wait. The online browser scenario exercises that sequence before pairing and combat. `ONLINE_TEST_URL` runs the same two-client scenario against a deployed endpoint; default CI remains isolated. Explicit proxy QA mode tolerates the test network's TLS interception only; normal gameplay uses ordinary browser TLS validation.
+
+The checked-in public endpoint configures Pages automatically; an Actions variable can override it. The live connector-created Render service uses on-commit deployment and TCP probes, while `render.yaml` documents optional checks-gated deployment and an HTTP health check. No paid compute upgrade or account/authentication feature was added.

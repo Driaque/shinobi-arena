@@ -33,7 +33,7 @@ export function createArena({countdownTicks=180,roundBreakTicks=180,maxClients=2
     if(c.match||queue.includes(c))throw new Error('Already in a queue or match.');
     if(msg.protocol!==PROTOCOL_VERSION||msg.rules!==RULES_VERSION)throw new Error('Game version changed. Refresh before joining.');
     c.profile=playerProfile(msg.profile);c.lastSeq=-1;queue.push(c);pair();
-   }else if(msg.type==='cancel'){if(c.match)end(c.match,'opponent-left',c);removeQueued(c);send(c,{type:'cancelled'});pair();}
+   }else if(msg.type==='cancel'){if(c.match)end(c.match,c.match.phase==='matchOver'?'match-complete':'opponent-left',c.match.phase==='matchOver'?null:c);removeQueued(c);send(c,{type:'cancelled'});pair();}
    else if(msg.type==='input'){
     if(!c.match||c.match.phase!=='playing'||c.match.state.status!=='playing')return;
     if(!Number.isSafeInteger(msg.seq)||msg.seq<=c.lastSeq)return;

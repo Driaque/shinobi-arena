@@ -3,6 +3,7 @@ services:
   - type: web
     name: shinobi-arena-online
     runtime: node
+    region: ohio
     plan: free
     numInstances: 1
     buildCommand: npm ci && npm run verify

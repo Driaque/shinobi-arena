@@ -36,7 +36,7 @@ engine that forces every game into fighting-game states. Add shared interfaces o
 
 ## Delivery boundaries
 
-The static browser shell deploys to GitHub Pages. The v0.12 Node/WebSocket backend has a separate `render.yaml` deployment blueprint and also serves the complete game itself. GitHub CI verifies both, including two real browser connections. Public matchmaking requires a running backend; a Pages deploy alone cannot supply it. No hosting account is currently configured in the repository. `ONLINE_SERVER_URL` is a public endpoint setting, never a credential. Do not place API secrets in a static build.
+The static browser shell deploys to GitHub Pages. The v0.12 Node/WebSocket backend has a separate `render.yaml` deployment blueprint and also serves the complete game itself. GitHub CI verifies both, including two real browser connections. Public matchmaking requires a running backend; a Pages deploy alone cannot supply it. The deployed single-instance Render service is in Ohio, and the public server address is committed in `apps/web/online-config.json`. The connector-created service currently follows on-commit deployment with TCP health probes; adopting the Blueprint applies its declared checks-gated deployment and HTTP `/health` check. `ONLINE_SERVER_URL` is a public endpoint setting, never a credential. Do not place API secrets in a static build.
 
 
 ## ADR 005 · Character kits and composable effects

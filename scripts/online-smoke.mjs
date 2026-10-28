@@ -2,16 +2,19 @@ import {chromium} from 'playwright';
 import {spawn} from 'node:child_process';
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
-const server=spawn(process.execPath,['apps/server/index.js'],{env:{...process.env,PORT:'4185'},stdio:['ignore','pipe','inherit']});
+const baseURL=process.env.ONLINE_TEST_URL||'http://127.0.0.1:4185';
+const server=process.env.ONLINE_TEST_URL?null:spawn(process.execPath,['apps/server/index.js'],{env:{...process.env,PORT:'4185'},stdio:['ignore','pipe','inherit']});
 let browser;
+const proxyURL=process.env.ONLINE_TEST_USE_PROXY==='1'&&process.env.HTTPS_PROXY?new URL(process.env.HTTPS_PROXY):null;
+const proxy=proxyURL?{server:proxyURL.origin,username:decodeURIComponent(proxyURL.username),password:decodeURIComponent(proxyURL.password)}:undefined;
 try{
- await new Promise((resolve,reject)=>{server.stdout.once('data',resolve);server.once('error',reject);server.once('exit',c=>reject(new Error(`Server exited ${c}`)));});
- browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH,args:['--no-sandbox','--disable-dev-shm-usage']}: {})});
- const errors=[];const context1=await browser.newContext({viewport:{width:1280,height:900}}),context2=await browser.newContext({viewport:{width:844,height:390},isMobile:true,hasTouch:true});
+ if(server)await new Promise((resolve,reject)=>{server.stdout.once('data',resolve);server.once('error',reject);server.once('exit',c=>reject(new Error(`Server exited ${c}`)));});
+ browser=await chromium.launch({headless:true,proxy,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH,args:['--no-sandbox','--disable-dev-shm-usage',...(proxyURL?['--ignore-certificate-errors']:[])]}: {})});
+ const errors=[];const context1=await browser.newContext({ignoreHTTPSErrors:Boolean(proxyURL),viewport:{width:1280,height:900}}),context2=await browser.newContext({ignoreHTTPSErrors:Boolean(proxyURL),viewport:{width:844,height:390},isMobile:true,hasTouch:true});
  const p=await context1.newPage(),q=await context2.newPage();let snapshot;
  q.on('websocket',socket=>socket.on('framereceived',({payload})=>{try{const msg=JSON.parse(payload);if(msg.state)snapshot=msg.state;}catch{}}));
  const near=async()=>{const until=Date.now()+5000;while(Date.now()<until){if(snapshot&&Math.abs(snapshot.fighters[0].x-snapshot.fighters[1].x)<=60)return;await new Promise(r=>setTimeout(r,20));}throw new Error(`Did not approach: ${snapshot?.fighters.map(f=>f.x)}`);};
- for(const page of [p,q]){page.on('pageerror',e=>{errors.push(e.stack);console.error(e.stack);});await page.goto('http://127.0.0.1:4185');await page.selectOption('#mode','online');}
+ for(const page of [p,q]){if(process.env.ONLINE_TEST_URL)page.on('console',m=>{if(m.type()==='error')console.error(m.text());});page.on('pageerror',e=>{errors.push(e.stack);console.error(e.stack);});await page.goto(baseURL);await page.selectOption('#mode','online');}
  await p.fill('#player-name','Silent');await p.locator('#character0 input[value=silent]').check();await p.selectOption('#weapon0','tachi');
  await p.click('#play');await p.waitForFunction(()=>document.querySelector('#online-status').textContent.includes('Waiting for an opponent'));assert.equal(await p.locator('#online-cancel').isVisible(),true);
  await p.click('#online-cancel');await p.waitForFunction(()=>document.querySelector('#play').disabled===false);await p.click('#play');await p.waitForFunction(()=>document.querySelector('#online-status').textContent.includes('Waiting for an opponent'));
@@ -38,6 +41,6 @@ try{
  await q.close();await p.waitForFunction(()=>document.querySelector('#overlay-description').textContent.includes('win by forfeit'));assert.equal(await p.locator('#play').innerText(),'Find opponent');
  await p.click('#play');await p.waitForFunction(()=>document.querySelector('#online-status').textContent.includes('Waiting for an opponent'));await p.click('#online-cancel');
  await p.selectOption('#mode','cpu');await p.click('#play');assert.equal(await p.locator('#overlay').isVisible(),false);assert.deepEqual(errors,[]);
- const unconfigured=await context1.newPage();await unconfigured.route('**/online-config.json',route=>route.fulfill({contentType:'application/json',body:'{"url":""}'}));await unconfigured.goto('http://127.0.0.1:4185');await unconfigured.selectOption('#mode','online');await unconfigured.fill('#player-name','Player');await unconfigured.click('#play');assert.match(await unconfigured.locator('#online-status').innerText(),/needs its multiplayer server/);assert.equal(await unconfigured.locator('#play').isDisabled(),false);await unconfigured.close();
+ const unconfigured=await context1.newPage();await unconfigured.route('**/online-config.json',route=>route.fulfill({contentType:'application/json',body:'{"url":""}'}));await unconfigured.goto(baseURL);await unconfigured.selectOption('#mode','online');await unconfigured.fill('#player-name','Player');await unconfigured.click('#play');assert.match(await unconfigured.locator('#online-status').innerText(),/needs its multiplayer server/);assert.equal(await unconfigured.locator('#play').isDisabled(),false);await unconfigured.close();
  console.log('Online matchmaking: queue cancellation, two devices, character kits, mobile P2 control, shared damage, disconnect and requeue passed.');
-}finally{await browser?.close();server.kill();}
+}finally{await browser?.close();server?.kill();}

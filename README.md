@@ -1,4 +1,4 @@
-> **v0.12: Online matchmaking.** Choose a name, fighter and weapon, wait in a shared queue, then fight another browser or phone. The Node/WebSocket server owns combat. [Run and deploy online play](docs/ONLINE_MULTIPLAYER.md). The GitHub Pages client needs the separate multiplayer server; `render.yaml` provisions a single service that also serves the game.
+> **v0.12: Online matchmaking.** Choose a name, fighter and weapon, wait in a shared queue, then fight another browser or phone. The Node/WebSocket server owns combat. [Run and deploy online play](docs/ONLINE_MULTIPLAYER.md). The GitHub Pages client connects to the deployed multiplayer server by default. [Play on the server directly](https://shinobi-arena-online.onrender.com). `render.yaml` describes a single service that also serves the game.
 
 # Shinobi Arena
 
@@ -9,7 +9,7 @@ a landscape analog stick and customizable touch controls, online matchmaking, lo
 
 https://driaque.github.io/shinobi-arena/
 
-For online play, choose ONLINE MATCHMAKING, enter your name, choose your own fighter/weapon, and Find opponent. [Server setup](docs/ONLINE_MULTIPLAYER.md) is required. For solo/shared-keyboard play choose VS COMPUTER or LOCAL TWO PLAYER, select both characters, equip each fighter with a weapon, and enter the arena. First to two round wins.
+For online play, choose ONLINE MATCHMAKING, enter your name, choose your own fighter/weapon, and Find opponent. The shared internet server is configured automatically. Both players choose Find opponent; the first available pair enters a match. For solo/shared-keyboard play choose VS COMPUTER or LOCAL TWO PLAYER, select both characters, equip each fighter with a weapon, and enter the arena. First to two round wins.
 Both sides have independent visual character grids with portraits and selection badges. Tap a card, or use the keyboard to navigate the radio group. The opponent grid is labelled Computer or Player Two to match the mode.
 
 Available fighters: Naruto, Sasuke, Hinata, Orochimaru, Kakashi, Sakura, Gaara, Itachi, Rock Lee, Shikamaru, Minato, Madara, Boruto, Sarada, Mitsuki and Kawaki. Search by name or filter by era; each player’s grid scrolls independently. Weapons: kunai, shuriken and katana.
@@ -67,7 +67,7 @@ Naruto’s Kurama Chakra Mode changes his signatures to Kurama Rasengan and Chak
 
 ## Limits
 
-Combat balance and artwork remain prototypes, not a finished competitive fighter or detailed anime sprite production. Online play needs a separately hosted server and currently has no prediction/rollback or reconnect support. Audio, accounts and saved replays are not implemented. Local two-player can be limited by a keyboard's
+Combat balance and artwork remain prototypes, not a finished competitive fighter or detailed anime sprite production. Online play uses the deployed Render server and currently has no prediction/rollback or reconnect support. Audio, accounts and saved replays are not implemented. Local two-player can be limited by a keyboard's
 hardware key rollover. Computer strategy is simple. Physical iPhone/Android validation remains necessary.
 
 ## Develop

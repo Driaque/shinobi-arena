@@ -4,7 +4,7 @@ export function createOnline({getProfile,onState,onEnd,onStatus}){
  const $=s=>document.querySelector(s),status=$('#online-status');
  const notify=text=>{status.textContent=text;onStatus?.(text);};
  try{$('#player-name').value=localStorage.getItem('shinobi-arena.player-name')||'';}catch{}
- let configured='';
+ let configured='',closing=Promise.resolve(true);
  fetch('./online-config.json',{cache:'no-store'}).then(r=>r.ok?r.json():{}).then(config=>{
   if(config.sameOrigin)configured=`${location.protocol==='https:'?'wss:':'ws:'}//${location.host}/ws`;
   else if(config.url)configured=config.url;
@@ -18,15 +18,33 @@ export function createOnline({getProfile,onState,onEnd,onStatus}){
   if(location.protocol==='https:'&&url.protocol!=='wss:')throw new Error('This secure page requires a secure (wss://) server.');
   if(url.pathname==='/')url.pathname='/ws';return url.href;
  }
- function cleanup(){clearTimeout(timeout);clearInterval(pingTimer);generation++;const old=socket;socket=null;if(old)old.close();$('#online-cancel').hidden=true;$('#online-leave').hidden=true;$('#player-name').disabled=false;$('#online-server').disabled=false;}
+ function cleanup(){
+  clearTimeout(timeout);clearInterval(pingTimer);generation++;const old=socket;socket=null;
+  if(old&&old.readyState!==WebSocket.CLOSED){
+   // Cancel is processed before the close acknowledgement. Wait for that acknowledgement
+   // before opening another socket, so latency cannot pair us with our old queue entry.
+   closing=new Promise(resolve=>{
+    const done=()=>{clearTimeout(limit);closing=Promise.resolve(true);resolve(true);};
+    const limit=setTimeout(()=>resolve(false),10000);
+    old.addEventListener('close',done,{once:true});
+    if(old.readyState===WebSocket.OPEN)old.send(JSON.stringify({type:'cancel'}));
+    old.close();
+   });
+  }
+  $('#online-cancel').hidden=true;$('#online-leave').hidden=true;$('#player-name').disabled=false;$('#online-server').disabled=false;
+  return closing;
+ }
  function leave(){cleanup();phase='idle';onEnd('You left online play.');notify('Choose your fighter and find another opponent.');}
- function join(){
+ async function join(){
   let profile,url;
   try{profile=playerProfile({...getProfile(),name:$('#player-name').value});url=serverURL();}catch(e){notify(e.message);return;}
-  cleanup();phase='connecting';seq=0;latency=null;const current=generation;
+  const previousClosed=cleanup();phase='connecting';seq=0;latency=null;const current=generation;
   try{localStorage.setItem('shinobi-arena.player-name',profile.name);}catch{}
   $('#player-name').disabled=true;$('#online-server').disabled=true;$('#online-cancel').hidden=false;
-  notify('Connecting to the arena…');const ws=socket=new WebSocket(url);
+  notify('Connecting to the arena…');
+  const closed=await previousClosed;if(current!==generation)return;
+  if(!closed){phase='idle';onEnd('Previous connection is still closing. Try again shortly.');notify('Previous connection is still closing. Try again shortly.');return;}
+  const ws=socket=new WebSocket(url);
   timeout=setTimeout(()=>{if(current===generation){cleanup();phase='idle';notify('Connection timed out. Check the server address and try again.');onEnd('Unable to connect.');}},15000);
   ws.addEventListener('open',()=>{if(current!==generation)return;lastMessage=performance.now();
    pingTimer=setInterval(()=>{if(performance.now()-lastMessage>12000){cleanup();phase='idle';onEnd('Connection lost. Join the queue again.');notify('Connection lost. Join the queue again.');return;}if(ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:'ping',sent:performance.now()}));},3000);
