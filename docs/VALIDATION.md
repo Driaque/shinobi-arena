@@ -70,3 +70,12 @@ Syntax checks, **138 unit tests**, and the static build pass. Added coverage for
 Both browser suites pass. New mobile scenarios complete the movement drill entirely through stick pulls, crouch via down/neutral/cancel, enter/exit a viewport-filling presentation and force unsupported-fullscreen fallback with a visible notice. Existing gameplay/training, multi-touch, resource, persistence and portrait checks remain in place. Physical iPhone/Safari fullscreen and gesture checks remain manual; emulation does not establish OS-level support.
 
 Hosted deployment caught a portrait-prompt timing race after native fullscreen exit (the parallel CI run passed). The gate now reads layout viewport dimensions and responds to window/visualViewport/orientation resize signals in addition to media queries. The browser test waits for the actual portrait prompt transition before asserting the paused-resume state.
+
+
+## v0.12.0 — online matchmaking
+
+Syntax checks, **147 unit/integration tests**, static build, and desktop/mobile/training/online browser checks pass locally. New tests cover name/loadout validation, version checks, FIFO/cancellation, authoritative slot/input ownership, frozen countdowns, duplicate and stale packets, one-shot consumption, round readiness, disconnect forfeits, capacity/rate caps, room expiry, and real WebSocket transport with rejected origins.
+
+The online browser test uses independent desktop and landscape mobile contexts: queue/cancel/requeue, Silent vs Winta with independent weapons, P1 keyboard and P2 analog/actions, damage synchronized between both browsers, disconnect and requeue, then return to CPU. It observes the real network state to approach within melee range rather than assuming fixed wall-clock movement. Screenshots are retained in CI artifacts.
+
+These checks use a local server and emulated touch. Public internet latency, hosting availability, physical phones and production capacity remain unverified. A static deployment does not make the multiplayer server live. See ONLINE_MULTIPLAYER.md for the separate hosting requirement.

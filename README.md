@@ -1,13 +1,15 @@
+> **v0.12: Online matchmaking.** Choose a name, fighter and weapon, wait in a shared queue, then fight another browser or phone. The Node/WebSocket server owns combat. [Run and deploy online play](docs/ONLINE_MULTIPLAYER.md). The GitHub Pages client needs the separate multiplayer server; `render.yaml` provisions a single service that also serves the game.
+
 # Shinobi Arena
 
 A playable browser fighting prototype with a **18-character selectable roster spanning Naruto, Boruto and TNR originals**, desktop keyboard controls,
-a landscape analog stick and customizable touch controls, local two-player and a basic computer opponent.
+a landscape analog stick and customizable touch controls, online matchmaking, local two-player and a computer opponent.
 
 ## Play
 
 https://driaque.github.io/shinobi-arena/
 
-Choose VS COMPUTER or LOCAL TWO PLAYER, select both characters, equip each fighter with a weapon, and enter the arena. First to two round wins.
+For online play, choose ONLINE MATCHMAKING, enter your name, choose your own fighter/weapon, and Find opponent. [Server setup](docs/ONLINE_MULTIPLAYER.md) is required. For solo/shared-keyboard play choose VS COMPUTER or LOCAL TWO PLAYER, select both characters, equip each fighter with a weapon, and enter the arena. First to two round wins.
 Both sides have independent visual character grids with portraits and selection badges. Tap a card, or use the keyboard to navigate the radio group. The opponent grid is labelled Computer or Player Two to match the mode.
 
 Available fighters: Naruto, Sasuke, Hinata, Orochimaru, Kakashi, Sakura, Gaara, Itachi, Rock Lee, Shikamaru, Minato, Madara, Boruto, Sarada, Mitsuki and Kawaki. Search by name or filter by era; each player’s grid scrolls independently. Weapons: kunai, shuriken and katana.
@@ -31,8 +33,8 @@ Default keyboard bindings (customizable in Controls → Keyboard):
 | Awakening (when ready) | T | Y |
 | Pause | P or Escape | P or Escape |
 
-Phone: hold sideways. Use the left analog stick to move, the separate jump/dash buttons to maneuver, and the right action cluster to fight. Push the stick farther to move faster. Pull up, center, then up again to double jump; double-pull sideways to dash; hold down to crouch. Open **Controls** to adjust opacity, switch below-arena/overlay placement, drag and resize controls, or edit keyboard bindings. Save keeps the settings on this device; Cancel discards the draft. One phone controls P1;
-use the computer opponent. Local two-player uses a shared desktop keyboard. Switching apps, losing
+Phone: hold sideways. Use the left analog stick to move, the separate jump/dash buttons to maneuver, and the right action cluster to fight. Push the stick farther to move faster. Pull up, center, then up again to double jump; double-pull sideways to dash; hold down to crouch. Open **Controls** to adjust opacity, switch below-arena/overlay placement, drag and resize controls, or edit keyboard bindings. Save keeps the settings on this device; Cancel discards the draft. One phone controls your own fighter in online mode;
+use the computer opponent for solo play. Local two-player uses a shared desktop keyboard. Switching apps, losing
 focus or rotating into portrait pauses the local match; resume explicitly.
 
 ## Implemented
@@ -65,7 +67,7 @@ Naruto’s Kurama Chakra Mode changes his signatures to Kurama Rasengan and Chak
 
 ## Limits
 
-Combat balance and artwork remain prototypes, not a finished competitive fighter or detailed anime sprite production. No online play, audio, accounts or saved replays yet. Local two-player can be limited by a keyboard's
+Combat balance and artwork remain prototypes, not a finished competitive fighter or detailed anime sprite production. Online play needs a separately hosted server and currently has no prediction/rollback or reconnect support. Audio, accounts and saved replays are not implemented. Local two-player can be limited by a keyboard's
 hardware key rollover. Computer strategy is simple. Physical iPhone/Android validation remains necessary.
 
 ## Develop
@@ -94,7 +96,8 @@ CI and deployment run unit checks, build and browser checks before publishing.
 
 `packages/engine` owns combat; `packages/input` owns independent input sources and quick-tap capture;
 `apps/web` owns browser events and procedural rendering. Neither engine nor input library imports the DOM.
-Simulation rules version: `duel-0.11.0`.
+`apps/server` owns the online queue and authoritative matches; `packages/network` validates the wire protocol.
+Simulation rules version: `duel-0.11.0` (unchanged combat rules).
 
 See [project plan](docs/PROJECT_PLAN.md), [combat rules](docs/COMBAT_RULES.md), [character kits](docs/CHARACTER_KITS.md),
 [mobile design](docs/MOBILE_DESIGN.md), [control settings](docs/CONTROL_SETTINGS.md), [architecture](docs/ARCHITECTURE.md),
@@ -126,3 +129,7 @@ Choose **Training** in Mode. **Practice** configures idle/guarding/attacking dum
 ### v0.11.0: movement gestures and fullscreen
 
 The stick now controls the whole movement flow: **up → center → up** double jumps; **right → center → right** (or left twice) within 300 ms dashes in that screen direction; hold down to crouch. Buttons/keys still work. Full screen fills the viewport and toggles Exit view; when native fullscreen is unavailable, a clearly labeled Play view fills the available space while browser bars may remain. [Controls and browser behavior](docs/CONTROL_SETTINGS.md).
+
+### v0.12.0: online matchmaking
+
+Enter a display name, select your fighter/weapon, and wait in the shared queue. Pairing assigns one fighter to each device, with a three-second countdown. The Node/WebSocket server runs combat, sends shared state, handles round readiness and forfeits disconnected players. Desktop and mobile use their normal local controls. Includes a Render deployment blueprint and CI coverage with two independent browser sessions. [Online architecture and deployment](docs/ONLINE_MULTIPLAYER.md).

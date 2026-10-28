@@ -1,0 +1,16 @@
+# One process owns matchmaking and matches; do not increase instance count.
+services:
+  - type: web
+    name: shinobi-arena-online
+    runtime: node
+    plan: free
+    numInstances: 1
+    buildCommand: npm ci && npm run verify
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: ALLOWED_ORIGINS
+        value: https://driaque.github.io

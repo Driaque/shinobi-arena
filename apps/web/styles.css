@@ -89,3 +89,15 @@ html.play-view-open,html.play-view-open body{overflow:hidden;overscroll-behavior
 #screen-notice[hidden]{display:none}.controls [data-control=stick].active{box-shadow:0 0 0 2px #efbd7644}
 
 .rotate{z-index:60}
+
+/* Online lobby keeps the local fighter picker; the opponent chooses their own kit. */
+#online-lobby { text-align:left; margin:16px 0; padding:16px; background:#101c30; border:1px solid #30445e; border-radius:12px; }
+#online-lobby[hidden],#online-cancel[hidden],#online-leave[hidden] {display:none}
+#online-lobby label {display:flex;gap:8px;flex-direction:column;font-size:13px;color:#b9cce0}
+#online-lobby input {padding:10px;background:#091323;color:#fff;border:1px solid #405b79;border-radius:6px;min-width:0;font:inherit}
+#online-status {color:#82d9e7;font-size:14px;line-height:1.5}
+#online-lobby details {font-size:12px;margin:12px 0}
+#online-lobby summary {cursor:pointer;margin-bottom:8px}
+.online-mode .loadout-card:has(#character1) {display:none}
+.online-mode .loadout-grid {grid-template-columns:minmax(0,1fr)}
+.online-mode #pause {display:none}

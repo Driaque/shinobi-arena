@@ -1,0 +1,42 @@
+import {chromium} from 'playwright';
+import {spawn} from 'node:child_process';
+import assert from 'node:assert/strict';
+import {mkdir} from 'node:fs/promises';
+const server=spawn(process.execPath,['apps/server/index.js'],{env:{...process.env,PORT:'4185'},stdio:['ignore','pipe','inherit']});
+let browser;
+try{
+ await new Promise((resolve,reject)=>{server.stdout.once('data',resolve);server.once('error',reject);server.once('exit',c=>reject(new Error(`Server exited ${c}`)));});
+ browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH,args:['--no-sandbox','--disable-dev-shm-usage']}: {})});
+ const errors=[];const context1=await browser.newContext({viewport:{width:1280,height:900}}),context2=await browser.newContext({viewport:{width:844,height:390},isMobile:true,hasTouch:true});
+ const p=await context1.newPage(),q=await context2.newPage();let snapshot;
+ q.on('websocket',socket=>socket.on('framereceived',({payload})=>{try{const msg=JSON.parse(payload);if(msg.state)snapshot=msg.state;}catch{}}));
+ const near=async()=>{const until=Date.now()+5000;while(Date.now()<until){if(snapshot&&Math.abs(snapshot.fighters[0].x-snapshot.fighters[1].x)<=60)return;await new Promise(r=>setTimeout(r,20));}throw new Error(`Did not approach: ${snapshot?.fighters.map(f=>f.x)}`);};
+ for(const page of [p,q]){page.on('pageerror',e=>{errors.push(e.stack);console.error(e.stack);});await page.goto('http://127.0.0.1:4185');await page.selectOption('#mode','online');}
+ await p.fill('#player-name','Silent');await p.locator('#character0 input[value=silent]').check();await p.selectOption('#weapon0','tachi');
+ await p.click('#play');await p.waitForFunction(()=>document.querySelector('#online-status').textContent.includes('Waiting for an opponent'));assert.equal(await p.locator('#online-cancel').isVisible(),true);
+ await p.click('#online-cancel');await p.waitForFunction(()=>document.querySelector('#play').disabled===false);await p.click('#play');await p.waitForFunction(()=>document.querySelector('#online-status').textContent.includes('Waiting for an opponent'));
+ await q.fill('#player-name','Winta');await q.locator('#character0 input[value=winta]').check();await q.selectOption('#weapon0','katana');await q.click('#play');
+ for(const page of [p,q]){await page.waitForFunction(()=>document.querySelector('#overlay-title').textContent==='Silent vs Winta');await page.waitForFunction(()=>document.querySelector('#overlay').hidden,{timeout:10000});}
+ assert.match(await p.locator('#name0').innerText(),/Silent · Silent/);assert.match(await q.locator('#name1').innerText(),/Winta · Winta/);assert.match(await q.locator('#weapon-label').innerText(),/KATANA/);assert.match(await q.locator('#mode-name').innerText(),/P2/);
+ // Each device drives its own slot. Walk toward each other, then confirm real damage.
+ await p.keyboard.down('KeyD');const cdp=await context2.newCDPSession(q),stick=await q.locator('#joystick').boundingBox();
+ const center={x:stick.x+stick.width/2,y:stick.y+stick.height/2,id:1},left={...center,x:center.x-stick.width*.4};
+ await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[left]});
+ await near();await p.keyboard.up('KeyD');await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+ for(let i=0;i<3;i++){await p.keyboard.press('KeyJ',{delay:80});await p.waitForTimeout(230);}
+ await p.waitForFunction(()=>Number(document.querySelector('#hp1').textContent)<1000);
+ // Knockback creates distance. Approach again before the mobile player attacks.
+ await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[left]});await near();await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await q.waitForTimeout(150);
+ // State is shared by both independent sessions; the mobile player can attack too.
+ const attack=await q.locator('[data-action=attack]').boundingBox(),point={x:attack.x+attack.width/2,y:attack.y+attack.height/2,id:2};
+ for(let i=0;i<2;i++){await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[point]});await q.waitForTimeout(80);await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await q.waitForTimeout(250);}
+ await q.waitForFunction(()=>Number(document.querySelector('#hp0').textContent)<1000);
+ await p.waitForFunction(hp=>document.querySelector('#hp0').textContent===hp,await q.locator('#hp0').innerText());
+ assert.equal(await p.locator('#hp1').innerText(),await q.locator('#hp1').innerText());
+ await mkdir('test-results',{recursive:true});await p.screenshot({path:'test-results/online-desktop.png'});await q.screenshot({path:'test-results/online-mobile.png'});
+ await q.close();await p.waitForFunction(()=>document.querySelector('#overlay-description').textContent.includes('win by forfeit'));assert.equal(await p.locator('#play').innerText(),'Find opponent');
+ await p.click('#play');await p.waitForFunction(()=>document.querySelector('#online-status').textContent.includes('Waiting for an opponent'));await p.click('#online-cancel');
+ await p.selectOption('#mode','cpu');await p.click('#play');assert.equal(await p.locator('#overlay').isVisible(),false);assert.deepEqual(errors,[]);
+ const unconfigured=await context1.newPage();await unconfigured.route('**/online-config.json',route=>route.fulfill({contentType:'application/json',body:'{"url":""}'}));await unconfigured.goto('http://127.0.0.1:4185');await unconfigured.selectOption('#mode','online');await unconfigured.fill('#player-name','Player');await unconfigured.click('#play');assert.match(await unconfigured.locator('#online-status').innerText(),/needs its multiplayer server/);assert.equal(await unconfigured.locator('#play').isDisabled(),false);await unconfigured.close();
+ console.log('Online matchmaking: queue cancellation, two devices, character kits, mobile P2 control, shared damage, disconnect and requeue passed.');
+}finally{await browser?.close();server.kill();}
