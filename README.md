@@ -94,7 +94,7 @@ CI and deployment run unit checks, build and browser checks before publishing.
 
 `packages/engine` owns combat; `packages/input` owns independent input sources and quick-tap capture;
 `apps/web` owns browser events and procedural rendering. Neither engine nor input library imports the DOM.
-Simulation rules version: `duel-0.9.0`.
+Simulation rules version: `duel-0.10.0`.
 
 See [project plan](docs/PROJECT_PLAN.md), [combat rules](docs/COMBAT_RULES.md), [character kits](docs/CHARACTER_KITS.md),
 [mobile design](docs/MOBILE_DESIGN.md), [control settings](docs/CONTROL_SETTINGS.md), [architecture](docs/ARCHITECTURE.md),
@@ -118,3 +118,7 @@ Controls now default to a separate deck **below** the fight, with a camera sized
 ### v0.9.0: choose your CPU difficulty
 
 The top bar now offers **Easy / Medium / Difficult / Xtreme**, with **Easy** selected by default. Easy gives you a three-second opening, single attacks and long pauses to learn your controls. Higher modes add longer combos, faster reactions and tighter counterplay. The CPU gets no bonus HP, damage or resources, and every mode respects stamina and cooldowns. Changing difficulty pauses and preserves your current fight; your choice is saved on this device. [Difficulty tuning](docs/DIFFICULTY.md).
+
+### v0.10.0: training arena and guided challenges
+
+Choose **Training** in Mode. **Practice** configures idle/guarding/attacking dummies, infinite stamina/chakra, HP refills, instant cooldowns and range/recovery overlays. **Reset / Retry** instantly resets the arena. Four real-input challenges teach double jump → air dash, three-hit combos, guard → weapon counters and damage-earned awakening. The coach explains misses and rejected actions; completed challenges save on this device. [Training guide](docs/TRAINING.md).

@@ -72,3 +72,8 @@ The input buffer is tick-bounded; only confirmed basics can cancel into configur
 continuation depends on the target still being in hitstun, with explicit scaling and no DOT hit counting.
 All of this remains headless/replayable. Presentation adds aura, counters and optional camera shake;
 reduced-motion preference disables shake. Control schema migration preserves existing preferences.
+
+
+## ADR · Shared simulation for training
+
+Accepted in v0.10.0. A serializable training session wraps the existing fixed-tick duel engine. The kernel has explicit training exceptions for clock/round resolution and a nonlethal HP floor; practice resource/health/cooldown assists are applied by the wrapper. Authored scenarios generate legal dummy inputs and observe real engine state/events to complete objectives. DOM/rendering never owns challenge success. The web adapter handles device-local completion IDs and displays current remapped bindings. Leaving Training creates a new ordinary match with no practice flags. See [TRAINING.md](TRAINING.md).

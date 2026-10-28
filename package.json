@@ -1,6 +1,6 @@
 {
   "name": "shinobi-arena",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -12,7 +12,7 @@
     "test": "node --test",
     "build": "node scripts/build.mjs",
     "verify": "npm run check && npm test && npm run build",
-    "test:browser": "node scripts/browser-smoke.mjs"
+    "test:browser": "node scripts/browser-smoke.mjs && node scripts/training-smoke.mjs"
   },
   "devDependencies": {
     "playwright": "1.62.1"

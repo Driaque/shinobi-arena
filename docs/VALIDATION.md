@@ -56,3 +56,9 @@ Local v0.8 result: `npm run verify` passes syntax checks, all 98 unit tests and 
 ## v0.9.0 — CPU difficulty
 
 `npm run verify`: syntax checks, **108 unit tests**, and static build pass. Added coverage for all four policies, Easy fallback/default and grace period, recovery gaps, combo limits and pressure differences, reaction thresholds, equal starting fighter stats, pure/deterministic CPU decisions, resource budgets for every character/mode, difficulty preservation between rounds, and a learner winning on Easy with spaced basics. The existing anti-spam stress test now explicitly selects Xtreme. Browser scenarios cover the four options, saved difficulty, disabling the selector for local P2 and pausing/preserving an active mobile fight when difficulty changes.
+
+## v0.10.0 — training arena and guided learning
+
+Local syntax checks, **123 unit tests**, and the static build pass. Training coverage includes nonlethal/time-free simulation, resource and cooldown assists, reset/config retention, legal dummy inputs, all four objective detectors and false-positive cases, unsupported-form fallback, free-practice-only form charging, phase/cost/range readout, input explanations and deterministic replay. Existing match tests still pass.
+
+The browser suite now runs both ordinary gameplay and training scenarios. Training checks complete all four drills through actual keyboard inputs (including real damage-earned awakening), complete movement/combo drills through multi-touch, save/reload four completion badges, exercise settings/reset/resource costs, leave training without assists leaking, and test Controls pause/portrait handling and small-landscape toolbar bounds. Desktop/mobile coach and range overlays were visually reviewed. Physical-device Safari behavior and human learning/balance feedback remain manual validation.

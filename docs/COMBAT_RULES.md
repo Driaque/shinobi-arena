@@ -93,3 +93,7 @@ Stamina, guard, movement state and feedback expose these decisions in the HUD. T
 ## duel-0.9.0 — paced CPU difficulty
 
 Match state records Easy (default), Medium, Difficult or Xtreme. Attack strings record their end tick; AI policies wait an explicit gap before starting another string. Combo continuations check their actual stamina cost. Easy caps strings at one basic, Medium at two, Difficult/Xtreme at three. Reaction latency, initial grace period, approach duty cycle, technique use and defensive decisions vary by policy. Fighter stats, costs and cooldowns are shared with the player. See [DIFFICULTY.md](DIFFICULTY.md) for exact timings.
+
+## duel-0.10.0 — explicit training sessions
+
+Ordinary duels retain their rules. A state created through the training adapter carries practice configuration: its clock does not expire, round results are not resolved, and damage cannot take either fighter below 1 HP. Practice can refill HP/stamina/chakra and clear cooldowns around the same simulation tick. Actual damage still fills awakening charge. Guided challenges observe actual jump/dash state, confirmed basic-chain hits, guard/punish events and legal awakening events. They do not complete through UI buttons or simulated success. See [TRAINING.md](TRAINING.md).

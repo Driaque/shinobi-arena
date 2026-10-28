@@ -4,7 +4,7 @@ import { CHARACTERS, WEAPONS, MOVES, AWAKENINGS, validateLoadouts } from './cata
 export { CHARACTERS, WEAPONS, MOVES, AWAKENINGS } from './catalog.js';
 export const TICK_RATE = 60;
 export const ARENA = Object.freeze({ width: 1280, height: 720, floor: 570, margin: 46 });
-export const RULES_VERSION = 'duel-0.9.0';
+export const RULES_VERSION = 'duel-0.10.0';
 export function advanceResource(resource, cost) {
   if (![resource, cost].every(Number.isFinite) || resource < 0 || cost < 0) throw new Error('Invalid resource');
   return resource >= cost ? { accepted: true, remaining: resource - cost } : { accepted: false, remaining: resource };
@@ -75,8 +75,8 @@ function startAction(state, f, key, override=null, chain=0) {
 export function awakeningFor(f) {return AWAKENINGS[CHARACTERS[f.character].awakening]??null;}
 export function activeAwakening(f) {return f.awakeningTicks>0?awakeningFor(f):null;}
 export function awakeningReady(f) {const form=awakeningFor(f);return Boolean(form&&!f.awakeningUsed&&f.hp>0&&f.damageTaken>=form.threshold);}
-function receiveDamage(f,amount) {
-  const loss=Math.min(f.hp,Math.max(0,Math.ceil(amount*(activeAwakening(f)?.defence??1))));
+function receiveDamage(state,f,amount) {
+  const loss=Math.min(Math.max(0,f.hp-(state.training?1:0)),Math.max(0,Math.ceil(amount*(activeAwakening(f)?.defence??1))));
   f.hp-=loss;f.damageTaken+=loss;return loss;
 }
 function awaken(state,f) {
@@ -94,7 +94,7 @@ function applyEffect(state,target,hit) {
 function tickEffects(state,f) {
   for(const effect of f.effects){
     if(['poison','burn'].includes(effect.type)&&state.tick>=effect.nextTick){
-      const damage=receiveDamage(f,effect.potency);effect.nextTick+=60;
+      const damage=receiveDamage(state,f,effect.potency);effect.nextTick+=60;
       state.events.push({type:effect.type,target:f.id,damage});
     }
     effect.remaining--;
@@ -128,7 +128,7 @@ function collectMelee(attacker, target, hits) {
 export function stepMatch(state, inputs = [{}, {}]) {
   if (state.status !== 'playing') return state;
   state.tick++; state.events = [];
-  for(const f of state.fighters)tickEffects(state,f); state.remainingTicks = Math.max(0, state.remainingTicks - 1);
+  for(const f of state.fighters)tickEffects(state,f); if(!state.training)state.remainingTicks = Math.max(0, state.remainingTicks - 1);
   for (const f of state.fighters) {
     const input = inputs[f.id] ?? {}, other = state.fighters[1 - f.id];
     if(fresh(input,f,'jump'))f.jumpBuffer=state.tick+8;
@@ -250,10 +250,10 @@ export function stepMatch(state, inputs = [{}, {}]) {
     const penetrated=hit.blocked&&pierce>0;
     if(!hit.blocked||pierce>=1)applyEffect(state,target,hit);
     const counterGuard=hit.blocked&&pierce<1&&target.buffs.some(b=>b.type==='tetsugan');
-    const damage=receiveDamage(target,counterGuard?rawDamage*.8:rawDamage);
+    const damage=receiveDamage(state,target,counterGuard?rawDamage*.8:rawDamage);
     if(counterGuard&&target.hp>0){
       target.buffs=[...target.buffs.filter(b=>b.type!=='counter'),{type:'counter',remaining:90}];
-      const reflected=receiveDamage(attacker,base*.3*(1-pierce));
+      const reflected=receiveDamage(state,attacker,base*.3*(1-pierce));
       state.events.push({type:'reflect',target:attacker.id,damage:reflected});
     }
     if(hit.lifesteal&&(!hit.blocked||pierce>=1)&&attacker.hp>0){
@@ -273,6 +273,7 @@ export function stepMatch(state, inputs = [{}, {}]) {
     state.events.push({ type: guardBroken?'guardBreak':penetrated?'pierce':hit.blocked?'block':hit.punish?'punish':'hit', target: target.id, damage, move: hit.move });
   }
   separate(...state.fighters);
+  if(state.training)return state;
   const result = outcome({ hp1: state.fighters[0].hp, hp2: state.fighters[1].hp, remainingTicks: state.remainingTicks });
   if (result !== 'ongoing') {
     state.result = result;

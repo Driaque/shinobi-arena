@@ -1,3 +1,4 @@
+import {actionPhase} from './packages/engine/training.js';
 import { ARENA, MOVES, CHARACTERS, activeAwakening } from './packages/engine/index.js';
 export function createRenderer(canvas) {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -8,7 +9,7 @@ export function createRenderer(canvas) {
     const rect=canvas.parentElement.getBoundingClientRect();
     viewHeight=Math.min(720,Math.max(300,ARENA.width*rect.height/Math.max(1,rect.width)));
     zoom=1;
-    canvas.width=ARENA.width*dpr;canvas.height=Math.round(viewHeight*dpr);
+
   }
   new ResizeObserver(resize).observe(canvas.parentElement);resize();
   const line = (x1,y1,x2,y2,color,width) => { c.strokeStyle=color;c.lineWidth=width;c.lineCap='round';c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke(); };
@@ -117,12 +118,24 @@ export function createRenderer(canvas) {
     if(state.tick-f.lastHit<8){c.save();c.translate(x,ground-70);for(let i=0;i<7;i++){const a=i*.9;line(Math.cos(a)*15,Math.sin(a)*15,Math.cos(a)*40,Math.sin(a)*40,f.blockedHit?'#89dbea':'#ffd8a0',3);}c.restore();}
   }
   return function render(state) {
+    const width=ARENA.width*dpr,height=Math.round(viewHeight*dpr);
+    if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height;}
     const needed=Math.min(1,viewHeight*.68/(Math.max(...state.fighters.map(f=>f.y))+150));
     zoom+=(needed-zoom)*.3;
     c.setTransform(dpr*zoom,0,0,dpr*zoom,ARENA.width*dpr*.5*(1-zoom),(viewHeight*.8-ARENA.floor*zoom)*dpr);
     c.save();
     if(!reducedMotion.matches){const recent=state.fighters.find(f=>state.tick-f.lastHit<4);if(recent){const strength=recent.blockedHit?1:4;c.translate(Math.sin(state.tick*13)*strength,Math.cos(state.tick*9)*strength*.5);}}
     background(state.tick);
+    if(state.training?.showRanges){
+      for(const f of state.fighters){
+        const m=MOVES[f.action?.move??(CHARACTERS[f.character].basicChain?.[0]??'attack')],phase=actionPhase(f),ground=ARENA.floor-f.y;
+        const color=phase.name==='Active'?'#ff8d77':phase.name==='Recovery'?'#ffd17d':'#79dbc7';
+        c.save();c.strokeStyle=color;c.fillStyle=color+'19';c.lineWidth=2;c.setLineDash([7,5]);
+        if(!m.projectile&&!m.buff){const x=f.facing===1?f.x:f.x-m.reach;c.fillRect(x,ground-100,m.reach,100);c.strokeRect(x,ground-100,m.reach,100);}
+        c.strokeStyle='#b9d5eb66';c.strokeRect(f.x-26,ground-120,52,120);c.setLineDash([]);
+        c.font='bold 13px system-ui';c.textAlign='center';c.fillStyle=color;c.fillText(`${phase.name.toUpperCase()}${phase.remaining?' · '+phase.remaining+'f':''}`,f.x,ground-165);c.restore();
+      }
+    }
     for(const f of state.fighters){
       if(f.replacement){const r=f.replacement,y=ARENA.floor-r.y;c.fillStyle='#96663c';c.fillRect(r.x-15,y-70,30,65);circle(r.x,y-70,15,'#c09361');line(r.x-8,y-62,r.x-8,y-12,'#d2a176',3);for(let i=0;i<3;i++)circle(r.x-28+i*27,y-60-i*15,15,'#cadde74a');}
       ninja(f,state);
@@ -134,7 +147,7 @@ c.save();c.translate(p.x,y);c.scale(p.direction,1);const color=MOVES[p.move].col
     if(transformed){c.textAlign='center';c.font='bold 32px system-ui';c.fillStyle=activeAwakening(transformed).color;c.fillText(activeAwakening(transformed).name.toUpperCase(),640,270);}
     c.restore();
     c.setTransform(dpr,0,0,dpr,0,0);
-    c.font='10px system-ui';c.fillStyle='#b8cbcf55';c.textAlign='center';c.fillText('TRAINING GROUNDS  /  PROCEDURAL ART PROTOTYPE',640,viewHeight-12);
+    c.font='10px system-ui';c.fillStyle='#b8cbcf55';c.textAlign='center';if(!state.training)c.fillText('TRAINING GROUNDS  /  PROCEDURAL ART PROTOTYPE',640,viewHeight-12);
   };
 }
 

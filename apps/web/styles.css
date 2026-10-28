@@ -63,3 +63,20 @@ button,select,.character-card{touch-action:manipulation}
 .difficulty-label select{min-width:94px}.difficulty-label:has(select:disabled){opacity:.45}
 @media(max-height:520px) and (orientation:landscape){.difficulty-label{font-size:0;gap:0}.difficulty-label select{min-width:76px;max-width:86px;font-size:9px;padding:7px 4px}.tools{gap:5px}.topbar{gap:8px}}
 @media(max-width:700px){.brand small{display:none}.brand{letter-spacing:1px}.tools .difficulty-label select{min-width:72px;max-width:80px}.topbar .tools button{padding:7px 6px}}
+
+#training-dialog{color:#e4edf8;background:#101e30;border:1px solid #5e7d96;border-radius:14px;width:min(650px,94vw);max-height:92dvh;overflow:auto;padding:20px}
+#training-dialog::backdrop{background:#030a14cc;backdrop-filter:blur(4px)}
+#training-dialog header{display:flex;justify-content:space-between;align-items:center;gap:15px}#training-dialog h2{margin:0;font-size:22px}
+#training-dialog p{font-size:12px;line-height:1.5;color:#b5c8db}.practice-options{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0}
+.practice-options label{display:flex;gap:8px;align-items:center;font-size:12px}.practice-options label:has(select){flex-direction:column;align-items:stretch}.practice-options select{max-width:100%}
+.practice-options input{accent-color:#efbb77;min-width:18px;min-height:18px}.practice-actions{display:flex;justify-content:space-between;gap:10px;align-items:center}.practice-actions .primary{margin:0}.practice-note{font-size:10px!important}
+#training-coach{position:absolute;z-index:2;bottom:3px;left:12px;right:12px;pointer-events:none;background:#081322d9;border:1px solid #7699b144;border-radius:7px;padding:6px 10px;font-size:10px;color:#d5e8f4}
+#training-coach[hidden],#training-settings[hidden],#training-reset[hidden],.difficulty-label[hidden]{display:none}
+.coach-heading{display:flex;align-items:center;gap:10px}.coach-heading strong{color:#efc788;font-size:10px}.coach-heading progress{width:65px;height:7px;accent-color:#7dddb8}.coach-heading progress[hidden]{display:none}#training-instruction{margin-left:auto;color:#e8f1fa}
+#training-readout{font-size:9px;color:#86cfcc;margin-top:3px}#training-feedback{font-size:9px;color:#bfcee1;margin-top:2px}
+.training-mode #feedback{top:43%;font-size:11px}.training-mode .arena[data-control-placement=overlay] #training-coach{bottom:auto;top:105px;left:25%;right:25%}
+@media(max-height:520px) and (orientation:landscape){#training-dialog{padding:12px;max-height:94dvh}#training-dialog h2{font-size:18px}.practice-options{margin:10px 0;gap:9px}.practice-options label{font-size:11px}#training-dialog p{font-size:10px}.practice-actions button{padding:9px 12px;font-size:10px}#training-coach{left:6px;right:6px;bottom:2px;padding:3px 6px}.coach-heading{gap:5px}.coach-heading strong{font-size:7px}.coach-heading progress{width:35px;height:5px}#training-instruction{font-size:7px}#training-readout,#training-feedback{font-size:6px;margin-top:1px}.training-mode #feedback{top:45%;font-size:9px}.training-mode .topbar .tools{gap:4px}.training-mode #training-settings,.training-mode #training-reset{padding:7px 5px;font-size:9px}}
+
+@media(max-height:520px) and (orientation:landscape){#training-readout,#training-feedback{font-size:8px;line-height:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.coach-heading strong,#training-instruction{font-size:8px}.coach-heading{line-height:11px}.training-mode #training-coach{bottom:0}}
+
+#training-dialog button:disabled,#training-dialog select:disabled{opacity:.45;cursor:not-allowed}
