@@ -60,7 +60,7 @@ function pause(){
   dialog('TAKE A BREATH','Match paused','Your match will wait. Resume when you are ready.','Resume match');
 }
 function orientation(){
-  clearInputs();const gated=touch.matches&&portrait.matches;
+  clearInputs();const gated=(touch.matches||navigator.maxTouchPoints>0)&&window.innerHeight>window.innerWidth;
   if(gated)pause();$('#rotate').hidden=!gated;$('#game').inert=gated;
 }
 function finish(){
@@ -104,6 +104,8 @@ trainingUI=createTrainingUI({pause,clearInputs,getState:()=>state,setState:useTr
 window.addEventListener('blur',()=>{clearInputs();pause();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){clearInputs();pause();}});
 portrait.addEventListener('change',orientation);touch.addEventListener('change',orientation);
+window.addEventListener('resize',orientation);window.visualViewport?.addEventListener('resize',orientation);
+screen.orientation?.addEventListener?.('change',orientation);
 let screenNoticeTimer;
 createFullscreen({element:$('#game'),target:document.documentElement,button:$('#fullscreen'),onTransition:()=>{clearInputs();pause();},notice:message=>{
   clearTimeout(screenNoticeTimer);$('#screen-notice').textContent=message;$('#screen-notice').hidden=false;
