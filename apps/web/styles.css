@@ -146,3 +146,5 @@ html.play-view-open,html.play-view-open body{overflow:hidden;overscroll-behavior
 @media(max-width:720px) and (orientation:landscape){.topbar .brand{min-width:30px;flex-shrink:0}.topbar .brand>span:last-child{display:none}.topbar .tools{flex:1}}
 
 .equipment-grid{touch-action:pan-y}.equipment-slots{touch-action:pan-x}
+
+.technique-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}.technique-tags>span{font-size:8px;letter-spacing:.6px;padding:3px 5px;border:1px solid #86d5e955;border-radius:4px;color:#9fdce9;background:#15313d}.equipment-card:has(.technique-tags){min-height:190px}

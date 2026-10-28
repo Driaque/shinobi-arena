@@ -1,4 +1,5 @@
-> **v0.15.1: Build a strategy, watch a fight, replay the result.** 54-jutsu loadout grid, seven technique slots, elemental effects, active chakra recovery, Elo rankings, spectating and archived replays. [Release notes](docs/releases/0.15.1.md).
+> **v0.16: Aerial combat and Moonlit Shrine.** 58-jutsu library, launcher jump chases, air strings, fluid poses and richer procedural art. [Release notes](docs/releases/0.16.0.md).
+
 
 # Shinobi Arena
 
@@ -99,7 +100,7 @@ CI and deployment run unit checks, build and browser checks before publishing.
 `packages/engine` owns combat; `packages/input` owns independent input sources and quick-tap capture;
 `apps/web` owns browser events and procedural rendering. Neither engine nor input library imports the DOM.
 `apps/server` owns the online queue and authoritative matches; `packages/network` validates the wire protocol.
-Simulation rules version: `duel-0.15.0`.
+Simulation rules version: `duel-0.16.0`.
 
 See [project plan](docs/PROJECT_PLAN.md), [combat rules](docs/COMBAT_RULES.md), [character kits](docs/CHARACTER_KITS.md),
 [mobile design](docs/MOBILE_DESIGN.md), [control settings](docs/CONTROL_SETTINGS.md), [architecture](docs/ARCHITECTURE.md),
