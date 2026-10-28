@@ -1,13 +1,13 @@
 import {ACTIONS} from '../input/index.js';
-import {CHARACTERS,WEAPONS,RULES_VERSION} from '../engine/index.js';
-export const PROTOCOL_VERSION=1;
+import {CHARACTERS,WEAPONS,validateLoadout,RULES_VERSION} from '../engine/index.js';
+export const PROTOCOL_VERSION=2;
 export {RULES_VERSION};
 export function playerProfile(value){
   if(!value||typeof value.name!=='string')throw new Error('Enter a player name.');
   const name=value.name.trim().replace(/\s+/gu,' ');
   if([...name].length<2||[...name].length>20||! /^[\p{L}\p{N} _.-]+$/u.test(name))throw new Error('Use 2–20 letters, numbers, spaces, dots, underscores or hyphens for your name.');
   if(!Object.hasOwn(CHARACTERS,value.character)||!Object.hasOwn(WEAPONS,value.weapon))throw new Error('Choose a valid fighter and weapon.');
-  return {name,character:value.character,weapon:value.weapon};
+  return {name,...validateLoadout(value)};
 }
 export function cleanInput(value){
   if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('Invalid input.');

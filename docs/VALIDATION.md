@@ -95,3 +95,11 @@ Render logs confirmed repeated exit-code-1 restarts with `ERR_HTTP_HEADERS_SENT`
 **148 tests** pass, including a real HTTP/WebSocket regression: repeated missing favicon, mobile icon, stale script, directory and unknown-page requests, plus HEAD, preserve an already queued player, valid file responses, health and ping/pong. The browser multiplayer test also requests a missing asset during an active desktop/mobile fight and then confirms shared combat continues. No paid hosting upgrade is required for this fix.
 
 Hosted CI also exposed an unrelated fullscreen-test timing assumption: a native fullscreen request was checked after a fixed 32 ms. The test now waits for the actual screen-mode attribute on entry and exit, preserving the native/fallback, viewport size, label and rotation assertions. Training smoke checks pass with that state-based wait.
+
+## v0.13.0 — inventory and control visibility
+
+Syntax checks, release-note validation, **157 unit/integration tests** and the static build pass. New inventory coverage includes loadout cardinality/ID validation and copying, authoritative input whitelists, committed/edge-triggered swapping, finite charges, shared cooldown and stamina, hitstun/attack rejection, timed bomb hit/avoid/guard behavior, smoke interception and bypasses, poison coating and guard waste, Raijin mark/warp costs/expiry and non-invulnerability, round refill, deterministic replays, preference migration and hidden-control collision exclusion.
+
+Browser checks cover the existing desktop/mobile/training paths, online two-device weapon swaps and inventory use, and a dedicated inventory suite. The latter selects two weapons/four slots, uses poison and a marked warp, creates smoke, hides/restores controls, checks Save/Cancel/reload behavior and hidden keyboard access, tests landscape touch actions and panel bounds, and opens the generated versioned release notes. Native option disabling is checked through its DOM property so the browser's actual duplicate-Raijin restriction is verified.
+
+Leaderboard, spectating and stored replay playback remain deferred in issue #7. Engine replay-determinism tests do not mean a user-facing replay feature exists. Physical phones, internet latency compensation and production capacity remain outside emulated/local browser proof.

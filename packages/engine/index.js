@@ -1,10 +1,10 @@
 import {difficultyFor} from './difficulty.js';
 export {DIFFICULTIES,difficultyFor} from './difficulty.js';
-import { CHARACTERS, WEAPONS, MOVES, AWAKENINGS, validateLoadouts } from './catalog.js';
-export { CHARACTERS, WEAPONS, MOVES, AWAKENINGS } from './catalog.js';
+import { CHARACTERS, WEAPONS, MOVES, AWAKENINGS, ITEMS, validateLoadout, validateLoadouts } from './catalog.js';
+export { CHARACTERS, WEAPONS, MOVES, AWAKENINGS, ITEMS, validateLoadout } from './catalog.js';
 export const TICK_RATE = 60;
 export const ARENA = Object.freeze({ width: 1280, height: 720, floor: 570, margin: 46 });
-export const RULES_VERSION = 'duel-0.11.0';
+export const RULES_VERSION = 'duel-0.13.0';
 export function advanceResource(resource, cost) {
   if (![resource, cost].every(Number.isFinite) || resource < 0 || cost < 0) throw new Error('Invalid resource');
   return resource >= cost ? { accepted: true, remaining: resource - cost } : { accepted: false, remaining: resource };
@@ -19,7 +19,7 @@ export function outcome({ hp1, hp2, remainingTicks }) {
 }
 function fighter(id, loadout) {
   const character=CHARACTERS[loadout.character];
-  return { id, name: character.name, character: loadout.character, weapon: loadout.weapon, x: id === 0 ? 360 : 920, y: 0, vy: 0,
+  return { id, name: character.name, character: loadout.character, weapon: loadout.weapon, weapons:[...loadout.weapons],weaponSlot:0,items:loadout.items.map(id=>({id,count:id?1:0})),itemSlot:0,raijinMark:null, x: id === 0 ? 360 : 920, y: 0, vy: 0,
     hp: 1000, chakra: 100, stamina:100, guard:100, actionsStarted:0, lastActionEnd:-1000, lastExertion:-100, lastGuardHit:-100, guardStart:-100, parryCooldown:0, airDashUsed:false, jumpBuffer:0, dashBuffer:null, damageTaken:0, awakeningTicks:0, awakeningUsed:false, awakeningFlash:0, buffer:null, combo:{hits:0,damage:0,lastTick:-100,target:null}, facing: id === 0 ? 1 : -1, stun: 0, blocking: false, crouching:false,
     jumps: 0, dash: null, dashCooldown: 0, taps: {left:-100,right:-100}, cooldowns: {}, effects: [], buffs: [], invulnerable: 0, replacement: null, action: null, previous: {}, lastHit: -100, blockedHit: false };
 }
@@ -27,13 +27,13 @@ export function createMatch(loadouts=[{character:'naruto',weapon:'kunai'},{chara
   const selected=validateLoadouts(loadouts);
   return { version: RULES_VERSION, difficulty:difficultyFor(difficulty).id, tick: 0, round: 1, remainingTicks: 90 * TICK_RATE,
     loadouts: selected, fighters: selected.map((l,i)=>fighter(i,l)), wins: [0, 0], status: 'playing', result: null,
-    projectiles: [], nextId: 1, events: [] };
+    zones:[],projectiles: [], nextId: 1, events: [] };
 }
 export function nextRound(state) {
   if (state.status !== 'roundOver') return false;
   state.fighters = state.loadouts.map((l,i)=>fighter(i,l)); state.round++;
   state.remainingTicks = 90 * TICK_RATE; state.status = 'playing'; state.result = null;
-  state.projectiles = []; state.events = [];
+  state.zones=[];state.projectiles = []; state.events = [];
   return true;
 }
 const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
@@ -51,6 +51,8 @@ function separate(a, b) {
   }
 }
 export function moveFor(f, key) {
+  if(key==='swapWeapon')return f.weapons?.[1]?'swapWeapon':null;
+  if(key==='useItem'){const slot=f.items?.[f.itemSlot];return slot?.id==='raijinKunai'&&f.raijinMark?.slot===f.itemSlot?'raijinWarp':slot?.count?ITEMS[slot.id].move:null;}
   if(!['attack','weapon','special1','special2','bloodline'].includes(key))return null;
   const character=CHARACTERS[f.character];
   const override=activeAwakening(f)?.overrides[key];
@@ -58,7 +60,7 @@ export function moveFor(f, key) {
   return key==='weapon'?WEAPONS[f.weapon].move:key==='attack'?(character.basicChain?.[0]??'attack'):character[key];
 }
 const fresh=(input,f,key)=>Boolean(input[key]&&(!f.previous[key]||input.pressedActions?.includes(key)));
-export function staminaCost(key,chain=0){return key==='attack'?(chain===3?16:12):key==='weapon'?16:0;}
+export function staminaCost(key,chain=0){return key==='attack'?(chain===3?16:12):key==='weapon'?16:key==='useItem'?8:0;}
 function startAction(state, f, key, override=null, chain=0) {
   const move=override??moveFor(f,key);
   if(!move){state.events.push({type:'unavailable',target:f.id});return false;}
@@ -70,7 +72,9 @@ function startAction(state, f, key, override=null, chain=0) {
   f.stamina=energy.remaining;if(effort)f.lastExertion=state.tick;
   f.chakra=spent.remaining;f.cooldowns[key]=config.cooldown??0;
   if(chain<2)f.actionsStarted++;
-  f.action={move,age:0,hit:false,confirmed:false,fired:false,recoveryPenalty:0,chain:chain||(key==='attack'?1:0)};f.blocking=false;f.crouching=false;return true;
+  if(key==='useItem'&&move!=='raijinWarp')f.items[f.itemSlot].count--;
+  const poison=key==='weapon'&&f.buffs.some(b=>b.type==='poisonCoating');if(poison)f.buffs=f.buffs.filter(b=>b.type!=='poisonCoating');
+  f.action={source:key,itemSlot:f.itemSlot,poison,move,age:0,hit:false,confirmed:false,fired:false,recoveryPenalty:0,chain:chain||(key==='attack'?1:0)};f.blocking=false;f.crouching=false;return true;
 }
 export function awakeningFor(f) {return AWAKENINGS[CHARACTERS[f.character].awakening]??null;}
 export function activeAwakening(f) {return f.awakeningTicks>0?awakeningFor(f):null;}
@@ -118,19 +122,24 @@ function collectMelee(attacker, target, hits) {
   const action = attacker.action;
   if (!action) return;
   const move = MOVES[action.move];
-  if (move.projectile || move.buff || target.invulnerable>0 || action.hit || action.age < move.startup || action.age >= move.startup + move.active) return;
+  if (move.projectile || move.buff || move.inventoryEffect || target.invulnerable>0 || action.hit || action.age < move.startup || action.age >= move.startup + move.active) return;
   const ahead = (target.x - attacker.x) * attacker.facing;
   if (ahead >= 0 && ahead <= move.reach && Math.abs(target.y - attacker.y) < 100) {
     action.hit = true;
-    hits.push({ attacker: attacker.id, target: target.id, direction: attacker.facing, ...move, move: action.move });
+    hits.push({ attacker: attacker.id, target: target.id, direction: attacker.facing,poison:action.poison, ...move, move: action.move });
   }
 }
 export function stepMatch(state, inputs = [{}, {}]) {
   if (state.status !== 'playing') return state;
   state.tick++; state.events = [];
+  state.zones=state.zones.map(z=>({...z,remaining:z.remaining-1})).filter(z=>z.remaining>0);
   for(const f of state.fighters)tickEffects(state,f); if(!state.training)state.remainingTicks = Math.max(0, state.remainingTicks - 1);
   for (const f of state.fighters) {
     const input = inputs[f.id] ?? {}, other = state.fighters[1 - f.id];
+    if(f.raijinMark&&--f.raijinMark.remaining<=0)f.raijinMark=null;
+    if(fresh(input,f,'cycleItem')){
+      for(let i=1;i<=4;i++){const next=(f.itemSlot+i)%4;if(f.items[next].count||f.raijinMark?.slot===next){f.itemSlot=next;break;}}
+    }
     if(input.dashDirection===-1||input.dashDirection===1)f.dashBuffer={direction:input.dashDirection,expires:state.tick+8};
     if(fresh(input,f,'jump'))f.jumpBuffer=state.tick+8;
     for(const direction of ['left','right'])if(fresh(input,f,direction)){
@@ -146,7 +155,7 @@ export function stepMatch(state, inputs = [{}, {}]) {
     if(f.awakeningTicks>0)f.awakeningTicks--;
     if(f.awakeningFlash>0)f.awakeningFlash--;
     if(f.buffer&&state.tick>f.buffer.expires)f.buffer=null;
-    for(const key of ['bloodline','special1','special2','weapon','attack']){
+    for(const key of ['useItem','swapWeapon','bloodline','special1','special2','weapon','attack']){
       if(fresh(input,f,key)){f.buffer={key,expires:state.tick+10};break;}
     }
     if(fresh(input,f,'awakening'))awaken(state,f);
@@ -160,9 +169,9 @@ export function stepMatch(state, inputs = [{}, {}]) {
     if (f.action) {
       f.action.age+=f.action.chain>0?(activeAwakening(f)?.chainSpeed??1):1;
       const m = MOVES[f.action.move];
-      if(f.action.age>=m.startup+m.active&&!f.action.hit&&!m.projectile&&!m.buff)f.action.recoveryPenalty=12;
+      if(f.action.age>=m.startup+m.active&&!f.action.hit&&!m.projectile&&!m.buff&&!m.inventoryEffect)f.action.recoveryPenalty=12;
       if (f.action.age >= m.startup + m.active + m.recovery + (f.action.recoveryPenalty??0)) {
-        if(!f.action.confirmed&&!m.buff)clearCombo(f);
+        if(!f.action.confirmed&&!m.buff&&!m.inventoryEffect)clearCombo(f);
         f.action = null;f.lastActionEnd=state.tick;
       }
       if(f.action?.confirmed&&!wasStunned&&f.action.chain>0&&f.action.age>=m.startup+m.active&&f.buffer){
@@ -197,11 +206,18 @@ export function stepMatch(state, inputs = [{}, {}]) {
     if (f.action) {
       const a = f.action, m = MOVES[a.move];
       if (m.dash && a.age >= m.startup && a.age < m.startup + m.active) f.x += f.facing * m.dash;
+      if(m.inventoryEffect&&a.age>=m.startup&&!a.fired){
+        a.fired=true;
+        if(m.inventoryEffect==='swap'){f.weaponSlot=1-f.weaponSlot;f.weapon=f.weapons[f.weaponSlot];state.events.push({type:'weaponSwap',target:f.id});}
+        if(m.inventoryEffect==='poison')f.buffs=[...f.buffs.filter(b=>b.type!=='poisonCoating'),{type:'poisonCoating',remaining:360}];
+        if(m.inventoryEffect==='smoke')state.zones.push({kind:'smoke',owner:f.id,x:f.x,y:f.y+65,radius:125,remaining:180});
+        if(m.inventoryEffect==='warp'&&f.raijinMark){f.x=clamp(f.raijinMark.x,ARENA.margin,ARENA.width-ARENA.margin);f.y=0;f.vy=0;f.jumps=0;f.airDashUsed=false;f.raijinMark=null;state.events.push({type:'raijinWarp',target:f.id});}
+      }
       if(m.buff&&a.age===m.startup&&!a.fired){a.fired=true;f.buffs=[...f.buffs.filter(b=>b.type!==m.buff),{type:m.buff,remaining:m.duration}];}
       if (m.projectile && a.age === m.startup && !a.fired) {
         a.fired = true;
-        state.projectiles.push({ id: state.nextId++, owner: f.id, x: f.x + f.facing * 60,
-          y: f.y + 65, direction: f.facing, life: m.life, move: a.move, power:activeAwakening(f)?.damage??1, weak: f.effects.some(e=>e.type==='weaken')?0.7:1, pierce: f.buffs.some(b=>b.type==='byakugan')?1:(m.pierce??0) });
+        for(const offset of m.fan?[-24,0,24]:[0])state.projectiles.push({poison:a.poison,itemSlot:a.itemSlot, id: state.nextId++, owner: f.id, x: f.x + f.facing * 60,
+          y: f.y + 65+offset, direction: f.facing, life: m.life, move: a.move, power:activeAwakening(f)?.damage??1, weak: f.effects.some(e=>e.type==='weaken')?0.7:1, pierce: f.buffs.some(b=>b.type==='byakugan')?1:(m.pierce??0) });
       }
     }
     if (f.y > 0 || f.vy > 0) { f.y += f.vy; f.vy -= 0.9; }
@@ -214,12 +230,16 @@ export function stepMatch(state, inputs = [{}, {}]) {
   collectMelee(state.fighters[0], state.fighters[1], hits);
   collectMelee(state.fighters[1], state.fighters[0], hits);
   for (const p of state.projectiles) {
-    p.x += p.direction * MOVES[p.move].speed; p.life--;
-    const target = state.fighters[1 - p.owner];
-    if (target.invulnerable===0 && Math.abs(p.x - target.x) < 48 && p.y >= target.y && p.y <= target.y + (target.crouching?76:120)) {
-      hits.push({ attacker: p.owner, target: target.id, direction: p.direction, ...MOVES[p.move], move: p.move, weak: p.weak, power:p.power, pierce:p.pierce });
-      p.life = 0;
-    }
+    const move=MOVES[p.move];p.x+=p.direction*move.speed;p.life--;
+    const target=state.fighters[1-p.owner],owner=state.fighters[p.owner];
+    const cloud=state.zones.find(z=>z.kind==='smoke'&&z.owner!==p.owner&&Math.hypot(p.x-z.x,p.y-z.y)<z.radius);
+    if(cloud&&!move.blast){p.life=0;state.events.push({type:'smokeBlocked',target:cloud.owner});continue;}
+    let hit=false;
+    if(move.blast){
+      if(p.life<=0){state.zones.push({kind:'blast',x:p.x,y:p.y,radius:move.blast,remaining:15,owner:p.owner});hit=target.invulnerable===0&&Math.hypot(p.x-target.x,p.y-(target.y+60))<=move.blast;}
+    }else hit=target.invulnerable===0&&Math.abs(p.x-target.x)<48&&p.y>=target.y&&p.y<=target.y+(target.crouching?76:120);
+    if(hit){hits.push({attacker:p.owner,target:target.id,direction:p.direction,...move,move:p.move,weak:p.weak,power:p.power,pierce:p.pierce,poison:p.poison});p.life=0;}
+    if(move.mark&&(hit||p.life<=0||p.x<0||p.x>ARENA.width)){owner.raijinMark={x:clamp(p.x,ARENA.margin,ARENA.width-ARENA.margin),remaining:300,slot:p.itemSlot};p.life=0;}
   }
   state.projectiles = state.projectiles.filter(p => p.life > 0 && p.x > -50 && p.x < ARENA.width + 50);
   // Freeze block decisions before applying damage so simultaneous actions resolve fairly.
@@ -250,7 +270,7 @@ export function stepMatch(state, inputs = [{}, {}]) {
     }
     const rawDamage=hit.blocked?Math.ceil(base*(0.08+0.92*pierce)):base;
     const penetrated=hit.blocked&&pierce>0;
-    if(!hit.blocked||pierce>=1)applyEffect(state,target,hit);
+    if(!hit.blocked||pierce>=1){applyEffect(state,target,hit);if(hit.poison)applyEffect(state,target,{effect:'poison',duration:300,potency:9});}
     const counterGuard=hit.blocked&&pierce<1&&target.buffs.some(b=>b.type==='tetsugan');
     const damage=receiveDamage(state,target,counterGuard?rawDamage*.8:rawDamage);
     if(counterGuard&&target.hp>0){
@@ -288,6 +308,7 @@ export function stepMatch(state, inputs = [{}, {}]) {
 export function computerInput(state, player=1, difficulty=state.difficulty??'easy') {
   const self=state.fighters[player],opponent=state.fighters[1-player];
   const policy=difficultyFor(difficulty);
+  if(policy.id!=='easy'&&state.tick>policy.openingTicks&&state.tick%180===0&&!self.action&&!self.stun&&!self.dash){if(self.items?.[self.itemSlot]?.count&&!self.cooldowns.useItem)return {useItem:true};if(self.items?.some(i=>i.count))return {cycleItem:true};}
   if(state.tick<policy.openingTicks)return {};
   // Keep held movement/guard between decision ticks; fresh combat presses still pass through normal engine rules.
   if(state.tick%policy.decisionTicks!==0)return {...self.previous};

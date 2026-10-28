@@ -74,3 +74,9 @@ The play surface prevents native touch scroll, double-tap zoom and gesture zoom 
 When the native API is missing, disabled or rejects the request, a clearly labeled **Play view** fills the available visual viewport. This CSS fallback cannot remove the browser's address bar. A visible notice explains the limitation; Exit view or Escape restores the page. Entering/exiting pauses the fight and clears held input. Fullscreen compatibility is feature-detected, not guessed from the device name.
 
 Reference: [MDN requestFullscreen](https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen) and [fullscreenEnabled](https://developer.mozilla.org/en-US/docs/Web/API/Document/fullscreenEnabled).
+
+## v0.13 visibility and inventory
+
+Settings schema 5 adds a `visibility` boolean per touch control. Controls shows a checkbox list; hidden nodes are removed from hit testing and collision validation, while keyboard bindings remain intact. Save persists a draft; Cancel restores previous visibility and layout. Hidden controls can always be restored from the top-bar Controls button. Hiding jump/dash buttons leaves the analog gestures available unless the stick is also hidden.
+
+Three new controls are Swap weapon (F / P2 7), Choose consumable (C / P2 8), and Use consumable (X / P2 9). Existing settings versions 1–4 migrate; new keys are added only when unclaimed, preserving custom bindings. New buttons receive sensible defaults and are repositioned around existing custom controls during migration. Native mobile UI hiding is scoped to the help panel so inventory and visibility details remain available on phones.

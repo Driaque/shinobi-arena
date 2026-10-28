@@ -1,4 +1,4 @@
-export const ACTIONS = Object.freeze(['left', 'right', 'jump', 'attack', 'block', 'special1', 'special2', 'weapon', 'bloodline', 'replacement', 'dashForward', 'dashBack', 'awakening','crouch']);
+export const ACTIONS = Object.freeze(['left', 'right', 'jump', 'attack', 'block', 'special1', 'special2', 'weapon', 'bloodline', 'replacement', 'dashForward', 'dashBack', 'awakening','crouch','swapWeapon','cycleItem','useItem']);
 export function createInput() {
   let pendingDash=0;
   const held = new Map(), pressed = new Set(), axes = new Map();

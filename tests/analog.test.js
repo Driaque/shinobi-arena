@@ -37,6 +37,6 @@ test('dash pulses consume once and reset drops pending gestures without clearing
  const i=createInput();i.press('attack','finger');i.dash(-1);assert.equal(i.consume().dashDirection,-1);assert.equal(i.consume().dashDirection,undefined);assert.equal(i.snapshot().attack,true);i.dash(1);i.reset();assert.equal(i.consume().dashDirection,undefined);assert.throws(()=>i.dash(0));
 });
 test('existing preferences retain keys/layouts and add crouch without stealing custom S',()=>{
- const old=freshSettings();old.version=3;delete old.keys[0].KeyS;delete old.keys[1].ArrowDown;const updated=readSettings(JSON.stringify(old));assert.equal(updated.version,4);assert.equal(updated.keys[0].KeyS,'crouch');assert.equal(updated.keys[1].ArrowDown,'crouch');
+ const old=freshSettings();old.version=3;delete old.keys[0].KeyS;delete old.keys[1].ArrowDown;const updated=readSettings(JSON.stringify(old));assert.equal(updated.version,5);assert.equal(updated.keys[0].KeyS,'crouch');assert.equal(updated.keys[1].ArrowDown,'crouch');
  old.keys=rebind(old.keys,0,'attack','KeyS');const custom=readSettings(JSON.stringify(old));assert.equal(custom.keys[0].KeyS,'attack');assert.equal(Object.values(custom.keys[0]).includes('crouch'),false);
 });

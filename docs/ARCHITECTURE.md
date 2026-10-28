@@ -73,3 +73,11 @@ reduced-motion preference disables shake. Control schema migration preserves exi
 ## ADR · Shared simulation for training
 
 Accepted in v0.10.0. A serializable training session wraps the existing fixed-tick duel engine. The kernel has explicit training exceptions for clock/round resolution and a nonlethal HP floor; practice resource/health/cooldown assists are applied by the wrapper. Authored scenarios generate legal dummy inputs and observe real engine state/events to complete objectives. DOM/rendering never owns challenge success. The web adapter handles device-local completion IDs and displays current remapped bindings. Leaving Training creates a new ordinary match with no practice flags. See [TRAINING.md](TRAINING.md).
+
+## ADR · Server-owned inventory and versioned releases
+
+Accepted for v0.13. Inventory selection is immutable loadout data; runtime weapon slot, charges, selected item, poison coating, timed zones and Raijin markers live in the shared serializable simulation. The protocol accepts catalog IDs and action intentions only; clients cannot submit counts, effects or warp coordinates. Existing single-weapon fixtures remain compatible locally, while wire/rules versions intentionally change for online clients. Each new round reconstructs runtime inventory from validated loadouts.
+
+Control visibility belongs to versioned device preferences, separate from combat state. It removes touch nodes and collision constraints, never the underlying keyboard action. Build-time version queries fingerprint the complete browser module graph so a fresh version does not combine new HTML with an old cached engine.
+
+Version changes require curated notes and matching changelog/UI links. A trusted successful main-branch Pages deployment triggers idempotent GitHub Release publication; the job verifies the exact current main SHA and skips an already published version. Leaderboard identity/results storage, read-only spectators and compatible replay retention are tracked separately in issue #7.

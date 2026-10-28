@@ -1,3 +1,5 @@
+import {ITEMS} from './items.js';
+export {ITEMS};
 // Gameplay adaptations. Costs, durations and damage are balance choices, not canon claims.
 export const CHARACTERS = Object.freeze({
   naruto: { id:'naruto', name:'Naruto', title:'Shadow-clone pressure', color:'#e9973a', hair:'#efc85d',
@@ -49,6 +51,14 @@ export const AWAKENINGS=Object.freeze({
  sage:{name:'Sage Mode',color:'#8bedd5',threshold:400,duration:600,damage:1.15,speed:1.25,defence:.9,regen:.1,overrides:{}}
 });
 export const MOVES = Object.freeze({
+  swapWeapon:strike('Change weapon',{startup:4,active:1,recovery:12,damage:0,reach:0,cost:0,cooldown:0,inventoryEffect:'swap'}),
+  itemBomb:projectile('Paper Bomb',{startup:18,recovery:26,damage:110,cost:0,cooldown:90,speed:4,life:45,blast:110,pierce:.25,color:'#ffbd70'}),
+  itemKunai:projectile('Throwing Kunai',{startup:6,recovery:16,damage:45,cost:0,cooldown:90,speed:17,life:45,color:'#d7e6ee'}),
+  itemShuriken:projectile('Shuriken Fan',{startup:10,recovery:22,damage:25,cost:0,cooldown:90,speed:15,life:50,fan:true,color:'#c6d9e8'}),
+  itemPoison:strike('Coat weapon',{startup:10,active:1,recovery:18,damage:0,reach:0,cost:0,cooldown:90,inventoryEffect:'poison'}),
+  itemSmoke:strike('Smoke Bomb',{startup:8,active:1,recovery:20,damage:0,reach:0,cost:0,cooldown:90,inventoryEffect:'smoke'}),
+  itemRaijin:projectile('Flying Raijin Kunai',{startup:12,recovery:22,damage:35,cost:0,cooldown:90,speed:13,life:40,mark:true,color:'#ffd879'}),
+  raijinWarp:strike('Flying Raijin · Warp',{startup:8,active:1,recovery:22,damage:0,reach:0,cost:15,cooldown:90,inventoryEffect:'warp'}),
   silentSlash1:strike('Silent · Opening Cut',{startup:5,active:4,recovery:13,damage:65,reach:100,cost:0,knockback:24,cooldown:0,sword:true,element:'metal'}),
   silentSlash2:strike('Silent · Returning Edge',{startup:5,active:4,recovery:15,damage:50,reach:115,cost:0,knockback:10,cooldown:0,hitstun:20,sword:true,element:'metal'}),
   silentSlash3:strike('Silent · Rising Steel',{startup:8,active:4,recovery:24,damage:90,reach:140,cost:0,knockback:60,cooldown:0,launch:10,hitstun:22,sword:true,element:'metal'}),
@@ -108,12 +118,18 @@ export const MOVES = Object.freeze({
   karmaRasengan:strike('Karma Rasengan',{damage:165,startup:10,active:8,dash:12,reach:140,pierce:.5,cost:30,color:'#6fc8ff'}),
   katana:{name:'Katana slash' ,sword:true,element:'metal',startup:10,active:5,recovery:24,damage:100,reach:150,cost:0,knockback:38,cooldown:48}
 });
-export function validateLoadouts(loadouts) {
-  if(!Array.isArray(loadouts)||loadouts.length!==2)throw new Error('Two loadouts required');
-  return loadouts.map(l=>{
-    if(!l||!Object.hasOwn(CHARACTERS,l.character)||!Object.hasOwn(WEAPONS,l.weapon))throw new Error('Unknown character or weapon');
-    return {character:l.character,weapon:l.weapon};
-  });
+export function validateLoadout(l){
+ if(!l||!Object.hasOwn(CHARACTERS,l.character))throw new Error('Unknown character');
+ const weapon=l.weapon??l.weapons?.[0];
+ if(!Object.hasOwn(WEAPONS,weapon))throw new Error('Unknown weapon');
+ const weapons=l.weapons===undefined?[weapon,null]:l.weapons;
+ if(!Array.isArray(weapons)||weapons.length!==2||weapons[0]!==weapon||weapons.some((w,i)=>!(i===1&&w===null)&&!Object.hasOwn(WEAPONS,w)))throw new Error('Choose two valid weapon slots');
+ const items=l.items===undefined?[null,null,null,null]:l.items;
+ if(!Array.isArray(items)||items.length!==4||items.some(id=>id!==null&&!Object.hasOwn(ITEMS,id)))throw new Error('Choose four valid consumable slots');
+ if(items.filter(id=>id==='raijinKunai').length>1)throw new Error('Carry at most one Flying Raijin Kunai');
+ return {character:l.character,weapon,weapons:[...weapons],items:[...items]};
 }
-
-
+export function validateLoadouts(loadouts){
+ if(!Array.isArray(loadouts)||loadouts.length!==2)throw new Error('Two loadouts required');
+ return loadouts.map(validateLoadout);
+}

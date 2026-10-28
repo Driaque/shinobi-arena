@@ -1,7 +1,7 @@
 import {createStickGestures} from './packages/input/analog.js';
 import { ACTIONS } from './packages/input/index.js';
 import { STORAGE_KEY, CONTROL_IDS, DEFAULT_KEYS, freshSettings, readSettings, stickVector, defaultLayout, defaultDockLayout, layoutProfile, projectControl, layoutOverlaps, rebind, keyLabel, keyForAction } from './packages/input/preferences.js';
-export const ACTION_LABELS={crouch:'Crouch',awakening:'Awakening',stick:'Movement stick',left:'Move left',right:'Move right',jump:'Double jump',attack:'Basic attack',weapon:'Weapon',block:'Guard',special1:'Signature 1',special2:'Signature 2',bloodline:'Bloodline',replacement:'Replacement',dashForward:'Dash forward',dashBack:'Dash backward'};
+export const ACTION_LABELS={swapWeapon:'Swap weapon',cycleItem:'Choose consumable',useItem:'Use consumable',crouch:'Crouch',awakening:'Awakening',stick:'Movement stick',left:'Move left',right:'Move right',jump:'Double jump',attack:'Basic attack',weapon:'Weapon',block:'Guard',special1:'Signature 1',special2:'Signature 2',bloodline:'Bloodline',replacement:'Replacement',dashForward:'Dash forward',dashBack:'Dash backward'};
 export function createControls({inputs,onPause,isPlaying}) {
   const $=s=>document.querySelector(s),arena=$('.arena'),stick=$('#joystick');
   const nodes=Object.fromEntries(CONTROL_IDS.map(id=>[id,$(`[data-control="${id}"]`)]));
@@ -18,7 +18,7 @@ export function createControls({inputs,onPause,isPlaying}) {
   function message(text){$('#editor-message').textContent=text;}
   function resetStick(cancel=true){stickPointer=null;inputs[0].release('stick');inputs[0].release('stick-crouch');if(cancel)gestures.reset();else gestures.release();stick.style.setProperty('--stick-x','0px');stick.style.setProperty('--stick-y','0px');stick.classList.remove('active');}
   function reset(){resetStick();drag=null;inputs.forEach(i=>i.reset());}
-  function collisionMessage(){const {width,height}=dimensions(),pairs=layoutOverlaps(layout(),width,height,current().placement);return pairs.length?`Separate ${ACTION_LABELS[pairs[0][0]]} and ${ACTION_LABELS[pairs[0][1]]} before saving.`:'';}
+  function collisionMessage(){const {width,height}=dimensions(),pairs=layoutOverlaps(layout(),width,height,current().placement,current().visibility);return pairs.length?`Separate ${ACTION_LABELS[pairs[0][0]]} and ${ACTION_LABELS[pairs[0][1]]} before saving.`:'';}
   function applyLayout(){
     const {width,height}=dimensions(),positions=layout();
     arena.dataset.controlPlacement=current().placement;
@@ -26,6 +26,7 @@ export function createControls({inputs,onPause,isPlaying}) {
     $('#control-opacity').value=Math.round(current().opacity*100);$('#opacity-value').textContent=`${Math.round(current().opacity*100)}%`;
     $('#control-placement').value=current().placement;
     for(const [id,node]of Object.entries(nodes)){
+      node.hidden=current().visibility[id]===false;
       const p=projectControl(positions[id],width,height,id,current().placement);
       Object.assign(node.style,{left:`${p.x}px`,top:`${p.y}px`,width:`${p.size}px`,height:`${p.size}px`});
       node.classList.toggle('selected-control',editing&&selected===id);
@@ -33,7 +34,8 @@ export function createControls({inputs,onPause,isPlaying}) {
     if(editing){
       $('#control-select').value=selected;$('#control-size').min=selected==='stick'?88:48;$('#control-size').max=selected==='stick'?(current().placement==='dock'?120:160):90;
       $('#control-size').value=positions[selected].size;$('#size-value').textContent=`${Math.round(positions[selected].size)} px`;
-      message(collisionMessage()||'Drag a control to move it. Gameplay is paused.');
+      for(const box of document.querySelectorAll('[data-control-visible]'))box.checked=current().visibility[box.dataset.controlVisible];
+      message(collisionMessage()||'Drag visible controls. Uncheck to hide; keyboard bindings still work. Online fights continue.');
     }
   }
   function select(id){selected=id;applyLayout();}
@@ -108,6 +110,10 @@ export function createControls({inputs,onPause,isPlaying}) {
   function close(){
     reset();editing=false;draft=null;arena.classList.remove('editing-controls');editor.hidden=true;$('#mode').disabled=false;
     overlay.hidden=previousOverlay;applyLayout();$('#control-settings').focus();
+  }
+  for(const id of CONTROL_IDS){
+    const label=document.createElement('label'),box=document.createElement('input');box.type='checkbox';box.dataset.controlVisible=id;box.checked=true;
+    box.addEventListener('change',()=>{reset();draft.visibility[id]=box.checked;applyLayout();});label.append(box,document.createTextNode(ACTION_LABELS[id]));$('#control-visibility').append(label);
   }
   $('#control-settings').addEventListener('click',open);
   $('#cancel-controls').addEventListener('click',close);

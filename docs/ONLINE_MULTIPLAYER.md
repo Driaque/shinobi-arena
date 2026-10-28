@@ -54,3 +54,9 @@ The client renders authoritative snapshots without prediction, interpolation or 
 References: [GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages), [Render WebSockets](https://render.com/docs/websocket), [Render Blueprints](https://render.com/docs/blueprint-spec), [Render free services](https://render.com/docs/free).
 
 For a manual public-server smoke check after deployment (do not run against a busy queue), use `ONLINE_TEST_URL=https://shinobi-arena-online.onrender.com CHROMIUM_PATH=/path/to/chromium node scripts/online-smoke.mjs`. This creates two temporary test players and leaves afterward. The standard CI suite continues to use an isolated local server. `ONLINE_TEST_USE_PROXY=1` enables a test-environment HTTPS proxy when required; proxy TLS interception is permitted only for that explicit QA mode. Normal app connections use the browser's normal TLS verification.
+
+## v0.13 inventory protocol
+
+Protocol 2 / rules `duel-0.13.0` include two weapon slots and four consumable IDs in the validated profile. The server creates runtime charges and owns swapping, tool startup/recovery, projectile interception, poison and Raijin coordinates. Old tabs must refresh after deployment. The client still uses local P1 bindings for whichever online slot it owns. Visibility remains local and cannot change the other player's controls or server rules.
+
+Leaderboard, spectating and fight replays are planned separately in [issue #7](https://github.com/Driaque/shinobi-arena/issues/7).

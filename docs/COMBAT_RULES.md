@@ -103,3 +103,17 @@ Ordinary duels retain their rules. A state created through the training adapter 
 The device adapter translates firm up pulls into fresh jump inputs and same-direction double pulls into a one-tick absolute dash intent. The simulation still enforces jump count, air-dash count, stamina, cooldown and commitment/hitstun restrictions. Absolute dash intent is recorded in input frames and does not depend on fighter facing.
 
 Crouch is a held grounded action with no resource cost. It stops walking and uses a 76-unit projectile hurtbox (standing: 120); ordinary melee eligibility is unchanged. Body-height projectiles still connect. It does not grant guard or invulnerability. Jump/attack/dash leave the pose, and release returns to standing. Desktop defaults are S / Down arrow.
+
+## v0.13 inventory rules
+
+Loadouts normalize to two weapon slots (primary required, secondary optional) and four consumable IDs/nulls. Each nonempty slot receives one server-owned charge per round. Normal tools may be duplicated; a loadout can contain at most one Flying Raijin kunai. Legacy single-weapon loadouts normalize to an empty secondary and empty item slots.
+
+F / P2 7 requests a weapon swap: 4 startup, 1 active and 12 recovery frames. It cannot cancel a committed action or escape hitstun; both weapons share the existing weapon cooldown. C / P2 8 cycles to another usable slot (including a live Raijin marker). X / P2 9 uses the selected tool: 8 stamina and a shared 90-frame cooldown, with move-specific startup/recovery. Spending occurs on accepted startup; interruption, whiff or block does not refund a charge.
+
+Paper bombs travel at 4 units/tick and explode after 45 active ticks in a 110-unit radius for 110 base damage with 25% guard penetration. Kunai deal 45; a shuriken fan produces three height-offset 25-damage projectiles. Existing guard, parry, scaling, invulnerability and damage rules apply.
+
+Poison coats the next weapon attack for up to 360 ticks, is consumed on accepted weapon startup, and applies the existing poison effect (9 HP/s for 300 ticks) only on a clean hit. Smoke persists at its origin for 180 ticks and removes ordinary hostile projectiles entering a 125-unit radius. Friendly shots pass through; timed blasts and melee bypass it.
+
+Flying Raijin kunai creates a 300-tick ground marker on impact, lifetime expiry or arena-edge landing. Hostile smoke can remove the throw before it marks. Reusing that slot while its marker remains spends 15 chakra and 8 stamina, with 8 startup and 22 recovery frames, then teleports to the clamped ground marker. It grants no invulnerability, cannot escape hitstun, and consumes the marker only when the warp fires. This is a game adaptation available to every fighter.
+
+New rounds restore the chosen inventory, active weapon slot 1 and clear all zones/markers. Training Reset does the same; the infinite stamina/chakra option does not silently refill spent items. Medium and higher CPU tiers can use inventory through ordinary inputs; Easy does not use consumables.

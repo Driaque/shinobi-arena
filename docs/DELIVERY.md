@@ -72,3 +72,9 @@ References:
 The backend now exists at `apps/server`; it shares `packages/engine` and validates messages through `packages/network`. `npm run verify` includes real transport and matchmaking tests. `npm run test:browser` also tests two isolated desktop/mobile sessions, shared damage, cancellation, rotation and disconnect/requeue. The existing Pages workflow receives the optional `ONLINE_SERVER_URL` Actions variable at build time.
 
 `render.yaml` defines a separate single-instance Node service with `/health`, checks-gated auto deploy and graceful shutdown. The live `shinobi-arena-online` service was subsequently created through the Render connector in the confirmed workspace (free plan, Ohio). Its current on-commit/TCP-check settings are distinct from the Blueprint template. The default public URL lives in `apps/web/online-config.json` and can be overridden through the Actions variable. See [ONLINE_MULTIPLAYER.md](ONLINE_MULTIPLAYER.md) for concrete setup and operational limits.
+
+## Versioned release notes
+
+Every version requires `docs/releases/<version>.md`; `npm run check` validates it. The build publishes an escaped, readable `release-notes.html` and fingerprints the browser module graph/styles using the package version. Update the changelog and in-game version/link when changing versions.
+
+After successful CI and Deploy Pages runs from this repository's main branch, Release notes checks out that exact verified SHA and uses its short-lived GitHub Actions token with job-scoped contents write and Actions read permissions to publish `v<version>` and its curated notes. It checks current main first, and treats an existing version as immutable rather than overwriting release history. Source forks cannot trigger publication for this repository. No personal token is stored. Render's public-repository service may still require a manual deploy through the connector; confirm its actual live SHA independently of the Pages release job.
