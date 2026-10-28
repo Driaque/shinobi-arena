@@ -1,4 +1,4 @@
-> **v0.15: Build a strategy, watch a fight, replay the result.** 54-jutsu loadout grid, seven technique slots, elemental effects, active chakra recovery, Elo rankings, spectating and archived replays. [Release notes](docs/releases/0.15.0.md).
+> **v0.15.1: Build a strategy, watch a fight, replay the result.** 54-jutsu loadout grid, seven technique slots, elemental effects, active chakra recovery, Elo rankings, spectating and archived replays. [Release notes](docs/releases/0.15.1.md).
 
 # Shinobi Arena
 
