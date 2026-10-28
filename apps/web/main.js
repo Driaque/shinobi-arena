@@ -64,6 +64,7 @@ function pause(){
 }
 function orientation(){
   clearInputs();const gated=(touch.matches||navigator.maxTouchPoints>0)&&window.innerHeight>window.innerWidth;
+  $('#rotate p').textContent=mode==='online'?'Online matches keep running. Turn sideways to regain your controls.':'Your match is paused. Landscape gives your thumbs room to fight.';
   if(gated)pause();$('#rotate').hidden=!gated;$('#game').inert=gated;
 }
 function finish(){
@@ -183,6 +184,7 @@ function paintHud(){
   if(mode==='local')$('#overlay-hint').textContent=`P2 ${binding(1,'left')}/${binding(1,'right')} move · ${binding(1,'jump')} jump · ${binding(1,'dashBack')}/${binding(1,'dashForward')} dash · ${binding(1,'attack')} basic · ${binding(1,'weapon')} weapon · ${binding(1,'block')} guard · ${binding(1,'special1')}/${binding(1,'special2')} jutsu · ${binding(1,'bloodline')} bloodline · ${binding(1,'replacement')} replace`;
   if(mode==='local')$('#p2-help').textContent=`P2 ${binding(1,'left')}/${binding(1,'right')} move · ${binding(1,'jump')} jump · ${binding(1,'dashBack')}/${binding(1,'dashForward')} dash · ${binding(1,'attack')}/${binding(1,'weapon')} basic/weapon · ${binding(1,'block')} guard`;
   for(const action of ['jump','dashBack','dashForward','attack','block'])$(`[data-action="${action}"] small`).textContent=binding(0,action);
+  document.querySelector('footer>span:last-child').textContent=mode==='online'?'Online cannot pause · Leave match forfeits':'P / Esc pause';
   trainingUI?.draw();
   if(mode==='online')$('#p2-help').textContent=`Your controls operate P${online.slot+1} · ${player.name}. Online matches keep running in menus.`;
   if(mode==='training')$('#p2-help').textContent='Training dummy · Practice configures behavior and challenges';

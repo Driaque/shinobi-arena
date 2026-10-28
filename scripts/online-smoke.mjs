@@ -34,6 +34,7 @@ try{
  await p.waitForFunction(hp=>document.querySelector('#hp0').textContent===hp,await q.locator('#hp0').innerText());
  assert.equal(await p.locator('#hp1').innerText(),await q.locator('#hp1').innerText());
  await mkdir('test-results',{recursive:true});await p.screenshot({path:'test-results/online-desktop.png'});await q.screenshot({path:'test-results/online-mobile.png'});
+ await q.setViewportSize({width:390,height:844});await q.locator('#rotate').waitFor({state:'visible'});assert.match(await q.locator('#rotate p').innerText(),/Online matches keep running/);await q.setViewportSize({width:844,height:390});await q.locator('#rotate').waitFor({state:'hidden'});assert.equal(await q.locator('#overlay').isVisible(),false);
  await q.close();await p.waitForFunction(()=>document.querySelector('#overlay-description').textContent.includes('win by forfeit'));assert.equal(await p.locator('#play').innerText(),'Find opponent');
  await p.click('#play');await p.waitForFunction(()=>document.querySelector('#online-status').textContent.includes('Waiting for an opponent'));await p.click('#online-cancel');
  await p.selectOption('#mode','cpu');await p.click('#play');assert.equal(await p.locator('#overlay').isVisible(),false);assert.deepEqual(errors,[]);
