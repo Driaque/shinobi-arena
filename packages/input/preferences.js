@@ -1,10 +1,10 @@
 import { ACTIONS } from './index.js';
-export const SETTINGS_VERSION = 5;
+export const SETTINGS_VERSION = 6;
 export const STORAGE_KEY = 'shinobi-arena.controls.v1';
-export const CONTROL_IDS = Object.freeze(['stick', ...ACTIONS.filter(a => !['left','right','crouch'].includes(a))]);
+export const CONTROL_IDS = Object.freeze(['stick', ...ACTIONS.filter(a => !['left','right','crouch','jutsu4','jutsu5','jutsu6','jutsu7','charge'].includes(a))]);
 export const DEFAULT_KEYS = Object.freeze([
-  {KeyF:'swapWeapon',KeyC:'cycleItem',KeyX:'useItem',KeyS:'crouch',KeyA:'left',KeyD:'right',KeyW:'jump',KeyJ:'attack',KeyK:'block',KeyU:'special1',KeyI:'special2',KeyH:'weapon',KeyO:'bloodline',KeyR:'replacement',KeyQ:'dashBack',KeyE:'dashForward',KeyT:'awakening'},
-  {Digit7:'swapWeapon',Digit8:'cycleItem',Digit9:'useItem',ArrowDown:'crouch',ArrowLeft:'left',ArrowRight:'right',ArrowUp:'jump',KeyN:'attack',KeyM:'block',Comma:'special1',Period:'special2',KeyB:'weapon',Slash:'bloodline',KeyV:'replacement',KeyY:'awakening',BracketLeft:'dashBack',BracketRight:'dashForward'}
+  {Digit1:'jutsu4',Digit2:'jutsu5',Digit3:'jutsu6',Digit4:'jutsu7',KeyG:'charge',KeyF:'swapWeapon',KeyC:'cycleItem',KeyX:'useItem',KeyS:'crouch',KeyA:'left',KeyD:'right',KeyW:'jump',KeyJ:'attack',KeyK:'block',KeyU:'special1',KeyI:'special2',KeyH:'weapon',KeyO:'bloodline',KeyR:'replacement',KeyQ:'dashBack',KeyE:'dashForward',KeyT:'awakening'},
+  {Numpad1:'jutsu4',Numpad2:'jutsu5',Numpad3:'jutsu6',Numpad4:'jutsu7',Numpad0:'charge',Digit7:'swapWeapon',Digit8:'cycleItem',Digit9:'useItem',ArrowDown:'crouch',ArrowLeft:'left',ArrowRight:'right',ArrowUp:'jump',KeyN:'attack',KeyM:'block',Comma:'special1',Period:'special2',KeyB:'weapon',Slash:'bloodline',KeyV:'replacement',KeyY:'awakening',BracketLeft:'dashBack',BracketRight:'dashForward'}
 ]);
 const clamp = (x,a,b) => Math.max(a,Math.min(b,x));
 export function stickVector(dx,dy,radius,deadZone=.18) {
@@ -68,7 +68,7 @@ export function readSettings(raw) {
   const fallback=freshSettings();
   try {
     const value=JSON.parse(raw);
-    if(![1,2,3,4,SETTINGS_VERSION].includes(value?.version))return fallback;
+    if(![1,2,3,4,5,SETTINGS_VERSION].includes(value?.version))return fallback;
     const keys=[{},{}],used=new Set();
     if(!Array.isArray(value.keys)||value.keys.length!==2)throw new Error('Invalid keys');
     value.keys.forEach((map,i)=>{
@@ -85,6 +85,7 @@ export function readSettings(raw) {
     if(value.version<3)for(const [code,action]of [['BracketLeft','dashBack'],['BracketRight','dashForward']])if(!Object.values(keys[1]).includes(action)&&!used.has(code)){keys[1][code]=action;used.add(code);}
     if(value.version<4)for(const [i,code]of ['KeyS','ArrowDown'].entries())if(!Object.values(keys[i]).includes('crouch')&&!used.has(code)){keys[i][code]='crouch';used.add(code);}
     if(value.version<5)for(const i of [0,1])for(const [code,action]of Object.entries(DEFAULT_KEYS[i]))if(['swapWeapon','cycleItem','useItem'].includes(action)&&!used.has(code)&&!Object.values(keys[i]).includes(action)){keys[i][code]=action;used.add(code);}
+    if(value.version<6)for(const i of [0,1])for(const [code,action]of Object.entries(DEFAULT_KEYS[i]))if(['jutsu4','jutsu5','jutsu6','jutsu7','charge'].includes(action)&&!used.has(code)&&!Object.values(keys[i]).includes(action)){keys[i][code]=action;used.add(code);}
     const visibility=Object.fromEntries(CONTROL_IDS.map(id=>[id,value.visibility?.[id]!==false]));
     const layouts={};
     for(const profile of ['small','medium','large']){

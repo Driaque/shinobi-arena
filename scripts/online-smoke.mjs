@@ -1,3 +1,4 @@
+import {equip} from './loadout-helper.mjs';
 import {chromium} from 'playwright';
 import {spawn} from 'node:child_process';
 import assert from 'node:assert/strict';
@@ -15,10 +16,10 @@ try{
  q.on('websocket',socket=>socket.on('framereceived',({payload})=>{try{const msg=JSON.parse(payload);if(msg.state)snapshot=msg.state;}catch{}}));
  const near=async()=>{const until=Date.now()+5000;while(Date.now()<until){if(snapshot&&Math.abs(snapshot.fighters[0].x-snapshot.fighters[1].x)<=60)return;await new Promise(r=>setTimeout(r,20));}throw new Error(`Did not approach: ${snapshot?.fighters.map(f=>f.x)}`);};
  for(const page of [p,q]){if(process.env.ONLINE_TEST_URL)page.on('console',m=>{if(m.type()==='error')console.error(m.text());});page.on('pageerror',e=>{errors.push(e.stack);console.error(e.stack);});await page.goto(baseURL);await page.selectOption('#mode','online');}
- await p.fill('#player-name','Silent');await p.locator('#character0 input[value=silent]').check();await p.selectOption('#weapon0','tachi');await p.selectOption('#weapon-secondary0','kaiken');await p.selectOption('#item0-0','smokeBomb');
+ await p.fill('#player-name','Silent');await p.locator('#character0 input[value=silent]').check();await equip(p,'#weapon0','tachi');await equip(p,'#weapon-secondary0','kaiken');await equip(p,'#item0-0','smokeBomb');
  await p.click('#play');await p.waitForFunction(()=>document.querySelector('#online-status').textContent.includes('Waiting for an opponent'));assert.equal(await p.locator('#online-cancel').isVisible(),true);
  await p.click('#online-cancel');await p.waitForFunction(()=>document.querySelector('#play').disabled===false);await p.click('#play');await p.waitForFunction(()=>document.querySelector('#online-status').textContent.includes('Waiting for an opponent'));
- await q.fill('#player-name','AquaPrincess');await q.locator('#character0 input[value=dora]').check();await q.selectOption('#weapon0','fans');await q.selectOption('#weapon-secondary0','tachi');await q.selectOption('#item0-0','poison');await q.click('#play');
+ await q.fill('#player-name','AquaPrincess');await q.locator('#character0 input[value=dora]').check();await equip(q,'#weapon0','fans');await equip(q,'#weapon-secondary0','tachi');await equip(q,'#item0-0','poison');await q.click('#play');
  for(const page of [p,q]){await page.waitForFunction(()=>document.querySelector('#overlay-title').textContent==='Silent vs AquaPrincess');await page.waitForFunction(()=>document.querySelector('#overlay').hidden,{timeout:10000});}
  assert.match(await p.locator('#name0').innerText(),/Silent · Silent/);assert.match(await q.locator('#name1').innerText(),/AquaPrincess · Dora/);assert.match(await q.locator('#weapon-label').innerText(),/BLADED FANS/);assert.match(await q.locator('#mode-name').innerText(),/P2/);
  // A missing icon/stale asset must not kill the process or interrupt an active match.

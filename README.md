@@ -1,4 +1,4 @@
-> **v0.14: Dora — AquaPrincess is playable.** Fan combos, water weaken, wind pull, fire finisher, Triune Flow counters and Limit Release. [Release notes](docs/releases/0.14.0.md) · [Dora kit](docs/DORA.md).
+> **v0.15: Build a strategy, watch a fight, replay the result.** 54-jutsu loadout grid, seven technique slots, elemental effects, active chakra recovery, Elo rankings, spectating and archived replays. [Release notes](docs/releases/0.15.0.md).
 
 # Shinobi Arena
 
@@ -99,7 +99,7 @@ CI and deployment run unit checks, build and browser checks before publishing.
 `packages/engine` owns combat; `packages/input` owns independent input sources and quick-tap capture;
 `apps/web` owns browser events and procedural rendering. Neither engine nor input library imports the DOM.
 `apps/server` owns the online queue and authoritative matches; `packages/network` validates the wire protocol.
-Simulation rules version: `duel-0.14.0`.
+Simulation rules version: `duel-0.15.0`.
 
 See [project plan](docs/PROJECT_PLAN.md), [combat rules](docs/COMBAT_RULES.md), [character kits](docs/CHARACTER_KITS.md),
 [mobile design](docs/MOBILE_DESIGN.md), [control settings](docs/CONTROL_SETTINGS.md), [architecture](docs/ARCHITECTURE.md),
@@ -144,4 +144,4 @@ Choose two weapons and four one-use consumables per round before a match or join
 
 [Full v0.13.0 release notes](docs/releases/0.13.0.md) · [Release history](CHANGELOG.md). Version updates require notes, and verified deployments publish a matching GitHub Release automatically.
 
-Leaderboard, live spectating and replays are deferred to the [next online milestone (#7)](https://github.com/Driaque/shinobi-arena/issues/7). They are not included in v0.13.0.
+The implementation for [online milestone #7](https://github.com/Driaque/shinobi-arena/issues/7) is in v0.15.0. See [online arena and storage](docs/ONLINE_ARENA.md). Production activation requires DATABASE_URL and matching client/server deployment.

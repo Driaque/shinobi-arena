@@ -1,3 +1,4 @@
+import {equip} from './loadout-helper.mjs';
 import { chromium } from 'playwright';
 import { spawn } from 'node:child_process';
 import assert from 'node:assert/strict';
@@ -73,8 +74,8 @@ try {
  assert.equal(await page.locator('#hp0').innerText(),'1000');assert.equal(await page.locator('#hp1').innerText(),'1000');
  await page.screenshot({path:'test-results/desktop.png'});
  // Pre-battle choices are used by the simulation and action HUD.
- await page.selectOption('#mode','cpu');await page.locator('#character0 input[value="hinata"]').check();await page.selectOption('#weapon0','katana');
- await page.locator('#character1 input[value="orochimaru"]').check();await page.selectOption('#weapon1','shuriken');
+ await page.selectOption('#mode','cpu');await page.locator('#character0 input[value="hinata"]').check();await equip(page,'#weapon0','katana');
+ await page.locator('#character1 input[value="orochimaru"]').check();await equip(page,'#weapon1','shuriken');
  await page.screenshot({path:'test-results/loadouts.png'});await page.click('#play');await page.clock.runFor(32);
  assert.equal(await page.locator('#name0').innerText(),'HINATA');assert.equal(await page.locator('#name1').innerText(),'OROCHIMARU');
  assert.match(await page.locator('#weapon-label').innerText(),/KATANA/);assert.equal(await page.locator('#bl-name').innerText(),'BYAKUGAN');
@@ -82,8 +83,8 @@ try {
  assert.match(await page.locator('#effects0').innerText(),/BYAKUGAN/);
  await page.keyboard.down('KeyR');await page.clock.runFor(32);await page.keyboard.up('KeyR');
  assert.match(await page.locator('#replacement-cd').innerText(),/s/);
- await page.selectOption('#mode','local');await page.locator('#character0 input[value="naruto"]').check();await page.selectOption('#weapon0','kunai');
- await page.locator('#character1 input[value="sasuke"]').check();await page.selectOption('#weapon1','kunai');
+ await page.selectOption('#mode','local');await page.locator('#character0 input[value="naruto"]').check();await equip(page,'#weapon0','kunai');
+ await page.locator('#character1 input[value="sasuke"]').check();await equip(page,'#weapon1','kunai');
  // CPU actually wins a round against an idle player, using the full browser loop.
  await page.selectOption('#mode','cpu');await page.selectOption('#difficulty','xtreme');await page.click('#play');await page.clock.runFor(25000);
  assert.equal(await page.locator('#overlay').isVisible(),true);
@@ -104,7 +105,7 @@ try {
  // Original fighters use their selected weapons, signatures and bloodlines in live gameplay.
  await page.selectOption('#mode','cpu');await page.selectOption('#mode','local');
  await page.selectOption('#roster-era','TNR');await page.locator('#character0 input[value="silent"]').check();await page.locator('#character1 input[value="winta"]').check();
- await page.selectOption('#weapon0','tachi');await page.selectOption('#weapon1','kaiken');await page.click('#play');await page.clock.runFor(32);
+ await equip(page,'#weapon0','tachi');await equip(page,'#weapon1','kaiken');await page.click('#play');await page.clock.runFor(32);
  assert.equal(await page.locator('#name0').innerText(),'SILENT');assert.equal(await page.locator('#name1').innerText(),'WINTA');
  assert.equal(await page.locator('#bl-name').innerText(),'TETSUGAN');assert.match(await page.locator('#weapon-label').innerText(),/TACHI/);
  await page.keyboard.down('KeyO');await page.clock.runFor(450);await page.keyboard.up('KeyO');assert.match(await page.locator('#effects0').innerText(),/TETSUGAN GUARD/);
@@ -217,7 +218,7 @@ try {
  }
  await mobile.setViewportSize({width:667,height:375});await mobile.clock.runFor(32);
  for(const button of await mobile.locator('[data-action]').all()){
-   const b=await button.boundingBox();assert.ok(b.width>=48&&b.height>=48&&b.x>=0&&b.x+b.width<=667&&b.y>=0&&b.y+b.height<=375,'controls fit smaller landscape phone');
+   const b=await button.boundingBox();assert.ok(b.width>=48&&b.height>=48&&b.x>=0&&b.x+b.width<=667&&b.y>=0&&b.y+b.height<=375,'controls fit smaller landscape phone: '+JSON.stringify({action:await button.getAttribute('data-action'),box:b}));
  }
  assert.deepEqual(mobileErrors,[],'no mobile page errors');await context.close();
  console.log('Browser checks passed: local match, rematch, pause, multi-touch, cancellation, portrait gate, landscape resume and control bounds.');

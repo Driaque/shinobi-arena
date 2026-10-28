@@ -1,5 +1,9 @@
 # Release notes
 
+## 0.15.0
+
+Strategy loadout grids (54 jutsus, seven slots), elemental ground effects and status tactics, active chakra recovery, persistent Elo profiles/results, read-only spectating and versioned replay playback. [Full release notes](docs/releases/0.15.0.md).
+
 ## 0.14.0
 
 Dora — AquaPrincess: playable original fighter, bladed fans, water weaken, wind pull and fire finisher, Triune Flow counters, Limit Release, regal concept portrait and online support. [Full release notes](docs/releases/0.14.0.md).

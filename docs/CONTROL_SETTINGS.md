@@ -80,3 +80,7 @@ Reference: [MDN requestFullscreen](https://developer.mozilla.org/en-US/docs/Web/
 Settings schema 5 adds a `visibility` boolean per touch control. Controls shows a checkbox list; hidden nodes are removed from hit testing and collision validation, while keyboard bindings remain intact. Save persists a draft; Cancel restores previous visibility and layout. Hidden controls can always be restored from the top-bar Controls button. Hiding jump/dash buttons leaves the analog gestures available unless the stick is also hidden.
 
 Three new controls are Swap weapon (F / P2 7), Choose consumable (C / P2 8), and Use consumable (X / P2 9). Existing settings versions 1–4 migrate; new keys are added only when unclaimed, preserving custom bindings. New buttons receive sensible defaults and are repositioned around existing custom controls during migration. Native mobile UI hiding is scoped to the help panel so inventory and visibility details remain available on phones.
+
+## v0.15 additional jutsu inputs
+
+Seven equipped jutsus use U/I/O and 1/2/3/4 for P1; P2 uses comma/period/slash and Num 1–4. G (P1) / Num 0 (P2) charges chakra while held. All actions are rebindable. Settings version 6 adds unused default keys without stealing saved bindings. The existing 15 repositionable controls retain visibility, size, position and opacity. Extra technique slots and charge are available in the Jutsus palette; this transient menu closes after choosing a technique and does not permanently cover the arena.

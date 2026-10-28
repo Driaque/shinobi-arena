@@ -1,3 +1,6 @@
+import {createArenaHub} from './arena-hub.js';
+import {createLoadouts} from './loadouts.js';
+import {createTechniqueTray} from './technique-tray.js';
 import {createOnline} from './online.js';
 import {createFullscreen} from './fullscreen.js';
 import {createTrainingUI} from './training.js';
@@ -12,7 +15,7 @@ const inputs=[createInput(),createInput()];
 const buttons=[...document.querySelectorAll('[data-action]')];
 const render=createRenderer($('#canvas'));
 const portrait=matchMedia('(orientation: portrait)'), touch=matchMedia('(any-pointer: coarse)');
-let controls,trainingUI,online;
+let controls,trainingUI,online,loadoutUI,techniqueTray;
 let onlinePlayers=[],onlineScreen='';
 let difficulty='easy';
 try{difficulty=difficultyFor(localStorage.getItem('shinobi-arena.difficulty.v1')).id;}catch{}
@@ -20,7 +23,7 @@ $('#difficulty').value=difficulty;
 const newMatch=(loadouts)=>$('#mode').value==='training'&&trainingUI?trainingUI.create(loadouts):createMatch(loadouts,{difficulty});
 let state=newMatch(), paused=true, started=false, mode='cpu', cpu={}, lastTime=0, accumulator=0, feedbackUntil=0;
 const shortNames={tidalEdict:'TIDAL EDICT',royalTempest:'ROYAL TEMPEST',triuneFlow:'TRIUNE FLOW',royalGale:'ROYAL GALE',releasedTempest:'SOVEREIGN',harmoniousSlash:'HARMONIOUS',echoingRift:'ECHOING RIFT',aquaGuard:'TRIUNE FLOW',tetsugan:'TETSUGAN',mizukumi:'MIZUKUMI',eclipseDrain:'ECLIPSE DRAIN',shinraiOu:'SHINRAI ŌU',ascendantSlash:'ASCENDANT CUT',ascendantRift:'METAL RIFT',dominionMizukumi:'DOMINION DASH',dominionDrain:'DOMINION DRAIN',special1:'RASENGAN',chidori:'CHIDORI',clone:'CLONE',fireball:'FIREBALL',lionFists:'TWIN LIONS',chakraStrike:'PALM STRIKE',snakeStrike:'SNAKES',seal:'SEAL',sharingan:'SHARINGAN',byakugan:'BYAKUGAN'};
-function readLoadouts(){return [0,1].map(i=>({character:$(`#character${i} input:checked`).value,weapon:$(`#weapon${i}`).value,weapons:[$(`#weapon${i}`).value,$(`#weapon-secondary${i}`).value||null],items:[0,1,2,3].map(slot=>$(`#item${i}-${slot}`).value||null)}));}
+function readLoadouts(){if(loadoutUI)return [0,1].map(i=>loadoutUI.read(i));return [0,1].map(i=>({character:$(`#character${i} input:checked`).value,weapon:$(`#weapon${i}`).value,weapons:[$(`#weapon${i}`).value,$(`#weapon-secondary${i}`).value||null],items:[0,1,2,3].map(slot=>$(`#item${i}-${slot}`).value||null)}));}
 function describeLoadouts(){
   for(const i of [0,1]){
     const character=CHARACTERS[$(`#character${i} input:checked`).value],weapon=WEAPONS[$(`#weapon${i}`).value];
@@ -32,10 +35,11 @@ function describeLoadouts(){
     const form=awakeningFor({character:character.id});
     $(`#kit${i}`).innerHTML=`<strong>${character.title}</strong><br><span class="kit-description">${character.description}<br></span><span class="kit-label">${weapon.description}</span>${form?`<br><span class="form-note">Awakening: ${form.name}${form.proposed?' (proposed)':''} · ${form.threshold} HP lost</span>`:''}`;
   }
+  loadoutUI?.sync();
   if(!started&&mode!=='online')state=newMatch(readLoadouts());
 }
 for(const i of [0,1]){
-  createRoster($(`#character${i}`),i,i===0?'naruto':'sasuke',()=>{if($(`#character${i} input:checked`).value==='dora'){$(`#weapon${i}`).value='fans';$(`#weapon-secondary${i}`).value='katana';}describeLoadouts();});
+  createRoster($(`#character${i}`),i,i===0?'naruto':'sasuke',()=>{if($(`#character${i} input:checked`).value==='dora'){$(`#weapon${i}`).value='fans';$(`#weapon-secondary${i}`).value='katana';}loadoutUI?.resetCharacter(i);describeLoadouts();});
   for(const weapon of Object.values(WEAPONS))$(`#weapon${i}`).add(new Option(weapon.name,weapon.id));
   $(`#weapon${i}`).value='kunai';
   $(`#weapon-secondary${i}`).add(new Option('None',''));
@@ -44,6 +48,7 @@ for(const i of [0,1]){
   for(const slot of [0,1,2,3]){const select=$(`#item${i}-${slot}`);select.add(new Option('Empty',''));for(const item of Object.values(ITEMS)){const option=new Option(item.name,item.id);option.title=item.description;select.add(option);}select.value=['paperBomb','throwingKunai','smokeBomb','poison'][slot];select.addEventListener('change',()=>{describeLoadouts();$(`#inventory-hint${i}`).textContent=ITEMS[select.value]?.description??'Empty consumable slot.';});}
   $(`#weapon${i}`).addEventListener('change',describeLoadouts);
 }
+loadoutUI=createLoadouts({onChange:describeLoadouts});
 function filterRoster(){
   const query=$('#roster-search').value.trim().toLowerCase(),era=$('#roster-era').value;
   let count=0;for(const character of Object.values(CHARACTERS)){
@@ -112,7 +117,7 @@ $('#mode').addEventListener('change',event=>{
 controls=createControls({inputs,onPause:pause,isPlaying:()=>!paused&&state.status==='playing'&&$('#rotate').hidden});
 function useTrainingState(next){
  state=next;started=true;
- for(const i of [0,1]){$(`#character${i} input[value="${state.loadouts[i].character}"]`).checked=true;$(`#weapon${i}`).value=state.loadouts[i].weapon;$(`#weapon-secondary${i}`).value=state.loadouts[i].weapons[1]??'';for(const slot of [0,1,2,3])$(`#item${i}-${slot}`).value=state.loadouts[i].items[slot]??'';}
+ for(const i of [0,1]){$(`#character${i} input[value="${state.loadouts[i].character}"]`).checked=true;loadoutUI.update(i,state.loadouts[i]);$(`#weapon${i}`).value=state.loadouts[i].weapon;$(`#weapon-secondary${i}`).value=state.loadouts[i].weapons[1]??'';for(const slot of [0,1,2,3])$(`#item${i}-${slot}`).value=state.loadouts[i].items[slot]??'';}
  describeLoadouts();
 }
 trainingUI=createTrainingUI({pause,clearInputs,getState:()=>state,setState:useTrainingState,getLoadouts:readLoadouts,isTraining:()=>mode==='training',isStarted:()=>started,isEditing:()=>controls.editing,binding:action=>controls.binding(0,action),start:()=>{paused=false;started=true;accumulator=0;lastTime=performance.now();$('#overlay').hidden=true;}});
@@ -143,6 +148,8 @@ online=createOnline({getProfile:()=>readLoadouts()[0],onStatus:()=>{
  if(message.phase==='matchOver')for(const el of document.querySelectorAll('#character0 input,#weapon0,#weapon-secondary0,#item0-0,#item0-1,#item0-2,#item0-3'))el.disabled=false;
 }});
 
+createArenaHub({onOpen:()=>{clearInputs();pause();},isBusy:()=>mode==='online'&&['connecting','queued','playing','countdown','roundOver'].includes(online.phase)});
+techniqueTray=createTechniqueTray({input:inputs[0],getPlayer:()=>state.fighters[mode==='online'?online.slot:0],isPlaying:()=>started&&!paused&&!controls?.editing&&$('#rotate').hidden&&state.status==='playing'&&(mode!=='online'||online.phase==='playing'),binding:key=>controls.binding(0,key)});
 window.addEventListener('blur',()=>{clearInputs();pause();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){clearInputs();pause();}});
 portrait.addEventListener('change',orientation);touch.addEventListener('change',orientation);
@@ -162,7 +169,7 @@ function paintHud(){
   const player=state.fighters[mode==='online'?online.slot:0];
   for(const [key,name,meta,bind] of [['special1','s1-name','s1-meta','U'],['special2','s2-name','s2-meta','I'],['bloodline','bl-name','bl-meta','O']]){
     const move=moveFor(player,key),cooldown=player.cooldowns[key]??0;
-    $(`#${name}`).textContent=move?(shortNames[move]??MOVES[move].name.toUpperCase()):'BLOODLINE';
+    $(`#${name}`).textContent=move?(shortNames[move]??MOVES[move].name.toUpperCase()):'EMPTY SLOT';
     $(`#${meta}`).textContent=move?`${controls?.binding(0,key)??bind} · ${cooldown>0?(cooldown/60).toFixed(1)+'s':MOVES[move].cost}`:`${controls?.binding(0,key)??bind} · NONE`;
   }
   $('#swap-meta').textContent=`${controls?.binding(0,'swapWeapon')??'F'} · ${player.weaponSlot+1}/2`;
@@ -187,13 +194,13 @@ function paintHud(){
     $(`#awakening-label${i}`).textContent=active?`${active.name.toUpperCase()} · ${(f.awakeningTicks/60).toFixed(1)}s`:!form?'NO AWAKENING':f.awakeningUsed?'AWAKENING USED':awakeningReady(f)?`${form.name.toUpperCase()} · READY`:`${form.name.toUpperCase()} · ${Math.floor(Math.min(100,f.damageTaken/form.threshold*100))}%`;
     $(`#combo${i}`).textContent=f.combo.hits>1&&state.tick-f.combo.lastTick<60?`${f.combo.hits} HITS · ${f.combo.damage} DAMAGE`:'';
     $(`#name${i}`).textContent=mode==='online'&&onlinePlayers[i]?`${onlinePlayers[i].name} · ${f.name}`:f.name.toUpperCase();
-    const labels=[...f.effects.map(e=>`${e.type==='metalVulnerable'?'METAL EXPOSED':e.type.toUpperCase()} ${(e.remaining/60).toFixed(1)}s`),...f.buffs.map(b=>`${({aquaGuard:'TRIUNE FLOW',tetsugan:'TETSUGAN GUARD',counter:'COUNTER READY',shinrai:'SHINRAI ŌU',poisonCoating:'POISON COATED'})[b.type]??b.type.toUpperCase()} ${(b.remaining/60).toFixed(1)}s`)];
+    const labels=[...f.effects.map(e=>`${e.type==='metalVulnerable'?'METAL EXPOSED':e.type==='poisonslow'?'POISON-SLOW':e.type.toUpperCase()} ${(e.remaining/60).toFixed(1)}s`),...f.buffs.map(b=>`${({aquaGuard:'TRIUNE FLOW',tetsugan:'TETSUGAN GUARD',counter:'COUNTER READY',shinrai:'SHINRAI ŌU',poisonCoating:'POISON COATED'})[b.type]??b.type.toUpperCase()} ${(b.remaining/60).toFixed(1)}s`)];
     if(f.invulnerable>0)labels.push('SUBSTITUTION');
     $(`#effects${i}`).textContent=labels.join(' · ');
     $(`#hp${i}`).textContent=Math.ceil(f.hp);$(`#health${i}`).style.width=`${f.hp/10}%`;$(`#chakra${i}`).style.width=`${f.chakra}%`;
     $(`#wins${i}`).textContent=[0,1].map(n=>n<state.wins[i]?'●':'○').join(' ');
   });
-  $('#movement-state').textContent=player.crouching?'CROUCH':player.dash?(player.dash.air?'AIR DASH':'DASH'):player.y>0?`AIR · ${player.jumps}/2 JUMPS`:'';
+  $('#movement-state').textContent=player.charging?'CHARGING CHAKRA':player.effects.some(e=>e.type==='bind')?'BOUND':player.crouching?'CROUCH':player.dash?(player.dash.air?'AIR DASH':'DASH'):player.y>0?`AIR · ${player.jumps}/2 JUMPS`:'';
   $('#canvas').setAttribute('aria-label',`${state.fighters[0].name} versus ${state.fighters[1].name}. ${$('#movement-state').textContent}`);
   $('#timer').textContent=mode==='training'?'∞':Math.ceil(state.remainingTicks/TICK_RATE).toString().padStart(2,'0');
   $('#round').textContent=mode==='training'?'PRACTICE':`ROUND ${state.round.toString().padStart(2,'0')}`;
@@ -204,12 +211,12 @@ function paintHud(){
   if(mode==='local')$('#p2-help').textContent=`P2 ${binding(1,'left')}/${binding(1,'right')} move · ${binding(1,'jump')} jump · ${binding(1,'dashBack')}/${binding(1,'dashForward')} dash · ${binding(1,'attack')}/${binding(1,'weapon')} basic/weapon · ${binding(1,'block')} guard`;
   for(const action of ['jump','dashBack','dashForward','attack','block'])$(`[data-action="${action}"] small`).textContent=binding(0,action);
   document.querySelector('footer>span:last-child').textContent=mode==='online'?'Online cannot pause · Leave match forfeits':'P / Esc pause';
-  trainingUI?.draw();
+  trainingUI?.draw();techniqueTray?.draw();loadoutUI?.sync();
   if(mode==='online')$('#p2-help').textContent=`Your controls operate P${online.slot+1} · ${player.name}. Online matches keep running in menus.`;
   if(mode==='training')$('#p2-help').textContent='Training dummy · Practice configures behavior and challenges';
   const snap=inputs[0].snapshot();buttons.forEach(b=>{
     const key=b.dataset.action,move=moveFor(player,key),cost=key==='replacement'?25:move?MOVES[move].cost:0;
-    b.disabled=!controls?.editing&&mode!=='training'&&((key==='bloodline'&&!move)||(key==='awakening'&&!awakeningReady(player))||(key==='swapWeapon'&&!player.weapons[1])||(key==='useItem'&&!move));
+    b.disabled=!controls?.editing&&mode!=='training'&&((['special1','special2','bloodline'].includes(key)&&!move)||(key==='awakening'&&!awakeningReady(player))||(key==='swapWeapon'&&!player.weapons[1])||(key==='useItem'&&!move));
     if(!move&&key==='bloodline')b.title='This fighter has no technique in this slot.';
     if(move)b.title=`${MOVES[move].name} · ${MOVES[move].cost} chakra · ${staminaCost(key)} stamina · ${MOVES[move].reach||'projectile'} range`;
     b.classList.toggle('awakening-ready',key==='awakening'&&awakeningReady(player));

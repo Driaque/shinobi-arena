@@ -107,3 +107,11 @@ Leaderboard, spectating and stored replay playback remain deferred in issue #7. 
 ## v0.14 Dora coverage
 
 `tests/dora.test.js` covers catalog/profile acceptance, three-hit fan chains, exact weaken damage, guarded/replaced setups, committed pull/finisher counterplay, Triune Flow counters, Limit Release expiry/reset and deterministic Dora CPU mirrors. `scripts/dora-smoke.mjs` covers desktop/mobile selection, portrait decode, fan/katana defaults, real-input jutsus, weapon swapping and awakening. The online browser suite now pairs desktop Silent with mobile Dora and verifies her water weaken effect across independent sessions. All five browser suites are included in `npm run test:browser` and CI.
+
+## v0.15 strategy and online arena validation
+
+Engine strategy tests validate all 54 entries, authoritative seven/two/four limits, bloodline ownership, custom-slot awakening mapping, elemental zones, poison-slow, binding, knockback, bleed, guard-dependent absorb, charging, chakra steal, healing, cleansing, haste/ward and the named Winta attacks. Existing combat/input/server suites remain required.
+
+History tests cover hashed identity tokens, rename/recovery, file-backed restart durability, duplicate/concurrent result delivery, pair caps, early forfeits, draws/cancellations, pagination, retention and read-only HTTP endpoints. Accepted input recording is resimulated and compared with the original final state including ground effects and tools. Spectators are tested against input/ready/join/result mutation attempts and do not take queue/player slots.
+
+The sixth browser suite exercises desktop/mobile loadout grids, seven-jutsu cap, Save/Cancel/reload, real ground damage, mobile palette casting and hold-to-charge, two ranked clients plus a third spectator, forfeit ratings, replay playback/seek/speed/download, profile restore and server restart. Production PostgreSQL validation remains a deployment gate until DATABASE_URL is connected.
