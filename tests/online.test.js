@@ -1,3 +1,6 @@
+import {mkdtemp,writeFile,mkdir,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join as joinPath} from 'node:path';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createArena} from '../apps/server/arena.js';
@@ -53,4 +56,28 @@ test('real WebSocket transport shares matches and rejects cross-origin connectio
   assert.equal(p.messages.find(m=>m.type==='matched').id,q.messages.find(m=>m.type==='matched').id);
   await new Promise(resolve=>{const bad=new WebSocket(url,{origin:'https://evil.test'});bad.on('unexpected-response',(_,res)=>{assert.equal(res.statusCode,403);res.resume();bad.terminate();resolve();});bad.on('error',()=>{});});
  }finally{for(const ws of sockets)ws.terminate();await app.close();}
+});
+
+test('missing browser assets return 404 without killing the HTTP server or a waiting player',async()=>{
+ const directory=await mkdtemp(joinPath(tmpdir(),'shinobi-http-'));
+ await writeFile(joinPath(directory,'index.html'),'<!doctype html><title>Arena</title>');
+ await writeFile(joinPath(directory,'styles.css'),'body{color:white}');await mkdir(joinPath(directory,'assets'));
+ const app=createOnlineServer({port:0,host:'127.0.0.1',origins:['http://game.test'],staticDirectory:directory});await app.listen();
+ const base=`http://127.0.0.1:${app.server.address().port}`;let ws;
+ try{
+  const messages=[];ws=new WebSocket(base.replace('http:','ws:')+'/ws',{origin:'http://game.test'});
+  await new Promise((resolve,reject)=>{ws.once('error',reject);ws.on('message',raw=>{const msg=JSON.parse(raw);messages.push(msg);if(msg.type==='hello')resolve();});});
+  ws.send(JSON.stringify({type:'join',protocol:PROTOCOL_VERSION,rules:RULES_VERSION,profile:profile('Still waiting')}));
+  // Browsers request icons independently of the app; scanners and stale tabs request other missing paths.
+  for(const path of ['/favicon.ico','/apple-touch-icon.png','/missing.js','/assets','/unknown/deep/page']){
+   const response=await fetch(base+path);assert.equal(response.status,404,path);assert.equal(await response.text(),'Not found');
+   const health=await fetch(base+'/health');const state=await health.json();assert.equal(state.ok,true);assert.equal(state.connections,1);assert.equal(state.queued,1);
+  }
+  const head=await fetch(base+'/missing-icon.png',{method:'HEAD'});assert.equal(head.status,404);assert.equal(await head.text(),'');
+  const page=await fetch(base+'/');assert.equal(page.status,200);assert.match(await page.text(),/Arena/);
+  const css=await fetch(base+'/styles.css');assert.equal(css.status,200);assert.match(css.headers.get('content-type'),/text\/css/);await css.text();
+  ws.send(JSON.stringify({type:'ping',sent:42}));
+  await new Promise((resolve,reject)=>{const timeout=setTimeout(()=>reject(new Error('Waiting player lost connection after missing file')),1000);const handle=raw=>{if(JSON.parse(raw).type==='pong'){clearTimeout(timeout);ws.off('message',handle);resolve();}};ws.on('message',handle);});
+  assert.equal(messages.filter(m=>m.type==='matched').length,0);
+ }finally{ws?.terminate();await app.close();await rm(directory,{recursive:true,force:true});}
 });

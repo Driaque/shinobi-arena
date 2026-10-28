@@ -4,8 +4,8 @@ import {resolve,sep,extname} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {WebSocketServer,WebSocket} from 'ws';
 import {createArena} from './arena.js';
-export function createOnlineServer({origins=[],port=Number(process.env.PORT||4175),host='0.0.0.0',...arenaOptions}={}){
- const root=resolve('dist'),arena=createArena(arenaOptions),types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.jpg':'image/jpeg'};
+export function createOnlineServer({origins=[],port=Number(process.env.PORT||4175),host='0.0.0.0',staticDirectory='dist',...arenaOptions}={}){
+ const root=resolve(staticDirectory),arena=createArena(arenaOptions),types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.jpg':'image/jpeg'};
  const server=createServer(async(req,res)=>{
   res.setHeader('X-Content-Type-Options','nosniff');
   if(req.url==='/health'){res.writeHead(200,{'Content-Type':'application/json'}).end(JSON.stringify({ok:true,...arena.stats()}));return;}
@@ -13,8 +13,16 @@ export function createOnlineServer({origins=[],port=Number(process.env.PORT||417
   try{
    const url=new URL(req.url,'http://localhost'),path=resolve(root,`.${url.pathname.endsWith('/')?url.pathname+'index.html':url.pathname}`);
    if(!path.startsWith(root+sep)){res.writeHead(403).end();return;}
-   res.writeHead(200,{'Content-Type':types[extname(path)]??'application/octet-stream','Cache-Control':'no-cache'}).end(await readFile(path));
-  }catch{res.writeHead(404).end('Not found');}
+   // Read before committing a success response: ENOENT must remain a normal 404.
+   const data=await readFile(path);
+   if(!res.destroyed)res.writeHead(200,{'Content-Type':types[extname(path)]??'application/octet-stream','Cache-Control':'no-cache'}).end(data);
+  }catch(error){
+   if(res.destroyed)return;
+   if(res.headersSent){res.destroy();return;}
+   const missing=['ENOENT','ENOTDIR','EISDIR'].includes(error.code);
+   if(!missing)console.error('Static file request failed:',error.code??error.name);
+   res.writeHead(missing?404:500,{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'no-store'}).end(missing?'Not found':'Unable to serve this file');
+  }
  });
  const wss=new WebSocketServer({noServer:true,maxPayload:4096,perMessageDeflate:false});
  const allowed=new Set(origins);

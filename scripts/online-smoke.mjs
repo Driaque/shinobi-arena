@@ -21,6 +21,9 @@ try{
  await q.fill('#player-name','Winta');await q.locator('#character0 input[value=winta]').check();await q.selectOption('#weapon0','katana');await q.click('#play');
  for(const page of [p,q]){await page.waitForFunction(()=>document.querySelector('#overlay-title').textContent==='Silent vs Winta');await page.waitForFunction(()=>document.querySelector('#overlay').hidden,{timeout:10000});}
  assert.match(await p.locator('#name0').innerText(),/Silent · Silent/);assert.match(await q.locator('#name1').innerText(),/Winta · Winta/);assert.match(await q.locator('#weapon-label').innerText(),/KATANA/);assert.match(await q.locator('#mode-name').innerText(),/P2/);
+ // A missing icon/stale asset must not kill the process or interrupt an active match.
+ const missing=await p.request.get(new URL('/missing-browser-icon-regression.png',baseURL).href);assert.equal(missing.status(),404);
+ const health=await p.request.get(new URL('/health',baseURL).href);assert.equal(health.status(),200);assert.ok((await health.json()).matches>=1);
  // Each device drives its own slot. Walk toward each other, then confirm real damage.
  await p.keyboard.down('KeyD');const cdp=await context2.newCDPSession(q),stick=await q.locator('#joystick').boundingBox();
  const center={x:stick.x+stick.width/2,y:stick.y+stick.height/2,id:1},left={...center,x:center.x-stick.width*.4};
