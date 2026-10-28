@@ -65,3 +65,10 @@ only on repeatable regressions. Add backend migration/integration/security check
 References:
 - https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages
 - https://developer.mozilla.org/en-US/docs/Web/API/ScreenOrientation/lock
+
+
+## v0.12 online service
+
+The backend now exists at `apps/server`; it shares `packages/engine` and validates messages through `packages/network`. `npm run verify` includes real transport and matchmaking tests. `npm run test:browser` also tests two isolated desktop/mobile sessions, shared damage, cancellation, rotation and disconnect/requeue. The existing Pages workflow receives the optional `ONLINE_SERVER_URL` Actions variable at build time.
+
+`render.yaml` defines a separate single-instance Node service with `/health`, checks-gated auto deploy and graceful shutdown. It is a deployment definition; no Render deployment has been provisioned by committing the file. See [ONLINE_MULTIPLAYER.md](ONLINE_MULTIPLAYER.md) for concrete setup and operational limits.

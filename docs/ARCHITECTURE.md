@@ -22,13 +22,11 @@ Input frames identify player, match, sequence/tick and actions. Reject impossibl
 Represent startup/active/recovery, hitstun/blockstun and hit-once-per-target explicitly.
 Test deterministic replay and cross-runtime behaviour before promising rollback compatibility.
 
-## ADR 003 · Online networking is an experimental decision
+## ADR 003 · Authoritative shared-engine online prototype
 
-Deferred. HTTP and persistent transports may support lobby/session traffic, but a transport alone
-does not solve responsive fighting. Benchmark prediction/reconciliation and rollback using the same
-fixed-step core. If server and client use different engine implementations, rule drift becomes a
-major risk; prefer a shared simulation or prove cross-implementation parity with golden tests.
-Replay/input logs alone do not prevent cheating. Online authority and result validation are separate requirements.
+Accepted for v0.12. One Node process owns FIFO matchmaking and room lifecycle; `ws` provides the persistent transport. The server imports the exact same headless engine as local play and advances it at 60 Hz. Clients send bounded, sequenced intentions; they never send authoritative positions, HP or results. Full snapshots arrive at 20 Hz. This reuses the existing combat kernel without maintaining a second implementation.
+
+The first online version deliberately has no prediction, interpolation or rollback. Round readiness is explicit; losing a connection forfeits rather than trying to merge diverged state. Queue and rooms are in memory, so one instance is required and restarting loses active sessions. This fits an unranked prototype; measured capacity, shared matchmaking/routing, identity, reconnection and latency compensation remain follow-up work. Protocol/catalog validation and bounded transport resources constrain clients, while service-level abuse protection remains a hosting concern. See [online protocol and deployment](ONLINE_MULTIPLAYER.md).
 
 ## ADR 004 · Keep games distinct
 
@@ -38,9 +36,7 @@ engine that forces every game into fighting-game states. Add shared interfaces o
 
 ## Delivery boundaries
 
-Today: static browser shell -> GitHub Pages. No backend or cloud credentials.
-Later: separate backend delivery with infrastructure-as-code, short-lived cloud identity, integration tests,
-staging verification and explicit production promotion. Do not place API secrets in a static build.
+The static browser shell deploys to GitHub Pages. The v0.12 Node/WebSocket backend has a separate `render.yaml` deployment blueprint and also serves the complete game itself. GitHub CI verifies both, including two real browser connections. Public matchmaking requires a running backend; a Pages deploy alone cannot supply it. No hosting account is currently configured in the repository. `ONLINE_SERVER_URL` is a public endpoint setting, never a credential. Do not place API secrets in a static build.
 
 
 ## ADR 005 · Character kits and composable effects
