@@ -1,6 +1,6 @@
 {
   "name": "shinobi-arena",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -12,7 +12,7 @@
     "test": "node --test",
     "build": "node scripts/build.mjs",
     "verify": "npm run check && npm test && npm run build",
-    "test:browser": "node scripts/browser-smoke.mjs && node scripts/training-smoke.mjs && node scripts/online-smoke.mjs && node scripts/inventory-smoke.mjs",
+    "test:browser": "node scripts/browser-smoke.mjs && node scripts/training-smoke.mjs && node scripts/online-smoke.mjs && node scripts/inventory-smoke.mjs && node scripts/dora-smoke.mjs",
     "start": "node apps/server/index.js"
   },
   "devDependencies": {

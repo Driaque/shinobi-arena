@@ -19,7 +19,7 @@ try{difficulty=difficultyFor(localStorage.getItem('shinobi-arena.difficulty.v1')
 $('#difficulty').value=difficulty;
 const newMatch=(loadouts)=>$('#mode').value==='training'&&trainingUI?trainingUI.create(loadouts):createMatch(loadouts,{difficulty});
 let state=newMatch(), paused=true, started=false, mode='cpu', cpu={}, lastTime=0, accumulator=0, feedbackUntil=0;
-const shortNames={harmoniousSlash:'HARMONIOUS',echoingRift:'ECHOING RIFT',tetsugan:'TETSUGAN',mizukumi:'MIZUKUMI',eclipseDrain:'ECLIPSE DRAIN',shinraiOu:'SHINRAI ŌU',ascendantSlash:'ASCENDANT CUT',ascendantRift:'METAL RIFT',dominionMizukumi:'DOMINION DASH',dominionDrain:'DOMINION DRAIN',special1:'RASENGAN',chidori:'CHIDORI',clone:'CLONE',fireball:'FIREBALL',lionFists:'TWIN LIONS',chakraStrike:'PALM STRIKE',snakeStrike:'SNAKES',seal:'SEAL',sharingan:'SHARINGAN',byakugan:'BYAKUGAN'};
+const shortNames={tidalEdict:'TIDAL EDICT',royalTempest:'ROYAL TEMPEST',triuneFlow:'TRIUNE FLOW',royalGale:'ROYAL GALE',releasedTempest:'SOVEREIGN',harmoniousSlash:'HARMONIOUS',echoingRift:'ECHOING RIFT',aquaGuard:'TRIUNE FLOW',tetsugan:'TETSUGAN',mizukumi:'MIZUKUMI',eclipseDrain:'ECLIPSE DRAIN',shinraiOu:'SHINRAI ŌU',ascendantSlash:'ASCENDANT CUT',ascendantRift:'METAL RIFT',dominionMizukumi:'DOMINION DASH',dominionDrain:'DOMINION DRAIN',special1:'RASENGAN',chidori:'CHIDORI',clone:'CLONE',fireball:'FIREBALL',lionFists:'TWIN LIONS',chakraStrike:'PALM STRIKE',snakeStrike:'SNAKES',seal:'SEAL',sharingan:'SHARINGAN',byakugan:'BYAKUGAN'};
 function readLoadouts(){return [0,1].map(i=>({character:$(`#character${i} input:checked`).value,weapon:$(`#weapon${i}`).value,weapons:[$(`#weapon${i}`).value,$(`#weapon-secondary${i}`).value||null],items:[0,1,2,3].map(slot=>$(`#item${i}-${slot}`).value||null)}));}
 function describeLoadouts(){
   for(const i of [0,1]){
@@ -35,8 +35,9 @@ function describeLoadouts(){
   if(!started&&mode!=='online')state=newMatch(readLoadouts());
 }
 for(const i of [0,1]){
-  createRoster($(`#character${i}`),i,i===0?'naruto':'sasuke',describeLoadouts);
+  createRoster($(`#character${i}`),i,i===0?'naruto':'sasuke',()=>{if($(`#character${i} input:checked`).value==='dora'){$(`#weapon${i}`).value='fans';$(`#weapon-secondary${i}`).value='katana';}describeLoadouts();});
   for(const weapon of Object.values(WEAPONS))$(`#weapon${i}`).add(new Option(weapon.name,weapon.id));
+  $(`#weapon${i}`).value='kunai';
   $(`#weapon-secondary${i}`).add(new Option('None',''));
   for(const weapon of Object.values(WEAPONS))$(`#weapon-secondary${i}`).add(new Option(weapon.name,weapon.id));
   $(`#weapon-secondary${i}`).value='katana';$(`#weapon-secondary${i}`).addEventListener('change',describeLoadouts);
@@ -79,8 +80,9 @@ function finish(){
   clearInputs();paused=true;
   const name=state.fighters[state.result==='player1'?0:1].name;
   const draw=state.result==='draw';
+  const cheer=!draw&&state.fighters[state.result==='player1'?0:1].character==='dora'?'Yaaay! · ':'';
   dialog(state.status==='matchOver'?'MATCH COMPLETE':`ROUND ${state.round} COMPLETE`,draw?'An even match.':`${name} wins.`,
-    draw?'No point awarded. Items refill next round.':`${state.wins[0]} — ${state.wins[1]} · ${state.status==='matchOver'?'Ready for another fight?':'The rivalry continues.'}`,
+    draw?'No point awarded. Items refill next round.':`${cheer}${state.wins[0]} — ${state.wins[1]} · ${state.status==='matchOver'?'Ready for another fight?':'The rivalry continues.'}`,
     state.status==='matchOver'?'Rematch':'Next round');
 }
 $('#play').addEventListener('click',()=>{
@@ -133,7 +135,8 @@ online=createOnline({getProfile:()=>readLoadouts()[0],onStatus:()=>{
   $('#overlay-hint').textContent='The match runs on the server. Leave match forfeits.';$('#play').hidden=true;onlineScreen=key;
  }else if(onlineScreen!==key){
   clearInputs();const result=state.result==='draw'?'Draw':`${onlinePlayers[state.result==='player1'?0:1].name} wins`;
-  dialog('ONLINE ARENA',result,`${state.wins[0]} — ${state.wins[1]} · ${message.phase==='roundOver'?'Both players must be ready for the next round.':'Match complete. Search again for another opponent.'}`,message.phase==='roundOver'?'Ready for next round':'Find opponent');
+  const cheer=state.result!=='draw'&&state.fighters[state.result==='player1'?0:1].character==='dora'?'Yaaay! · ':'';
+  dialog('ONLINE ARENA',result,`${cheer}${state.wins[0]} — ${state.wins[1]} · ${message.phase==='roundOver'?'Both players must be ready for the next round.':'Match complete. Search again for another opponent.'}`,message.phase==='roundOver'?'Ready for next round':'Find opponent');
   $('#online-lobby').hidden=message.phase==='roundOver';$('#loadout-panel').hidden=message.phase==='roundOver';$('#play').hidden=false;$('#play').disabled=false;onlineScreen=key;
  }
  if(message.phase==='playing')$('#play').hidden=false;
@@ -184,7 +187,7 @@ function paintHud(){
     $(`#awakening-label${i}`).textContent=active?`${active.name.toUpperCase()} · ${(f.awakeningTicks/60).toFixed(1)}s`:!form?'NO AWAKENING':f.awakeningUsed?'AWAKENING USED':awakeningReady(f)?`${form.name.toUpperCase()} · READY`:`${form.name.toUpperCase()} · ${Math.floor(Math.min(100,f.damageTaken/form.threshold*100))}%`;
     $(`#combo${i}`).textContent=f.combo.hits>1&&state.tick-f.combo.lastTick<60?`${f.combo.hits} HITS · ${f.combo.damage} DAMAGE`:'';
     $(`#name${i}`).textContent=mode==='online'&&onlinePlayers[i]?`${onlinePlayers[i].name} · ${f.name}`:f.name.toUpperCase();
-    const labels=[...f.effects.map(e=>`${e.type==='metalVulnerable'?'METAL EXPOSED':e.type.toUpperCase()} ${(e.remaining/60).toFixed(1)}s`),...f.buffs.map(b=>`${({tetsugan:'TETSUGAN GUARD',counter:'COUNTER READY',shinrai:'SHINRAI ŌU',poisonCoating:'POISON COATED'})[b.type]??b.type.toUpperCase()} ${(b.remaining/60).toFixed(1)}s`)];
+    const labels=[...f.effects.map(e=>`${e.type==='metalVulnerable'?'METAL EXPOSED':e.type.toUpperCase()} ${(e.remaining/60).toFixed(1)}s`),...f.buffs.map(b=>`${({aquaGuard:'TRIUNE FLOW',tetsugan:'TETSUGAN GUARD',counter:'COUNTER READY',shinrai:'SHINRAI ŌU',poisonCoating:'POISON COATED'})[b.type]??b.type.toUpperCase()} ${(b.remaining/60).toFixed(1)}s`)];
     if(f.invulnerable>0)labels.push('SUBSTITUTION');
     $(`#effects${i}`).textContent=labels.join(' · ');
     $(`#hp${i}`).textContent=Math.ceil(f.hp);$(`#health${i}`).style.width=`${f.hp/10}%`;$(`#chakra${i}`).style.width=`${f.chakra}%`;

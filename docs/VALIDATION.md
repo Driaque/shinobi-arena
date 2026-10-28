@@ -103,3 +103,7 @@ Syntax checks, release-note validation, **157 unit/integration tests** and the s
 Browser checks cover the existing desktop/mobile/training paths, online two-device weapon swaps and inventory use, and a dedicated inventory suite. The latter selects two weapons/four slots, uses poison and a marked warp, creates smoke, hides/restores controls, checks Save/Cancel/reload behavior and hidden keyboard access, tests landscape touch actions and panel bounds, and opens the generated versioned release notes. Native option disabling is checked through its DOM property so the browser's actual duplicate-Raijin restriction is verified.
 
 Leaderboard, spectating and stored replay playback remain deferred in issue #7. Engine replay-determinism tests do not mean a user-facing replay feature exists. Physical phones, internet latency compensation and production capacity remain outside emulated/local browser proof.
+
+## v0.14 Dora coverage
+
+`tests/dora.test.js` covers catalog/profile acceptance, three-hit fan chains, exact weaken damage, guarded/replaced setups, committed pull/finisher counterplay, Triune Flow counters, Limit Release expiry/reset and deterministic Dora CPU mirrors. `scripts/dora-smoke.mjs` covers desktop/mobile selection, portrait decode, fan/katana defaults, real-input jutsus, weapon swapping and awakening. The online browser suite now pairs desktop Silent with mobile Dora and verifies her water weaken effect across independent sessions. All five browser suites are included in `npm run test:browser` and CI.

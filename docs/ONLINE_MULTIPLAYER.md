@@ -60,3 +60,7 @@ For a manual public-server smoke check after deployment (do not run against a bu
 Protocol 2 / rules `duel-0.13.0` include two weapon slots and four consumable IDs in the validated profile. The server creates runtime charges and owns swapping, tool startup/recovery, projectile interception, poison and Raijin coordinates. Old tabs must refresh after deployment. The client still uses local P1 bindings for whichever online slot it owns. Visibility remains local and cannot change the other player's controls or server rules.
 
 Leaderboard, spectating and fight replays are planned separately in [issue #7](https://github.com/Driaque/shinobi-arena/issues/7).
+
+## v0.14 Dora compatibility
+
+Current rules: `duel-0.14.0`, protocol 2. Dora and Bladed Fans are validated by the shared catalog on client and server. Her automatic pull/finisher sequence and awakening run on the authoritative server; snapshots carry normal action, effect and buff state. Both devices must refresh after the rules update. No additional service or paid hosting tier is required.

@@ -4,7 +4,7 @@ import { CHARACTERS, WEAPONS, MOVES, AWAKENINGS, ITEMS, validateLoadout, validat
 export { CHARACTERS, WEAPONS, MOVES, AWAKENINGS, ITEMS, validateLoadout } from './catalog.js';
 export const TICK_RATE = 60;
 export const ARENA = Object.freeze({ width: 1280, height: 720, floor: 570, margin: 46 });
-export const RULES_VERSION = 'duel-0.13.0';
+export const RULES_VERSION = 'duel-0.14.0';
 export function advanceResource(resource, cost) {
   if (![resource, cost].every(Number.isFinite) || resource < 0 || cost < 0) throw new Error('Invalid resource');
   return resource >= cost ? { accepted: true, remaining: resource - cost } : { accepted: false, remaining: resource };
@@ -217,7 +217,7 @@ export function stepMatch(state, inputs = [{}, {}]) {
       if (m.projectile && a.age === m.startup && !a.fired) {
         a.fired = true;
         for(const offset of m.fan?[-24,0,24]:[0])state.projectiles.push({poison:a.poison,itemSlot:a.itemSlot, id: state.nextId++, owner: f.id, x: f.x + f.facing * 60,
-          y: f.y + 65+offset, direction: f.facing, life: m.life, move: a.move, power:activeAwakening(f)?.damage??1, weak: f.effects.some(e=>e.type==='weaken')?0.7:1, pierce: f.buffs.some(b=>b.type==='byakugan')?1:(m.pierce??0) });
+          y: f.y + 65+offset, direction: f.facing, life: m.life, move: a.move, power:activeAwakening(f)?.damage??1, weak: 1-(f.effects.find(e=>e.type==='weaken')?.potency??0), pierce: f.buffs.some(b=>b.type==='byakugan')?1:(m.pierce??0) });
       }
     }
     if (f.y > 0 || f.vy > 0) { f.y += f.vy; f.vy -= 0.9; }
@@ -257,11 +257,11 @@ export function stepMatch(state, inputs = [{}, {}]) {
     }
     const continuing=attacker.combo.hits>0&&attacker.combo.target===target.id&&hit.targetStunned&&state.tick-attacker.combo.lastTick<=30;
     const scaling=continuing?Math.max(.55,1-attacker.combo.hits*.1):1;
-    const counter=hit.sword&&attacker.buffs.some(b=>b.type==='counter')?1.35:1;
+    const counter=(hit.sword||hit.fanStrike)&&attacker.buffs.some(b=>b.type==='counter')?1.35:1;
     const lightning=hit.element==='lightning'&&attacker.buffs.some(b=>b.type==='shinrai')?1.15:1;
     const vulnerable=hit.element==='metal'?1+(target.effects.find(e=>e.type==='metalVulnerable')?.potency??0):1;
     const base=Math.ceil(hit.damage*weak*(hit.power??activeAwakening(attacker)?.damage??1)*scaling*counter*lightning*vulnerable*(hit.punish?1.2:1));
-    if(hit.sword)attacker.buffs=attacker.buffs.filter(b=>b.type!=='counter');
+    if(hit.sword||hit.fanStrike)attacker.buffs=attacker.buffs.filter(b=>b.type!=='counter');
     let guardBroken=false;
     if(hit.blocked&&pierce<1){
       target.lastGuardHit=state.tick;target.guard=Math.max(0,target.guard-(hit.cost>0?42:hit.move===WEAPONS[attacker.weapon].move?36:22));
@@ -272,6 +272,7 @@ export function stepMatch(state, inputs = [{}, {}]) {
     const penetrated=hit.blocked&&pierce>0;
     if(!hit.blocked||pierce>=1){applyEffect(state,target,hit);if(hit.poison)applyEffect(state,target,{effect:'poison',duration:300,potency:9});}
     const counterGuard=hit.blocked&&pierce<1&&target.buffs.some(b=>b.type==='tetsugan');
+    if(hit.blocked&&pierce<1&&target.buffs.some(b=>b.type==='aquaGuard'))target.buffs=[...target.buffs.filter(b=>b.type!=='counter'),{type:'counter',remaining:90}];
     const damage=receiveDamage(state,target,counterGuard?rawDamage*.8:rawDamage);
     if(counterGuard&&target.hp>0){
       target.buffs=[...target.buffs.filter(b=>b.type!=='counter'),{type:'counter',remaining:90}];
@@ -292,6 +293,11 @@ export function stepMatch(state, inputs = [{}, {}]) {
     if((!hit.blocked||pierce>=1)&&hit.launch)target.vy=hit.launch;
     if((!hit.blocked||pierce>=1)&&hit.pull)target.x=clamp(target.x-hit.direction*Math.min(hit.pull,Math.max(0,Math.abs(target.x-attacker.x)-52)),ARENA.margin,ARENA.width-ARENA.margin);
     if (!hit.blocked||pierce>=1) { target.buffer=null;if(target.action)target.lastActionEnd=state.tick;target.action = null; target.blocking = false;target.crouching=false;target.dash=null; }
+    // A clean pull commits its attacker to a separate, interruptible heavy strike.
+    // The 18-tick startup exceeds the pull's 12-tick hitstun: guard/escape can answer it.
+    if(hit.followUp&&(!hit.blocked||pierce>=1)&&attacker.hp>0&&attacker.action?.move===hit.move){
+      attacker.action={...attacker.action,move:hit.followUp,age:0,hit:false,confirmed:false,fired:false,recoveryPenalty:0,chain:0};attacker.buffer=null;
+    }
     state.events.push({ type: guardBroken?'guardBreak':penetrated?'pierce':hit.blocked?'block':hit.punish?'punish':'hit', target: target.id, damage, move: hit.move });
   }
   separate(...state.fighters);

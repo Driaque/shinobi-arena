@@ -2,6 +2,7 @@ import {ITEMS} from './items.js';
 export {ITEMS};
 // Gameplay adaptations. Costs, durations and damage are balance choices, not canon claims.
 export const CHARACTERS = Object.freeze({
+  dora:{id:'dora',name:'Dora',title:'AquaPrincess',color:'#48b9c7',hair:'#25202a',skin:'#e5b988',era:'TNR',portrait:'assets/dora-concept.jpg',awakening:'limitRelease',basicChain:['doraFan1','doraFan2','doraFan3'],description:'Graceful elemental counterattacker. Tidal Edict weakens attacks; Royal Tempest pulls into a defendable heavy finish. Triune Flow readies a fan counter after a guarded hit. Silent’s wife; wind, water and fire. Limit Release strengthens wind and fire.',special1:'tidalEdict',special2:'royalTempest',bloodline:'triuneFlow'},
   naruto: { id:'naruto', name:'Naruto', title:'Shadow-clone pressure', color:'#e9973a', hair:'#efc85d',
     description:'Close distance with Rasengan and extend your reach with clones. No inherited bloodline technique in this kit.',
     era:'Naruto', awakening:'kurama', special1:'special1', special2:'clone', bloodline:null },
@@ -32,6 +33,7 @@ export const CHARACTERS = Object.freeze({
 
 });
 export const WEAPONS = Object.freeze({
+  fans:{id:'fans',name:'Bladed Fans',move:'fanStrike',description:'Sweeping metal fans · 85 damage · 145 reach'},
   kunai:{ id:'kunai',name:'Kunai',move:'kunai',description:'Quick close-range thrust · 75 damage' },
   shuriken:{ id:'shuriken',name:'Shuriken',move:'shuriken',description:'Ranged throw · 55 damage · no chakra cost' },
   tachi:{id:'tachi',name:'Tachi',move:'tachi',description:'Metal sword · 105 damage · deliberate recovery'},
@@ -41,6 +43,7 @@ export const WEAPONS = Object.freeze({
 const strike=(name,overrides={})=>({name,startup:10,active:5,recovery:23,damage:110,reach:140,cost:25,knockback:32,cooldown:150,...overrides});
 const projectile=(name,overrides={})=>strike(name,{startup:16,active:1,recovery:26,reach:0,projectile:true,speed:12,life:85,...overrides});
 export const AWAKENINGS=Object.freeze({
+ limitRelease:{name:'Limit Release',color:'#7af1e4',threshold:400,duration:600,damage:1.1,speed:1.1,chainSpeed:1.15,defence:1,regen:.06,overrides:{special1:'royalGale',special2:'releasedTempest'}},
  coldMetal:{name:'Cold Metal Ascendant',chainSpeed:1.25,proposed:true,color:'#a3ddf3',threshold:400,duration:600,damage:1.15,speed:1.08,defence:.85,regen:.06,overrides:{special1:'ascendantSlash',special2:'ascendantRift'}},
  frozenSun:{name:'Frozen Sun Dominion',chainSpeed:1.25,proposed:true,color:'#ff627f',threshold:400,duration:600,damage:1.15,speed:1.2,defence:.95,regen:.08,overrides:{special1:'dominionMizukumi',special2:'dominionDrain'}},
  kurama:{name:'Kurama Chakra Mode',color:'#ffad42',threshold:400,duration:600,damage:1.2,speed:1.12,defence:.9,regen:.08,overrides:{special1:'kuramaRasengan',special2:'chakraClaw'}},
@@ -51,6 +54,17 @@ export const AWAKENINGS=Object.freeze({
  sage:{name:'Sage Mode',color:'#8bedd5',threshold:400,duration:600,damage:1.15,speed:1.25,defence:.9,regen:.1,overrides:{}}
 });
 export const MOVES = Object.freeze({
+  doraFan1:strike('Dora · Rippling Fan',{startup:5,active:4,recovery:13,damage:65,reach:100,cost:0,knockback:24,cooldown:0,fanStrike:true,element:'metal',color:'#79dce0'}),
+  doraFan2:strike('Dora · Crossing Breeze',{startup:5,active:4,recovery:15,damage:50,reach:115,cost:0,knockback:10,cooldown:0,hitstun:20,fanStrike:true,element:'wind',color:'#79dce0'}),
+  doraFan3:strike('Dora · Royal Ascent',{startup:8,active:4,recovery:24,damage:90,reach:140,cost:0,knockback:60,cooldown:0,launch:10,hitstun:22,fanStrike:true,element:'wind',color:'#79dce0'}),
+  fanStrike:strike('Bladed Fan Sweep',{startup:9,active:5,recovery:23,damage:85,reach:145,cost:0,knockback:30,cooldown:45,fanStrike:true,element:'metal',color:'#a8eceb'}),
+  tidalEdict:projectile('Tidal Edict',{damage:65,cost:25,startup:16,recovery:25,speed:11,life:65,cooldown:210,effect:'weaken',duration:180,potency:.25,element:'water',color:'#70dfe7'}),
+  royalTempest:strike('Royal Tempest · Undertow',{damage:35,startup:20,active:4,recovery:32,reach:280,cost:40,cooldown:360,knockback:0,pull:150,hitstun:12,effect:'weaken',duration:150,potency:.2,followUp:'tempestFinish',element:'wind',color:'#7ce8d9'}),
+  tempestFinish:strike('Royal Tempest · Crown Breaker',{damage:130,startup:18,active:5,recovery:32,reach:170,cost:0,cooldown:0,knockback:65,launch:9,fanStrike:true,element:'fire',color:'#f8b878'}),
+  triuneFlow:strike('Triune Flow',{startup:8,active:1,recovery:15,damage:0,reach:0,cost:30,buff:'aquaGuard',duration:180,cooldown:480}),
+  royalGale:projectile('Limit Release · Royal Gale',{damage:90,cost:25,startup:13,recovery:25,speed:14,life:65,cooldown:210,effect:'burn',duration:180,potency:9,element:'fire',color:'#ffb875'}),
+  releasedTempest:strike('Limit Release · Sovereign Vortex',{damage:45,startup:18,active:4,recovery:32,reach:300,cost:40,cooldown:360,knockback:0,pull:170,hitstun:12,effect:'weaken',duration:150,potency:.2,followUp:'releasedFinish',element:'wind',color:'#9ef5e6'}),
+  releasedFinish:strike('Limit Release · Blazing Crown',{damage:145,startup:18,active:5,recovery:32,reach:180,cost:0,cooldown:0,knockback:70,launch:10,fanStrike:true,effect:'burn',duration:180,potency:9,element:'fire',color:'#ffb875'}),
   swapWeapon:strike('Change weapon',{startup:4,active:1,recovery:12,damage:0,reach:0,cost:0,cooldown:0,inventoryEffect:'swap'}),
   itemBomb:projectile('Paper Bomb',{startup:18,recovery:26,damage:110,cost:0,cooldown:90,speed:4,life:45,blast:110,pierce:.25,color:'#ffbd70'}),
   itemKunai:projectile('Throwing Kunai',{startup:6,recovery:16,damage:45,cost:0,cooldown:90,speed:17,life:45,color:'#d7e6ee'}),

@@ -1,8 +1,8 @@
-> **v0.13: Tactical inventory and control visibility.** Carry two weapons and four one-use tools, including paper bombs, smoke, poison and Flying Raijin kunai. Hide individual touch buttons in Controls. [Release notes](docs/releases/0.13.0.md).
+> **v0.14: Dora — AquaPrincess is playable.** Fan combos, water weaken, wind pull, fire finisher, Triune Flow counters and Limit Release. [Release notes](docs/releases/0.14.0.md) · [Dora kit](docs/DORA.md).
 
 # Shinobi Arena
 
-A playable browser fighting prototype with a **18-character selectable roster spanning Naruto, Boruto and TNR originals**, desktop keyboard controls,
+A playable browser fighting prototype with a **19-character selectable roster spanning Naruto, Boruto and TNR originals**, desktop keyboard controls,
 a landscape analog stick and customizable touch controls, online matchmaking, local two-player and a computer opponent.
 
 ## Play
@@ -99,7 +99,7 @@ CI and deployment run unit checks, build and browser checks before publishing.
 `packages/engine` owns combat; `packages/input` owns independent input sources and quick-tap capture;
 `apps/web` owns browser events and procedural rendering. Neither engine nor input library imports the DOM.
 `apps/server` owns the online queue and authoritative matches; `packages/network` validates the wire protocol.
-Simulation rules version: `duel-0.13.0`.
+Simulation rules version: `duel-0.14.0`.
 
 See [project plan](docs/PROJECT_PLAN.md), [combat rules](docs/COMBAT_RULES.md), [character kits](docs/CHARACTER_KITS.md),
 [mobile design](docs/MOBILE_DESIGN.md), [control settings](docs/CONTROL_SETTINGS.md), [architecture](docs/ARCHITECTURE.md),
@@ -112,7 +112,7 @@ No third-party character assets are bundled. Asset provenance is recorded in
 
 ### v0.7.0: The Northern Calamity
 
-18 selectable fighters now include **Silent — Cold Metal** and **Winta — Frozen Sun**, under **Originals / TNR**, with user-supplied concept portraits. Silent has sword counters, Tetsugan guard reflect/absorption and a pulling metal-vulnerability strike. Winta has lightning pressure and a lifestealing strike. Their proposed awakenings change signatures and speed up sword chains. Tachi and Kaiken are selectable equipment. [Character kits and adaptation notes](docs/ORIGINAL_CHARACTERS.md).
+19 selectable fighters now include **Silent — Cold Metal** and **Winta — Frozen Sun**, and **Dora — AquaPrincess**, under **Originals / TNR**, with user-supplied concept portraits. Silent has sword counters, Tetsugan guard reflect/absorption and a pulling metal-vulnerability strike. Winta has lightning pressure and a lifestealing strike. Their proposed awakenings change signatures and speed up sword chains. Tachi and Kaiken are selectable equipment. [Character kits and adaptation notes](docs/ORIGINAL_CHARACTERS.md).
 
 ### v0.8.0: movement, counterplay and clear mobile controls
 

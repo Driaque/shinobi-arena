@@ -117,3 +117,9 @@ Poison coats the next weapon attack for up to 360 ticks, is consumed on accepted
 Flying Raijin kunai creates a 300-tick ground marker on impact, lifetime expiry or arena-edge landing. Hostile smoke can remove the throw before it marks. Reusing that slot while its marker remains spends 15 chakra and 8 stamina, with 8 startup and 22 recovery frames, then teleports to the clamped ground marker. It grants no invulnerability, cannot escape hitstun, and consumes the marker only when the warp fires. This is a game adaptation available to every fighter.
 
 New rounds restore the chosen inventory, active weapon slot 1 and clear all zones/markers. Training Reset does the same; the infinite stamina/chakra option does not silently refill spent items. Medium and higher CPU tiers can use inventory through ordinary inputs; Easy does not use consumables.
+
+## v0.14 Dora combat rules
+
+Dora adds fan basic chains, a selectable Bladed Fans weapon, Tidal Edict weakening, Triune Flow guard counters and Limit Release. Royal Tempest schedules a separate interruptible heavy strike only after a clean opener; 12 ticks of hitstun precede an 18-tick follow-up startup, allowing counterplay. Block/parry/Replacement/whiff prevent the opener from scheduling it. Chakra is charged once at the opener, cooldown remains attached to the signature slot, and normal damage scaling, guard and invulnerability apply to both strikes. See [Dora’s full kit](DORA.md).
+
+Projectile spawns capture actual weaken potency, matching melee attacks rather than forcing every debuff to 30%.

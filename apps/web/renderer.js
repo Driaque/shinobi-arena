@@ -55,7 +55,8 @@ export function createRenderer(canvas) {
     c.translate(0,-bob);if(f.crouching)c.scale(1,.63);const orange=f.character==='naruto',character=CHARACTERS[f.character];
     if(f.invulnerable>0)c.globalAlpha*=.5;
     const cloth=state.tick-f.lastHit<5&&!f.blockedHit?'#fff2d4':form?.color??character.color;
-    const dark=orange?'#223446':'#242d48', skin=f.character==='silent'?'#d6c2b4':'#e6b18b';
+    const dark=orange?'#223446':'#242d48', skin=character.skin??(f.character==='silent'?'#d6c2b4':'#e6b18b');
+    if(f.character==='dora'){c.fillStyle=character.hair;c.beginPath();c.moveTo(-19,-130);c.quadraticCurveTo(-46,-85,-28,form?-20:-48);c.lineTo(8,form?-25:-52);c.lineTo(13,-125);c.fill();}
     if(['silent','winta'].includes(f.character)){c.fillStyle=character.hair;c.fillRect(-26,-125,28,57);}
     // Bent legs, sandals and torso.
     line(-12,-48,-15-stride,-25,dark,17);line(-15-stride,-25,-16+stride,-6,cloth,13);
@@ -68,8 +69,12 @@ export function createRenderer(canvas) {
     line(-14,-86,-27,-64,dark,13);line(-27,-64,-16,-52,skin,11);
     line(12,-87,32,armY-6,cloth,14);line(32,armY-6,armX,armY,skin,11);circle(armX,armY,7,skin);
     circle(0,-111,19,skin);
-    c.fillStyle=character.hair;c.beginPath();c.moveTo(-21,-114);c.lineTo(-26,-135);c.lineTo(-12,-130);c.lineTo(-7,-145);c.lineTo(3,-132);c.lineTo(16,-143);c.lineTo(16,-128);c.lineTo(27,-130);c.lineTo(18,-108);c.closePath();c.fill();
-    line(-17,-120,16,-120,'#304257',9);line(-9,-120,10,-120,'#9eafb9',6);circle(8,-110,2,'#21334b');
+    c.fillStyle=character.hair;c.beginPath();
+    if(character.id==='dora'){c.ellipse(-3,-127,22,15,-.2,Math.PI,Math.PI*2);c.lineTo(18,-113);c.lineTo(8,-124);c.lineTo(-19,-112);}
+    else{c.moveTo(-21,-114);c.lineTo(-26,-135);c.lineTo(-12,-130);c.lineTo(-7,-145);c.lineTo(3,-132);c.lineTo(16,-143);c.lineTo(16,-128);c.lineTo(27,-130);c.lineTo(18,-108);}
+    c.closePath();c.fill();
+    if(character.id==='dora'){line(-17,-123,16,-123,'#dfbe75',3);circle(3,-124,3,'#8ce5df');}
+    else{line(-17,-120,16,-120,'#304257',9);line(-9,-120,10,-120,'#9eafb9',6);}circle(8,-110,2,'#21334b');
     // Headband ribbons trail behind the fighter.
     line(-19,-120,-41,-113+Math.sin(phase)*4,dark,4);line(-19,-119,-42,-125+Math.cos(phase)*4,dark,4);
     if(f.blocking || state.tick-f.lastHit<5&&f.blockedHit){c.strokeStyle='#80d6eb';c.lineWidth=4;c.beginPath();c.ellipse(26,-70,30,65,0,-1.4,1.4);c.stroke();}
@@ -107,6 +112,17 @@ export function createRenderer(canvas) {
       }
     }
     if(character.id==='kakashi'){c.fillStyle='#25394a';c.fillRect(-15,-108,30,12);}
+    if(character.id==='dora'){
+      // Regal robe, long hair, gold jewelry and fans keep the stage silhouette distinct.
+      c.fillStyle=cloth;c.beginPath();c.moveTo(-20,-58);c.lineTo(form?-34:-27,-16);c.lineTo(4,-27);c.lineTo(29,-15);c.lineTo(22,-58);c.closePath();c.fill();
+      line(-18,-91,-8,-77,'#dfbe75',2);line(-8,-77,12,-90,'#dfbe75',2);circle(-8,-77,4,'#8ce5df');circle(-16,-107,3,'#e8c87b');circle(15,-107,3,'#e8c87b');circle(8,-110,2,'#6b412b');
+      if(!action||move?.fanStrike||f.blocking){
+        for(const [fx,fy,angle] of [[armX,armY,-.9],[-16,-52,-2.1]]){c.save();c.translate(fx,fy);c.rotate(angle);c.beginPath();c.moveTo(0,0);c.arc(0,0,attacking?38:28,-.8,.8);c.closePath();c.fillStyle='#a4e2e3';c.fill();c.strokeStyle='#e6c87d';c.lineWidth=2;c.stroke();for(let rib=0;rib<5;rib++){const a=-.8+rib*.4;line(0,0,Math.cos(a)*(attacking?38:28),Math.sin(a)*(attacking?38:28),'#4d8996',1);}c.restore();}
+      }
+      // Katana stays sheathed while her fan techniques are active.
+      if(f.weapon!=='katana'||!action)line(-23,-65,-45,-24,'#c3d5df',3);
+      if(action?.move==='royalTempest'||action?.move==='releasedTempest'){c.strokeStyle='#88e5de';c.lineWidth=3;c.beginPath();c.ellipse(100,-65,Math.min(125,30+action.age*5),40,0,0,Math.PI*2);c.stroke();}
+    }
     if(character.id==='sarada'){c.strokeStyle='#e45b72';c.lineWidth=2;c.strokeRect(2,-116,14,9);}
     if(form&&form.name.startsWith('Karma'))line(-2,-120,10,-98,form.color,3);
     if(f.buffs.some(b=>b.type==='poisonCoating')||action?.poison){circle(armX,armY,12,'#a4d87c88');}

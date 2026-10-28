@@ -18,9 +18,9 @@ try{
  await p.fill('#player-name','Silent');await p.locator('#character0 input[value=silent]').check();await p.selectOption('#weapon0','tachi');await p.selectOption('#weapon-secondary0','kaiken');await p.selectOption('#item0-0','smokeBomb');
  await p.click('#play');await p.waitForFunction(()=>document.querySelector('#online-status').textContent.includes('Waiting for an opponent'));assert.equal(await p.locator('#online-cancel').isVisible(),true);
  await p.click('#online-cancel');await p.waitForFunction(()=>document.querySelector('#play').disabled===false);await p.click('#play');await p.waitForFunction(()=>document.querySelector('#online-status').textContent.includes('Waiting for an opponent'));
- await q.fill('#player-name','Winta');await q.locator('#character0 input[value=winta]').check();await q.selectOption('#weapon0','katana');await q.selectOption('#weapon-secondary0','tachi');await q.selectOption('#item0-0','poison');await q.click('#play');
- for(const page of [p,q]){await page.waitForFunction(()=>document.querySelector('#overlay-title').textContent==='Silent vs Winta');await page.waitForFunction(()=>document.querySelector('#overlay').hidden,{timeout:10000});}
- assert.match(await p.locator('#name0').innerText(),/Silent · Silent/);assert.match(await q.locator('#name1').innerText(),/Winta · Winta/);assert.match(await q.locator('#weapon-label').innerText(),/KATANA/);assert.match(await q.locator('#mode-name').innerText(),/P2/);
+ await q.fill('#player-name','AquaPrincess');await q.locator('#character0 input[value=dora]').check();await q.selectOption('#weapon0','fans');await q.selectOption('#weapon-secondary0','tachi');await q.selectOption('#item0-0','poison');await q.click('#play');
+ for(const page of [p,q]){await page.waitForFunction(()=>document.querySelector('#overlay-title').textContent==='Silent vs AquaPrincess');await page.waitForFunction(()=>document.querySelector('#overlay').hidden,{timeout:10000});}
+ assert.match(await p.locator('#name0').innerText(),/Silent · Silent/);assert.match(await q.locator('#name1').innerText(),/AquaPrincess · Dora/);assert.match(await q.locator('#weapon-label').innerText(),/BLADED FANS/);assert.match(await q.locator('#mode-name').innerText(),/P2/);
  // A missing icon/stale asset must not kill the process or interrupt an active match.
  const missing=await p.request.get(new URL('/missing-browser-icon-regression.png',baseURL).href);assert.equal(missing.status(),404);
  const health=await p.request.get(new URL('/health',baseURL).href);assert.equal(health.status(),200);assert.ok((await health.json()).matches>=1);
@@ -28,6 +28,7 @@ try{
  await q.locator('[data-action=swapWeapon]').tap();await q.waitForFunction(()=>document.querySelector('#weapon-label').textContent.includes('TACHI'));
  await p.keyboard.press('KeyX');await p.waitForFunction(()=>document.querySelector('#inventory-status0').textContent.includes('3/4 ITEMS'));
  await q.locator('[data-action=useItem]').tap();await q.waitForFunction(()=>document.querySelector('#effects1').textContent.includes('POISON COATED'));
+ assert.equal(snapshot.fighters[1].character,'dora');
  // Each device drives its own slot. Walk toward each other, then confirm real damage.
  await p.keyboard.down('KeyD');const cdp=await context2.newCDPSession(q),stick=await q.locator('#joystick').boundingBox();
  const center={x:stick.x+stick.width/2,y:stick.y+stick.height/2,id:1},left={...center,x:center.x-stick.width*.4};
@@ -43,6 +44,7 @@ try{
  await q.waitForFunction(()=>Number(document.querySelector('#hp0').textContent)<1000);
  await p.waitForFunction(hp=>document.querySelector('#hp0').textContent===hp,await q.locator('#hp0').innerText());
  assert.equal(await p.locator('#hp1').innerText(),await q.locator('#hp1').innerText());
+ await q.waitForTimeout(500);await q.locator('[data-action=special1]').tap();await p.waitForFunction(()=>document.querySelector('#effects0').textContent.includes('WEAKEN'));
  await mkdir('test-results',{recursive:true});await p.screenshot({path:'test-results/online-desktop.png'});await q.screenshot({path:'test-results/online-mobile.png'});
  await q.setViewportSize({width:390,height:844});await q.locator('#rotate').waitFor({state:'visible'});assert.match(await q.locator('#rotate p').innerText(),/Online matches keep running/);await q.setViewportSize({width:844,height:390});await q.locator('#rotate').waitFor({state:'hidden'});assert.equal(await q.locator('#overlay').isVisible(),false);
  await q.close();await p.waitForFunction(()=>document.querySelector('#overlay-description').textContent.includes('win by forfeit'));assert.equal(await p.locator('#play').innerText(),'Find opponent');

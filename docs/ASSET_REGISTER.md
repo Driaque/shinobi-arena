@@ -18,3 +18,7 @@ Add records before including new assets. Keep character concept, art source and 
 | Winta lightning concept | User-uploaded IMG_1699(1).jpeg | Same instruction, supplied alongside Winta profile | User-supplied; original creator/license not specified | apps/web/assets/winta-concept.jpg | Temporary character-selection concept |
 
 The source images are copied without alteration. These are concept portraits, not animation sprite sheets. Stage art stays procedural and uses their identity/color cues. The previous no-bundled-external-art description applies to the foundation, before these two additions.
+
+## Dora concept portrait (v0.14.0)
+
+Dora — AquaPrincess: generated with the built-in image-generation tool from the user’s character brief and appearance corrections on 2026-10-28. User explicitly requested adding this character to the playable game. File: apps/web/assets/dora-concept.jpg (JPEG export of the approved PNG). Scope: temporary roster portrait. Original character, no real-person photo used. This is concept art, not a sprite sheet; stage art is procedural.

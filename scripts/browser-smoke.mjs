@@ -17,9 +17,9 @@ try {
  assert.equal(await page.locator('#difficulty option').count(),4);
  for(const level of ['medium','difficult','xtreme','easy']){await page.selectOption('#difficulty',level);await page.clock.runFor(32);assert.match(await page.locator('#mode-name').innerText(),new RegExp(level.toUpperCase()));}
  await page.reload();assert.equal(await page.locator('#difficulty').inputValue(),'easy','difficulty persists on reload');
- assert.equal(await page.locator('#character0 input[type=radio]').count(),18);
- assert.equal(await page.locator('#character1 input[type=radio]').count(),18);
- await page.selectOption('#roster-era','TNR');assert.equal(await page.locator('.character-card:not([hidden])').count(),4);
+ assert.equal(await page.locator('#character0 input[type=radio]').count(),19);
+ assert.equal(await page.locator('#character1 input[type=radio]').count(),19);
+ await page.selectOption('#roster-era','TNR');assert.equal(await page.locator('.character-card:not([hidden])').count(),6);
  await page.locator('#character0 input[value="silent"]').check();await page.locator('#character1 input[value="winta"]').check();
  for(const img of await page.locator('.concept-portrait').all())assert.ok(await img.evaluate(el=>el.complete&&el.naturalWidth>0),'concept image loaded');
  assert.match(await page.locator('#kit0').innerText(),/Cold Metal Ascendant.*proposed/);

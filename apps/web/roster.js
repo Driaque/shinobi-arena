@@ -3,9 +3,9 @@ function portrait(canvas, character) {
   const c=canvas.getContext('2d');canvas.width=144;canvas.height=152;c.scale(2,2);
   const bg=c.createLinearGradient(0,0,72,76);bg.addColorStop(0,character.color+'80');bg.addColorStop(1,'#101e30');c.fillStyle=bg;c.fillRect(0,0,72,76);
   c.fillStyle=character.color;c.beginPath();c.moveTo(7,76);c.quadraticCurveTo(8,51,36,51);c.quadraticCurveTo(64,51,65,76);c.fill();
-  const longHair=['hinata','orochimaru','itachi','madara'].includes(character.id);c.fillStyle=character.hair;
+  const longHair=['dora','hinata','orochimaru','itachi','madara'].includes(character.id);c.fillStyle=character.hair;
   if(longHair){c.beginPath();c.ellipse(36,32,24,29,0,0,Math.PI*2);c.fill();c.fillRect(12,29,48,35);}
-  c.fillStyle=character.id==='orochimaru'?'#e1d6bd':'#e7b58f';c.beginPath();c.ellipse(36,32,18,23,0,0,Math.PI*2);c.fill();
+  c.fillStyle=character.skin??(character.id==='orochimaru'?'#e1d6bd':'#e7b58f');c.beginPath();c.ellipse(36,32,18,23,0,0,Math.PI*2);c.fill();
   c.fillStyle=character.hair;c.beginPath();c.moveTo(14,23);
   if(['naruto','boruto','minato','kakashi','mitsuki'].includes(character.id)){for(const [x,y]of [[10,7],[22,13],[25,0],[35,11],[47,1],[47,14],[61,9],[55,28]])c.lineTo(x,y);}
   else if(['sasuke','madara','kawaki'].includes(character.id)){for(const [x,y]of [[9,9],[25,12],[32,0],[40,12],[57,3],[53,21],[58,30],[43,19],[37,29],[28,18],[17,28]])c.lineTo(x,y);}

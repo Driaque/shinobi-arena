@@ -46,3 +46,7 @@ Both are available for P1, local P2 and the CPU under Originals / TNR. Portraits
 Duo: **The Northern Calamity — Frozen Sun & Cold Metal**. **Northern Calamity: Frozen Metal Storm** remains a proposed team ultimate. It is not exposed as a working action because the game currently has two solo fighters, no team/assist mode.
 
 Future kit expansion can add stance switching, explicit stun techniques and further elemental interactions after these mechanics have been playtested. Neither the longer ability pool nor the duo ultimate is advertised as already playable.
+
+## Dora — AquaPrincess (v0.14.0)
+
+Dora joins Originals / TNR as a selectable wind/water/fire counterattacker. Silent’s wife; bladed fans and katana. Water weakens, wind pulls into a defendable fire finisher, Triune Flow rewards guarded hits, and damage unlocks Limit Release. Her generated regal portrait follows the user’s appearance corrections. See [full Dora kit and adaptation notes](DORA.md).
