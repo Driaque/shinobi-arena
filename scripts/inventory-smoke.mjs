@@ -1,5 +1,6 @@
 import {equip} from './loadout-helper.mjs';
-import {chromium} from 'playwright';import {spawn} from 'node:child_process';import assert from 'node:assert/strict';import {mkdir} from 'node:fs/promises';
+import {chromium} from 'playwright';import {spawn} from 'node:child_process';import assert from 'node:assert/strict';import {mkdir,readFile} from 'node:fs/promises';
+const {version}=JSON.parse(await readFile('package.json','utf8'));
 const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'4186'},stdio:['ignore','pipe','inherit']});let browser;
 try{
  await new Promise((resolve,reject)=>{server.stdout.once('data',resolve);server.once('error',reject);server.once('exit',code=>reject(new Error(`Server exited ${code}`)));});
@@ -18,7 +19,7 @@ try{
  assert.equal(await page.locator('[data-control=jump]').isVisible(),false);assert.equal(await page.locator('[data-control=swapWeapon]').isVisible(),false);await page.click('#play');await tap('KeyF');assert.match(await page.locator('#weapon-label').innerText(),/KATANA/,'hidden touch button preserves its key');
  await page.click('#control-settings');await page.locator('[data-control-visible=jump]').check();await page.click('#cancel-controls');assert.equal(await page.locator('[data-control=jump]').isVisible(),false,'Cancel restores hidden state');
  await page.reload();await page.clock.runFor(32);assert.equal(await page.locator('[data-control=jump]').isVisible(),false);assert.equal(await page.locator('[data-control=swapWeapon]').isVisible(),false);
- const notes=await context.newPage();await notes.goto('http://127.0.0.1:4186/release-notes.html');assert.match(await notes.locator('h1').innerText(),/0\.15\.0/);assert.match(await notes.locator('main').innerText(),/54-jutsu/);await notes.close();
+ const notes=await context.newPage();await notes.goto('http://127.0.0.1:4186/release-notes.html');assert.equal(await notes.locator('h1').innerText(),`Shinobi Arena v${version}`);assert.match(await notes.locator('main').innerText(),/54-jutsu/);await notes.close();
  const mobileContext=await browser.newContext({viewport:{width:844,height:390},isMobile:true,hasTouch:true}),mobile=await mobileContext.newPage();mobile.on('pageerror',e=>errors.push(e.message));await mobile.clock.install({time:new Date('2030-01-01T00:00:00Z')});await mobile.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));await mobile.goto('http://127.0.0.1:4186');await mobile.selectOption('#mode','local');await equip(mobile,'#weapon-secondary0','tachi');await equip(mobile,'#item0-0','smokeBomb');await mobile.screenshot({path:'test-results/mobile-inventory-loadout.png'});await mobile.click('#play');
  await mobile.locator('[data-action=swapWeapon]').tap();await mobile.clock.runFor(400);assert.match(await mobile.locator('#weapon-label').innerText(),/TACHI/);await mobile.locator('[data-action=useItem]').tap();await mobile.clock.runFor(400);assert.match(await mobile.locator('#inventory-status0').innerText(),/3\/4 ITEMS/);
  await mobile.click('#control-settings');await mobile.locator('.visibility-settings summary').click();for(const id of ['jump','dashBack','dashForward','bloodline','awakening'])await mobile.locator(`[data-control-visible=${id}]`).uncheck();await mobile.screenshot({path:'test-results/mobile-control-visibility.png'});await mobile.click('#save-controls');

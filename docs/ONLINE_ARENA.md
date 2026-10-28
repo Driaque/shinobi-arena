@@ -39,3 +39,5 @@ Local development uses node:sqlite with a file under data/ (gitignored); tests d
 The Render preview database created for this feature is shinobi-arena-history in Ohio, workspace My Workspace. It expires November 27, 2026. The expiry is supplied through STORAGE_EXPIRES_AT and displayed in Arena. Export/migrate before that date; a new long-lived database can use the same schema. See DEPLOYMENT_V15.md for the final connection step.
 
 Persistence failures are logged without connection strings, retain up to 100 pending results and retry every five seconds. Ranked joins are disabled while persistence is unhealthy. This bounded in-process retry queue does not survive a process crash during a database outage; a durable outbox is future work. Graceful shutdown drains accepted persistence work. Game-server /health reports storage status and pending writes; a failed database startup prevents listening.
+
+Production PostgreSQL tables are namespaced in the shinobi_arena schema; test commands clear hosted database environment settings before starting isolated child processes.

@@ -1,5 +1,9 @@
 # Release notes
 
+## 0.15.1
+
+Isolate test processes from hosted database credentials and store live arena data in a dedicated PostgreSQL schema. Includes all v0.15 strategy, ranking, spectator and replay features. [Release notes](docs/releases/0.15.1.md).
+
 ## 0.15.0
 
 Strategy loadout grids (54 jutsus, seven slots), elemental ground effects and status tactics, active chakra recovery, persistent Elo profiles/results, read-only spectating and versioned replay playback. [Full release notes](docs/releases/0.15.0.md).
