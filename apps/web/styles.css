@@ -80,3 +80,12 @@ button,select,.character-card{touch-action:manipulation}
 @media(max-height:520px) and (orientation:landscape){#training-readout,#training-feedback{font-size:8px;line-height:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.coach-heading strong,#training-instruction{font-size:8px}.coach-heading{line-height:11px}.training-mode #training-coach{bottom:0}}
 
 #training-dialog button:disabled,#training-dialog select:disabled{opacity:.45;cursor:not-allowed}
+
+html.play-view-open,html.play-view-open body{overflow:hidden;overscroll-behavior:none}
+#game.play-view{position:fixed;inset:0;z-index:25;display:flex;flex-direction:column;width:100%;max-width:none;height:var(--play-height,100dvh);margin:0;background:#090f1c;padding:max(4px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))}
+#game.play-view .topbar{flex:none;margin-bottom:4px}#game.play-view .arena{flex:1;min-height:0;height:auto!important}
+#game.play-view footer,#game.play-view #help,#game.play-view #status{display:none}
+#screen-notice{position:fixed;z-index:40;top:44px;left:20px;right:20px;margin:0;padding:8px 12px;border:1px solid #edc07b66;border-radius:8px;background:#0c192bf5;color:#eed1a6;font-size:11px;pointer-events:none}
+#screen-notice[hidden]{display:none}.controls [data-control=stick].active{box-shadow:0 0 0 2px #efbd7644}
+
+.rotate{z-index:60}

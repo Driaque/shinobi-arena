@@ -1,10 +1,10 @@
 import { ACTIONS } from './index.js';
-export const SETTINGS_VERSION = 3;
+export const SETTINGS_VERSION = 4;
 export const STORAGE_KEY = 'shinobi-arena.controls.v1';
-export const CONTROL_IDS = Object.freeze(['stick', ...ACTIONS.filter(a => !['left','right'].includes(a))]);
+export const CONTROL_IDS = Object.freeze(['stick', ...ACTIONS.filter(a => !['left','right','crouch'].includes(a))]);
 export const DEFAULT_KEYS = Object.freeze([
-  {KeyA:'left',KeyD:'right',KeyW:'jump',KeyJ:'attack',KeyK:'block',KeyU:'special1',KeyI:'special2',KeyH:'weapon',KeyO:'bloodline',KeyR:'replacement',KeyQ:'dashBack',KeyE:'dashForward',KeyT:'awakening'},
-  {ArrowLeft:'left',ArrowRight:'right',ArrowUp:'jump',KeyN:'attack',KeyM:'block',Comma:'special1',Period:'special2',KeyB:'weapon',Slash:'bloodline',KeyV:'replacement',KeyY:'awakening',BracketLeft:'dashBack',BracketRight:'dashForward'}
+  {KeyS:'crouch',KeyA:'left',KeyD:'right',KeyW:'jump',KeyJ:'attack',KeyK:'block',KeyU:'special1',KeyI:'special2',KeyH:'weapon',KeyO:'bloodline',KeyR:'replacement',KeyQ:'dashBack',KeyE:'dashForward',KeyT:'awakening'},
+  {ArrowDown:'crouch',ArrowLeft:'left',ArrowRight:'right',ArrowUp:'jump',KeyN:'attack',KeyM:'block',Comma:'special1',Period:'special2',KeyB:'weapon',Slash:'bloodline',KeyV:'replacement',KeyY:'awakening',BracketLeft:'dashBack',BracketRight:'dashForward'}
 ]);
 const clamp = (x,a,b) => Math.max(a,Math.min(b,x));
 export function stickVector(dx,dy,radius,deadZone=.18) {
@@ -58,7 +58,7 @@ export function readSettings(raw) {
   const fallback=freshSettings();
   try {
     const value=JSON.parse(raw);
-    if(![1,2,SETTINGS_VERSION].includes(value?.version))return fallback;
+    if(![1,2,3,SETTINGS_VERSION].includes(value?.version))return fallback;
     const keys=[{},{}],used=new Set();
     if(!Array.isArray(value.keys)||value.keys.length!==2)throw new Error('Invalid keys');
     value.keys.forEach((map,i)=>{
@@ -73,6 +73,7 @@ export function readSettings(raw) {
       for(const [i,code]of ['KeyT','KeyY'].entries())if(!Object.values(keys[i]).includes('awakening')&&!used.has(code)){keys[i][code]='awakening';used.add(code);}
     }
     if(value.version<3)for(const [code,action]of [['BracketLeft','dashBack'],['BracketRight','dashForward']])if(!Object.values(keys[1]).includes(action)&&!used.has(code)){keys[1][code]=action;used.add(code);}
+    if(value.version<4)for(const [i,code]of ['KeyS','ArrowDown'].entries())if(!Object.values(keys[i]).includes('crouch')&&!used.has(code)){keys[i][code]='crouch';used.add(code);}
     const layouts={};
     for(const profile of ['small','medium','large']){
       const candidate=value.layouts?.[profile];if(!candidate)continue;

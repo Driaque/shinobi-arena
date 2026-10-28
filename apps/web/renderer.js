@@ -49,10 +49,10 @@ export function createRenderer(canvas) {
     c.fillStyle='#0005';c.beginPath();c.ellipse(0,f.y,39,8,0,0,Math.PI*2);c.fill();
     const action=f.action, move=action?MOVES[action.move]:null;
     const attacking=action && action.age>=move.startup && action.age<move.startup+move.active;
-    const moving=!action&&!f.stun&&((Boolean(f.previous.left)!==Boolean(f.previous.right))||Math.abs(f.previous.moveX??0)>.01);
+    const moving=!action&&!f.stun&&!f.crouching&&((Boolean(f.previous.left)!==Boolean(f.previous.right))||Math.abs(f.previous.moveX??0)>.01);
     const phase=state.tick*.32, stride=moving?Math.sin(phase)*18:3;
     const bob=moving?Math.abs(Math.sin(phase))*3:Math.sin(state.tick*.06)*1.5;
-    c.translate(0,-bob);const orange=f.character==='naruto',character=CHARACTERS[f.character];
+    c.translate(0,-bob);if(f.crouching)c.scale(1,.63);const orange=f.character==='naruto',character=CHARACTERS[f.character];
     if(f.invulnerable>0)c.globalAlpha*=.5;
     const cloth=state.tick-f.lastHit<5&&!f.blockedHit?'#fff2d4':form?.color??character.color;
     const dark=orange?'#223446':'#242d48', skin=f.character==='silent'?'#d6c2b4':'#e6b18b';
@@ -132,7 +132,7 @@ export function createRenderer(canvas) {
         const color=phase.name==='Active'?'#ff8d77':phase.name==='Recovery'?'#ffd17d':'#79dbc7';
         c.save();c.strokeStyle=color;c.fillStyle=color+'19';c.lineWidth=2;c.setLineDash([7,5]);
         if(!m.projectile&&!m.buff){const x=f.facing===1?f.x:f.x-m.reach;c.fillRect(x,ground-100,m.reach,100);c.strokeRect(x,ground-100,m.reach,100);}
-        c.strokeStyle='#b9d5eb66';c.strokeRect(f.x-26,ground-120,52,120);c.setLineDash([]);
+        c.strokeStyle='#b9d5eb66';c.strokeRect(f.x-26,ground-(f.crouching?76:120),52,f.crouching?76:120);c.setLineDash([]);
         c.font='bold 13px system-ui';c.textAlign='center';c.fillStyle=color;c.fillText(`${phase.name.toUpperCase()}${phase.remaining?' · '+phase.remaining+'f':''}`,f.x,ground-165);c.restore();
       }
     }

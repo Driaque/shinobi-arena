@@ -40,7 +40,7 @@ export function createTrainingUI({pause,clearInputs,getState,setState,getLoadout
   $('#training-reset').textContent=t.drill==='free'?'Reset':'Retry';
   $('#training-coach-title').textContent=t.drill==='free'?`FREE PRACTICE · ${t.dummy.toUpperCase()} DUMMY`:t.completed?`${drill.name} · COMPLETE`:`${drill.name} · ${t.step}/${drill.steps.length}`;
   $('#training-progress').hidden=t.drill==='free';$('#training-progress').max=drill.steps.length||1;$('#training-progress').value=t.step;
-  const keys=t.drill==='movement'?`Jump ${binding('jump')} → Jump → Dash ${binding('dashForward')}`:t.drill==='combo'?`Basic ${binding('attack')} ×3`:t.drill==='counter'?`Guard ${binding('block')} → Weapon ${binding('weapon')}`:t.drill==='awakening'?`Awaken ${binding('awakening')}`:'';
+  const keys=t.drill==='movement'&&matchMedia('(any-pointer: coarse)').matches?'Stick up → center → up → double-pull sideways':t.drill==='movement'?`Jump ${binding('jump')} → Jump → Dash ${binding('dashForward')}`:t.drill==='combo'?`Basic ${binding('attack')} ×3`:t.drill==='counter'?`Guard ${binding('block')} → Weapon ${binding('weapon')}`:t.drill==='awakening'?`Awaken ${binding('awakening')}`:'';
   write('#training-instruction',t.completed?'Challenge complete · Retry or choose another drill in Practice':`${drill.steps[t.step]??'Explore your kit'}${keys?' · '+keys:''}`);
   const info=trainingReadout(state),phase=info.player.name==='Ready'?`${info.move}: ${info.stamina} stamina · ${info.chakra} chakra · ${info.range||'projectile'} range`:`${info.player.name.toUpperCase()} ${info.player.remaining}f`;
   $('#training-readout').textContent=`${phase} · Gap ${info.distance} · Dummy ${info.dummy.name.toLowerCase()}${info.dummy.remaining?' '+info.dummy.remaining+'f':''}`;

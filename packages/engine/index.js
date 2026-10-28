@@ -4,7 +4,7 @@ import { CHARACTERS, WEAPONS, MOVES, AWAKENINGS, validateLoadouts } from './cata
 export { CHARACTERS, WEAPONS, MOVES, AWAKENINGS } from './catalog.js';
 export const TICK_RATE = 60;
 export const ARENA = Object.freeze({ width: 1280, height: 720, floor: 570, margin: 46 });
-export const RULES_VERSION = 'duel-0.10.0';
+export const RULES_VERSION = 'duel-0.11.0';
 export function advanceResource(resource, cost) {
   if (![resource, cost].every(Number.isFinite) || resource < 0 || cost < 0) throw new Error('Invalid resource');
   return resource >= cost ? { accepted: true, remaining: resource - cost } : { accepted: false, remaining: resource };
@@ -20,7 +20,7 @@ export function outcome({ hp1, hp2, remainingTicks }) {
 function fighter(id, loadout) {
   const character=CHARACTERS[loadout.character];
   return { id, name: character.name, character: loadout.character, weapon: loadout.weapon, x: id === 0 ? 360 : 920, y: 0, vy: 0,
-    hp: 1000, chakra: 100, stamina:100, guard:100, actionsStarted:0, lastActionEnd:-1000, lastExertion:-100, lastGuardHit:-100, guardStart:-100, parryCooldown:0, airDashUsed:false, jumpBuffer:0, dashBuffer:null, damageTaken:0, awakeningTicks:0, awakeningUsed:false, awakeningFlash:0, buffer:null, combo:{hits:0,damage:0,lastTick:-100,target:null}, facing: id === 0 ? 1 : -1, stun: 0, blocking: false,
+    hp: 1000, chakra: 100, stamina:100, guard:100, actionsStarted:0, lastActionEnd:-1000, lastExertion:-100, lastGuardHit:-100, guardStart:-100, parryCooldown:0, airDashUsed:false, jumpBuffer:0, dashBuffer:null, damageTaken:0, awakeningTicks:0, awakeningUsed:false, awakeningFlash:0, buffer:null, combo:{hits:0,damage:0,lastTick:-100,target:null}, facing: id === 0 ? 1 : -1, stun: 0, blocking: false, crouching:false,
     jumps: 0, dash: null, dashCooldown: 0, taps: {left:-100,right:-100}, cooldowns: {}, effects: [], buffs: [], invulnerable: 0, replacement: null, action: null, previous: {}, lastHit: -100, blockedHit: false };
 }
 export function createMatch(loadouts=[{character:'naruto',weapon:'kunai'},{character:'sasuke',weapon:'kunai'}],{difficulty='easy'}={}) {
@@ -70,7 +70,7 @@ function startAction(state, f, key, override=null, chain=0) {
   f.stamina=energy.remaining;if(effort)f.lastExertion=state.tick;
   f.chakra=spent.remaining;f.cooldowns[key]=config.cooldown??0;
   if(chain<2)f.actionsStarted++;
-  f.action={move,age:0,hit:false,confirmed:false,fired:false,recoveryPenalty:0,chain:chain||(key==='attack'?1:0)};f.blocking=false;return true;
+  f.action={move,age:0,hit:false,confirmed:false,fired:false,recoveryPenalty:0,chain:chain||(key==='attack'?1:0)};f.blocking=false;f.crouching=false;return true;
 }
 export function awakeningFor(f) {return AWAKENINGS[CHARACTERS[f.character].awakening]??null;}
 export function activeAwakening(f) {return f.awakeningTicks>0?awakeningFor(f):null;}
@@ -131,6 +131,7 @@ export function stepMatch(state, inputs = [{}, {}]) {
   for(const f of state.fighters)tickEffects(state,f); if(!state.training)state.remainingTicks = Math.max(0, state.remainingTicks - 1);
   for (const f of state.fighters) {
     const input = inputs[f.id] ?? {}, other = state.fighters[1 - f.id];
+    if(input.dashDirection===-1||input.dashDirection===1)f.dashBuffer={direction:input.dashDirection,expires:state.tick+8};
     if(fresh(input,f,'jump'))f.jumpBuffer=state.tick+8;
     for(const direction of ['left','right'])if(fresh(input,f,direction)){
       if(state.tick-f.taps[direction]<=14)f.dashBuffer={direction:direction==='left'?-1:1,expires:state.tick+8};
@@ -172,6 +173,7 @@ export function stepMatch(state, inputs = [{}, {}]) {
     }
     if (!f.action && !f.dash && !wasStunned) f.facing = other.x >= f.x ? 1 : -1;
     if(fresh(input,f,'block')&&!f.parryCooldown&&!f.stun&&!f.action&&!f.dash&&f.y===0)f.guardStart=state.tick;
+    f.crouching=Boolean(input.crouch&&f.y===0&&!f.action&&!f.dash&&!wasStunned&&f.jumpBuffer<state.tick);
     f.blocking = Boolean(input.block && f.y === 0 && !f.action && !f.dash && !wasStunned);
     if (f.hp>0 && !f.action && !wasStunned && !f.blocking) {
       // A jump can cancel a dash. A ground jump and air dash can share a tick.
@@ -179,7 +181,7 @@ export function stepMatch(state, inputs = [{}, {}]) {
       if(f.dashBuffer&&!f.dash&&f.dashCooldown===0&&(!(f.y>0||f.vy>0)||!f.airDashUsed)){
         if(f.stamina>=18){
           const direction=f.dashBuffer.direction??f.dashBuffer.relative*f.facing;
-          const air=f.y>0||f.vy>0;f.dash={direction,remaining:8,air};f.dashCooldown=24;
+          const air=f.y>0||f.vy>0;f.dash={direction,remaining:8,air};f.crouching=false;f.dashCooldown=24;
           f.stamina-=18;f.lastExertion=state.tick;if(air)f.airDashUsed=true;
         }else state.events.push({type:'exhausted',target:f.id});
         f.dashBuffer=null;
@@ -187,7 +189,7 @@ export function stepMatch(state, inputs = [{}, {}]) {
 
       const digital = Number(Boolean(input.right)) - Number(Boolean(input.left));
       const move = (input.left||input.right)?digital:(Number.isFinite(input.moveX)?clamp(input.moveX,-1,1):0);
-      if(!f.dash)f.x += move * (f.y > 0 ? 4.5 : 5)*(activeAwakening(f)?.speed??1);
+      if(!f.dash&&!f.crouching)f.x += move * (f.y > 0 ? 4.5 : 5)*(activeAwakening(f)?.speed??1);
       // Fresh presses are buffered briefly; confirms can cancel recovery into follow-ups.
       if(!f.dash&&f.buffer){const key=f.buffer.key;f.buffer=null;startAction(state,f,key);}
     }
@@ -214,7 +216,7 @@ export function stepMatch(state, inputs = [{}, {}]) {
   for (const p of state.projectiles) {
     p.x += p.direction * MOVES[p.move].speed; p.life--;
     const target = state.fighters[1 - p.owner];
-    if (target.invulnerable===0 && Math.abs(p.x - target.x) < 48 && p.y >= target.y && p.y <= target.y + 120) {
+    if (target.invulnerable===0 && Math.abs(p.x - target.x) < 48 && p.y >= target.y && p.y <= target.y + (target.crouching?76:120)) {
       hits.push({ attacker: p.owner, target: target.id, direction: p.direction, ...MOVES[p.move], move: p.move, weak: p.weak, power:p.power, pierce:p.pierce });
       p.life = 0;
     }
@@ -269,7 +271,7 @@ export function stepMatch(state, inputs = [{}, {}]) {
     target.lastDamage=damage;target.lastHit = state.tick; target.blockedHit = hit.blocked&&!penetrated;
     if((!hit.blocked||pierce>=1)&&hit.launch)target.vy=hit.launch;
     if((!hit.blocked||pierce>=1)&&hit.pull)target.x=clamp(target.x-hit.direction*Math.min(hit.pull,Math.max(0,Math.abs(target.x-attacker.x)-52)),ARENA.margin,ARENA.width-ARENA.margin);
-    if (!hit.blocked||pierce>=1) { target.buffer=null;if(target.action)target.lastActionEnd=state.tick;target.action = null; target.blocking = false;target.dash=null; }
+    if (!hit.blocked||pierce>=1) { target.buffer=null;if(target.action)target.lastActionEnd=state.tick;target.action = null; target.blocking = false;target.crouching=false;target.dash=null; }
     state.events.push({ type: guardBroken?'guardBreak':penetrated?'pierce':hit.blocked?'block':hit.punish?'punish':'hit', target: target.id, damage, move: hit.move });
   }
   separate(...state.fighters);

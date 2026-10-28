@@ -40,6 +40,24 @@ try{
  for(const [held,gap]of [[100,16],[100,100],[200,0]]){await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[attack]});await mobile.clock.runFor(held);await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});if(gap)await mobile.clock.runFor(gap);}
  assert.match(await mobile.locator('#training-coach-title').innerText(),/COMPLETE/);await mobile.screenshot({path:'test-results/mobile-training.png'});
  const fight=await mobile.locator('.battle-view').boundingBox(),coach=await mobile.locator('#training-coach').boundingBox();assert.ok(coach.y>=fight.y&&coach.y+coach.height<=fight.y+fight.height);for(const node of await mobile.locator('[data-control]').all()){const rect=await node.boundingBox();assert.ok(rect.y>=fight.y+fight.height,'training controls stay below the fight');}
+ // Complete the movement drill using only stick pulls, then verify crouch/release.
+ await mobileDrill('movement');
+ const stick=await mobile.locator('#joystick').boundingBox(),center=point(stick,9),radius=stick.width*.36;
+ const position=(x,y)=>({...center,x:center.x+x*radius,y:center.y+y*radius});
+ await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[center]});
+ for(const [x,y]of [[0,-1],[0,0],[0,-1],[0,0],[1,0],[0,0],[1,0]]){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[position(x,y)]});await mobile.clock.runFor(40);}
+ await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});assert.match(await mobile.locator('#training-coach-title').innerText(),/COMPLETE/);
+ await mobile.click('#training-reset');await mobile.clock.runFor(32);
+ await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[position(0,1)]});await mobile.clock.runFor(40);assert.equal(await mobile.locator('#movement-state').innerText(),'CROUCH');
+ await mobile.screenshot({path:'test-results/mobile-analog-crouch.png'});
+ await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[center]});await mobile.clock.runFor(32);assert.notEqual(await mobile.locator('#movement-state').innerText(),'CROUCH');
+ await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[position(0,1)]});await mobile.clock.runFor(32);await cdp.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});await mobile.clock.runFor(32);assert.notEqual(await mobile.locator('#movement-state').innerText(),'CROUCH');
+ // Native fullscreen sizes the whole viewport; unsupported browsers get an explicit fallback.
+ await mobile.click('#fullscreen');await mobile.clock.runFor(32);assert.ok(['native','expanded'].includes(await mobile.locator('#game').getAttribute('data-screen-mode')));assert.equal(await mobile.locator('#fullscreen').innerText(),'Exit view');
+ const fullBox=await mobile.locator('#game').boundingBox();assert.ok(fullBox.width>=840&&fullBox.height>=385);await mobile.click('#fullscreen');await mobile.clock.runFor(32);assert.equal(await mobile.locator('#game').getAttribute('data-screen-mode'),'window');
+ await mobile.evaluate(()=>{Object.defineProperty(document,'fullscreenEnabled',{configurable:true,value:false});Object.defineProperty(document,'webkitFullscreenEnabled',{configurable:true,value:false});});
+ await mobile.click('#fullscreen');await mobile.clock.runFor(32);assert.equal(await mobile.locator('#game').getAttribute('data-screen-mode'),'expanded');assert.match(await mobile.locator('#screen-notice').innerText(),/address bar/);await mobile.screenshot({path:'test-results/mobile-expanded-play-view.png'});await mobile.click('#fullscreen');await mobile.clock.runFor(32);
+ if(await mobile.locator('#overlay').isVisible())await mobile.click('#play');await mobile.clock.runFor(32);
  await mobile.click('#control-settings');const progress=await mobile.locator('#training-coach-title').innerText();await mobile.clock.runFor(1000);assert.equal(await mobile.locator('#training-coach-title').innerText(),progress);await mobile.click('#cancel-controls');await mobile.click('#play');
  await mobile.setViewportSize({width:667,height:375});await mobile.clock.runFor(32);for(const node of await mobile.locator('.tools button:visible,.tools select:visible').all()){const rect=await node.boundingBox();assert.ok(rect.x>=0&&rect.x+rect.width<=667,'training toolbar fits small landscape');}await mobile.screenshot({path:'test-results/small-mobile-training.png'});
  await mobile.setViewportSize({width:375,height:667});await mobile.clock.runFor(32);assert.equal(await mobile.locator('#rotate').isVisible(),true);await mobile.setViewportSize({width:667,height:375});await mobile.clock.runFor(32);assert.equal(await mobile.locator('#play').innerText(),'Resume match');assert.deepEqual(mobileErrors,[]);await context.close();

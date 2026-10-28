@@ -1,11 +1,13 @@
+import {createStickGestures} from './packages/input/analog.js';
 import { ACTIONS } from './packages/input/index.js';
 import { STORAGE_KEY, CONTROL_IDS, DEFAULT_KEYS, freshSettings, readSettings, stickVector, defaultLayout, defaultDockLayout, layoutProfile, projectControl, layoutOverlaps, rebind, keyLabel, keyForAction } from './packages/input/preferences.js';
-export const ACTION_LABELS={awakening:'Awakening',stick:'Movement stick',left:'Move left',right:'Move right',jump:'Double jump',attack:'Basic attack',weapon:'Weapon',block:'Guard',special1:'Signature 1',special2:'Signature 2',bloodline:'Bloodline',replacement:'Replacement',dashForward:'Dash forward',dashBack:'Dash backward'};
+export const ACTION_LABELS={crouch:'Crouch',awakening:'Awakening',stick:'Movement stick',left:'Move left',right:'Move right',jump:'Double jump',attack:'Basic attack',weapon:'Weapon',block:'Guard',special1:'Signature 1',special2:'Signature 2',bloodline:'Bloodline',replacement:'Replacement',dashForward:'Dash forward',dashBack:'Dash backward'};
 export function createControls({inputs,onPause,isPlaying}) {
   const $=s=>document.querySelector(s),arena=$('.arena'),stick=$('#joystick');
   const nodes=Object.fromEntries(CONTROL_IDS.map(id=>[id,$(`[data-control="${id}"]`)]));
   const editor=$('#layout-editor'),keysDialog=$('#keys-dialog'),overlay=$('#overlay');
   let settings;try{settings=readSettings(localStorage.getItem(STORAGE_KEY));}catch{settings=freshSettings();}
+  const gestures=createStickGestures();
   let draft=null,editing=false,selected='stick',drag=null,stickPointer=null,listening=null,previousOverlay=false;
   const current=()=>draft??settings;
   const dimensions=()=>({width:arena.clientWidth,height:arena.clientHeight});
@@ -14,7 +16,7 @@ export function createControls({inputs,onPause,isPlaying}) {
   const layout=()=>current()[layoutKey()][profile()]??(current().placement==='dock'?defaultDockLayout:defaultLayout)(arena.clientWidth,arena.clientHeight);
   function editableLayout(){draft[layoutKey()][profile()]??=structuredClone(layout());return draft[layoutKey()][profile()];}
   function message(text){$('#editor-message').textContent=text;}
-  function resetStick(){stickPointer=null;inputs[0].release('stick');stick.style.setProperty('--stick-x','0px');stick.style.setProperty('--stick-y','0px');stick.classList.remove('active');}
+  function resetStick(cancel=true){stickPointer=null;inputs[0].release('stick');inputs[0].release('stick-crouch');if(cancel)gestures.reset();else gestures.release();stick.style.setProperty('--stick-x','0px');stick.style.setProperty('--stick-y','0px');stick.classList.remove('active');}
   function reset(){resetStick();drag=null;inputs.forEach(i=>i.reset());}
   function collisionMessage(){const {width,height}=dimensions(),pairs=layoutOverlaps(layout(),width,height,current().placement);return pairs.length?`Separate ${ACTION_LABELS[pairs[0][0]]} and ${ACTION_LABELS[pairs[0][1]]} before saving.`:'';}
   function applyLayout(){
@@ -53,9 +55,13 @@ export function createControls({inputs,onPause,isPlaying}) {
     const r=stick.getBoundingClientRect(),radius=r.width*.36;
     const dx=event.clientX-r.left-r.width/2,dy=event.clientY-r.top-r.height/2;
     const vector=stickVector(dx,dy,radius),distance=Math.hypot(dx,dy),limit=distance>radius?radius/distance:1;
-    inputs[0].setAxis('stick',vector.x);
+    const intent=gestures.update(vector,performance.now());
+    inputs[0].setAxis('stick',intent.moveX);
+    if(intent.jump){inputs[0].press('jump','stick-jump');inputs[0].release('stick-jump');}
+    if(intent.crouch)inputs[0].press('crouch','stick-crouch');else inputs[0].release('stick-crouch');
+    if(intent.dashDirection)inputs[0].dash(intent.dashDirection);
     stick.style.setProperty('--stick-x',`${dx*limit}px`);stick.style.setProperty('--stick-y',`${dy*limit}px`);
-    stick.classList.toggle('active',Math.abs(vector.x)>.01);
+    stick.classList.toggle('active',Math.hypot(vector.x,vector.y)>.01);
   }
   for(const [id,node]of Object.entries(nodes)){
     node.addEventListener('pointerdown',event=>{
@@ -69,7 +75,7 @@ export function createControls({inputs,onPause,isPlaying}) {
     node.addEventListener('pointermove',event=>{if(editing)dragMove(event);else if(id==='stick')moveStick(event);});
     for(const type of ['pointerup','pointercancel','lostpointercapture'])node.addEventListener(type,event=>{
       if(drag?.pointer===event.pointerId)drag=null;
-      if(id==='stick'){if(stickPointer===event.pointerId)resetStick();}
+      if(id==='stick'){if(stickPointer===event.pointerId)resetStick(type!=='pointerup');}
       else{inputs[0].release(`pointer:${event.pointerId}`);node.classList.toggle('active',inputs[0].snapshot()[id]);}
     });
     node.addEventListener('contextmenu',event=>event.preventDefault());

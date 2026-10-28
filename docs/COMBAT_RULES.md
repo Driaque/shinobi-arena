@@ -97,3 +97,9 @@ Match state records Easy (default), Medium, Difficult or Xtreme. Attack strings 
 ## duel-0.10.0 — explicit training sessions
 
 Ordinary duels retain their rules. A state created through the training adapter carries practice configuration: its clock does not expire, round results are not resolved, and damage cannot take either fighter below 1 HP. Practice can refill HP/stamina/chakra and clear cooldowns around the same simulation tick. Actual damage still fills awakening charge. Guided challenges observe actual jump/dash state, confirmed basic-chain hits, guard/punish events and legal awakening events. They do not complete through UI buttons or simulated success. See [TRAINING.md](TRAINING.md).
+
+## duel-0.11.0 — analog gestures and crouch
+
+The device adapter translates firm up pulls into fresh jump inputs and same-direction double pulls into a one-tick absolute dash intent. The simulation still enforces jump count, air-dash count, stamina, cooldown and commitment/hitstun restrictions. Absolute dash intent is recorded in input frames and does not depend on fighter facing.
+
+Crouch is a held grounded action with no resource cost. It stops walking and uses a 76-unit projectile hurtbox (standing: 120); ordinary melee eligibility is unchanged. Body-height projectiles still connect. It does not grant guard or invulnerability. Jump/attack/dash leave the pose, and release returns to standing. Desktop defaults are S / Down arrow.

@@ -1,3 +1,4 @@
+import {createFullscreen} from './fullscreen.js';
 import {createTrainingUI} from './training.js';
 import {stepTraining} from './packages/engine/training.js';
 import { createInput } from './packages/input/index.js';
@@ -103,15 +104,11 @@ trainingUI=createTrainingUI({pause,clearInputs,getState:()=>state,setState:useTr
 window.addEventListener('blur',()=>{clearInputs();pause();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){clearInputs();pause();}});
 portrait.addEventListener('change',orientation);touch.addEventListener('change',orientation);
-$('#fullscreen').addEventListener('click',async()=>{
-  $('#status').textContent='';
-  try{if(!document.fullscreenElement&&$('#game').requestFullscreen)await $('#game').requestFullscreen();}
-  catch{$('#status').textContent='Full screen is unavailable; you can continue in this window.';}
-  // Desktop fullscreen should not report a mobile orientation failure.
-  if(touch.matches&&typeof screen.orientation?.lock==='function'){
-    try{await screen.orientation.lock('landscape');}catch{if(portrait.matches)$('#status').textContent='Rotate your phone manually to play.';}
-  }
-});
+let screenNoticeTimer;
+createFullscreen({element:$('#game'),target:document.documentElement,button:$('#fullscreen'),onTransition:()=>{clearInputs();pause();},notice:message=>{
+  clearTimeout(screenNoticeTimer);$('#screen-notice').textContent=message;$('#screen-notice').hidden=false;
+  screenNoticeTimer=setTimeout(()=>{$('#screen-notice').hidden=true;},6500);
+}});
 function paintHud(){
   document.documentElement.classList.toggle('in-match',started&&!paused);
   $('#difficulty').disabled=mode!=='cpu'||Boolean(controls?.editing);
@@ -144,7 +141,7 @@ function paintHud(){
     $(`#hp${i}`).textContent=Math.ceil(f.hp);$(`#health${i}`).style.width=`${f.hp/10}%`;$(`#chakra${i}`).style.width=`${f.chakra}%`;
     $(`#wins${i}`).textContent=[0,1].map(n=>n<state.wins[i]?'●':'○').join(' ');
   });
-  $('#movement-state').textContent=player.dash?(player.dash.air?'AIR DASH':'DASH'):player.y>0?`AIR · ${player.jumps}/2 JUMPS`:'';
+  $('#movement-state').textContent=player.crouching?'CROUCH':player.dash?(player.dash.air?'AIR DASH':'DASH'):player.y>0?`AIR · ${player.jumps}/2 JUMPS`:'';
   $('#canvas').setAttribute('aria-label',`${state.fighters[0].name} versus ${state.fighters[1].name}. ${$('#movement-state').textContent}`);
   $('#timer').textContent=mode==='training'?'∞':Math.ceil(state.remainingTicks/TICK_RATE).toString().padStart(2,'0');
   $('#round').textContent=mode==='training'?'PRACTICE':`ROUND ${state.round.toString().padStart(2,'0')}`;

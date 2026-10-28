@@ -4,7 +4,7 @@
 
 The left thumbstick is an analog horizontal input for the side-view fighter. Its radial dead zone is
 18% of stick travel. Outside that zone, horizontal deflection scales movement from zero to full speed.
-Vertical motion moves the knob visually but does not jump or move the fighter vertically. Jump and dash
+Vertical motion now supports jump and crouch gestures (v0.11; see below). Jump and dash
 are separate buttons. Keyboard movement takes priority if a direction key is held; devices never add
 movement above full speed. Pointer cancellation, loss of capture, blur, rotation and resize clear the stick.
 
@@ -59,3 +59,18 @@ Controls → Placement selects **Below arena** (default separate 136px deck) or 
 Existing v1/v2 custom keyboard mappings and overlay layouts are preserved. New dock layouts start fresh so old overlay coordinates do not obscure the new fighting viewport. Default P2 dash is [ / ]; migration only adds missing bindings if their keys are unused. Storage key stays unchanged; version migration is automatic. Opacity and placement persist alongside keyboard/layout choices.
 
 The play surface prevents native touch scroll, double-tap zoom and gesture zoom while actively fighting; menus/roster retain normal scrolling and page zoom outside the play surface. Fullscreen still attempts a landscape orientation lock where supported. Otherwise portrait pauses the game and asks the player to rotate; browser support determines whether physical orientation can be locked.
+
+## v0.11 — full movement stick and fullscreen
+
+- Horizontal deflection still scales walking speed.
+- Pull up firmly to jump. Center the stick (or release it), then pull up again while airborne to double jump. Holding up does not repeat, even after landing.
+- Pull right → center → right within **300 ms** to dash right; left → center → left dashes left. Direction is absolute screen direction, independent of facing. Normal finger release counts as centering; cancel/blur/rotation clears gesture history. Holding, small jitter or opposite pulls do not double-dash.
+- Hold a downward-dominant pull to crouch; center/release stands. Upward diagonals can jump while retaining horizontal air control. Firm-pull and center thresholds use hysteresis to avoid accidental repeats.
+- Existing jump/dash buttons and keys continue to work. Keyboard crouch defaults to **S** / **Down arrow** and is rebindable. Settings v4 retains existing layouts, opacity, placement and custom keys; it only adds unused default crouch bindings. No extra touch button crowds the deck.
+- Crouch is grounded, stops walking, and lowers the projectile hurtbox. It does not auto-guard or avoid ordinary melee/body-height projectiles. A jump/attack/dash stands the fighter; hitstun prevents crouching normally.
+
+**Full screen** now requests native fullscreen from the tap, supports prefixed implementations, sizes the entire game to the viewport, and toggles **Exit view**. Native exit events restore the normal layout. Orientation lock is attempted after successful native fullscreen; the portrait prompt remains when locking is unavailable. The fullscreen target includes dialogs and the rotation prompt.
+
+When the native API is missing, disabled or rejects the request, a clearly labeled **Play view** fills the available visual viewport. This CSS fallback cannot remove the browser's address bar. A visible notice explains the limitation; Exit view or Escape restores the page. Entering/exiting pauses the fight and clears held input. Fullscreen compatibility is feature-detected, not guessed from the device name.
+
+Reference: [MDN requestFullscreen](https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen) and [fullscreenEnabled](https://developer.mozilla.org/en-US/docs/Web/API/Document/fullscreenEnabled).

@@ -15,7 +15,7 @@ test('analog reset and pointer release clear movement independently of attack',(
  assert.equal(i.consume().moveX,0);assert.equal(i.snapshot().attack,true);
  i.setAxis('stick',1);i.reset();assert.equal(i.snapshot().moveX,0);
 });
-test('half stick moves half speed and stick never triggers jumping',()=>{
+test('horizontal axis moves proportionally without generating a jump by itself',()=>{
  const s=createMatch(),x=s.fighters[0].x;stepMatch(s,[{moveX:.5},{}]);assert.equal(s.fighters[0].x-x,2.5);assert.equal(s.fighters[0].y,0);
  stepMatch(s,[{moveX:100},{}]);assert.equal(s.fighters[0].x-x,7.5);
 });
@@ -48,3 +48,4 @@ test('settings round trip preserves keys and layout profile edits',()=>{
 test('corrupt, incompatible and duplicate persisted settings fall back safely',()=>{
  for(const value of ['not json','null','{"version":999}',JSON.stringify({version:1,keys:[{KeyA:'left'},{KeyA:'right'}],layouts:{}})])assert.deepEqual(readSettings(value),freshSettings());
 });
+

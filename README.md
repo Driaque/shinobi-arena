@@ -31,7 +31,7 @@ Default keyboard bindings (customizable in Controls → Keyboard):
 | Awakening (when ready) | T | Y |
 | Pause | P or Escape | P or Escape |
 
-Phone: hold sideways. Use the left analog stick to move, the separate jump/dash buttons to maneuver, and the right action cluster to fight. Push the stick farther to move faster; vertical stick motion does not jump. Open **Controls** to adjust opacity, switch below-arena/overlay placement, drag and resize controls, or edit keyboard bindings. Save keeps the settings on this device; Cancel discards the draft. One phone controls P1;
+Phone: hold sideways. Use the left analog stick to move, the separate jump/dash buttons to maneuver, and the right action cluster to fight. Push the stick farther to move faster. Pull up, center, then up again to double jump; double-pull sideways to dash; hold down to crouch. Open **Controls** to adjust opacity, switch below-arena/overlay placement, drag and resize controls, or edit keyboard bindings. Save keeps the settings on this device; Cancel discards the draft. One phone controls P1;
 use the computer opponent. Local two-player uses a shared desktop keyboard. Switching apps, losing
 focus or rotating into portrait pauses the local match; resume explicitly.
 
@@ -94,7 +94,7 @@ CI and deployment run unit checks, build and browser checks before publishing.
 
 `packages/engine` owns combat; `packages/input` owns independent input sources and quick-tap capture;
 `apps/web` owns browser events and procedural rendering. Neither engine nor input library imports the DOM.
-Simulation rules version: `duel-0.10.0`.
+Simulation rules version: `duel-0.11.0`.
 
 See [project plan](docs/PROJECT_PLAN.md), [combat rules](docs/COMBAT_RULES.md), [character kits](docs/CHARACTER_KITS.md),
 [mobile design](docs/MOBILE_DESIGN.md), [control settings](docs/CONTROL_SETTINGS.md), [architecture](docs/ARCHITECTURE.md),
@@ -122,3 +122,7 @@ The top bar now offers **Easy / Medium / Difficult / Xtreme**, with **Easy** sel
 ### v0.10.0: training arena and guided challenges
 
 Choose **Training** in Mode. **Practice** configures idle/guarding/attacking dummies, infinite stamina/chakra, HP refills, instant cooldowns and range/recovery overlays. **Reset / Retry** instantly resets the arena. Four real-input challenges teach double jump → air dash, three-hit combos, guard → weapon counters and damage-earned awakening. The coach explains misses and rejected actions; completed challenges save on this device. [Training guide](docs/TRAINING.md).
+
+### v0.11.0: movement gestures and fullscreen
+
+The stick now controls the whole movement flow: **up → center → up** double jumps; **right → center → right** (or left twice) within 300 ms dashes in that screen direction; hold down to crouch. Buttons/keys still work. Full screen fills the viewport and toggles Exit view; when native fullscreen is unavailable, a clearly labeled Play view fills the available space while browser bars may remain. [Controls and browser behavior](docs/CONTROL_SETTINGS.md).

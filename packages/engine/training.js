@@ -1,7 +1,7 @@
 import {createMatch,stepMatch,moveFor,MOVES,CHARACTERS,awakeningFor,awakeningReady,staminaCost} from './index.js';
 export const DRILLS=Object.freeze({
  free:{name:'Free practice',steps:[],hint:'Explore your kit. Set a dummy behavior, inspect ranges, and reset whenever you like.'},
- movement:{name:'Double jump → air dash',steps:['Jump','Jump again in the air','Dash before landing'],hint:'Release Jump between presses. Save your air dash until after the second jump.'},
+ movement:{name:'Double jump → air dash',steps:['Jump','Jump again in the air','Dash before landing'],hint:'Pull up, center, then up again; double-pull sideways to air dash. Buttons/keys also work. Save the dash until after the second jump.'},
  combo:{name:'Three-hit combo',steps:['Land the opening basic','Link the second basic','Land the launching finisher'],hint:'Tap Basic with rhythm. Each follow-up needs a confirmed hit; holding does not repeat.'},
  counter:{name:'Guard → weapon counter',steps:['Guard or parry a strike','Land a weapon during the opening'],hint:'The dummy swings a katana every 2.5 seconds. Guard, release, then punish with your equipped weapon.'},
  awakening:{name:'Unlock your awakening',steps:['Take damage to fill the meter','Awaken when free to act'],hint:'Let the dummy hit you until READY, then wait for hitstun to end and press Awaken. HP refills do not remove damage charge.'}
