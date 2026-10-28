@@ -1,3 +1,4 @@
+import {apiBase,ensureIdentity} from './arena-api.js';
 import {PROTOCOL_VERSION,RULES_VERSION,playerProfile} from './packages/network/protocol.js';
 export function createOnline({getProfile,onState,onEnd,onStatus}){
  let socket=null,generation=0,slot=0,phase='idle',seq=0,timeout,pingTimer,lastMessage=0,latency=null;
@@ -38,6 +39,7 @@ export function createOnline({getProfile,onState,onEnd,onStatus}){
  async function join(){
   let profile,url;
   try{profile=playerProfile({...getProfile(),name:$('#player-name').value});url=serverURL();}catch(e){notify(e.message);return;}
+  let token;try{token=await ensureIdentity(profile.name,await apiBase(url));}catch(e){notify(e.message);return;}
   const previousClosed=cleanup();phase='connecting';seq=0;latency=null;const current=generation;
   try{localStorage.setItem('shinobi-arena.player-name',profile.name);}catch{}
   $('#player-name').disabled=true;$('#online-server').disabled=true;$('#online-cancel').hidden=false;
@@ -53,7 +55,7 @@ export function createOnline({getProfile,onState,onEnd,onStatus}){
    if(current!==generation)return;lastMessage=performance.now();let msg;try{msg=JSON.parse(event.data);}catch{return;}
    if(msg.type==='hello'){
     if(msg.protocol!==PROTOCOL_VERSION||msg.rules!==RULES_VERSION){cleanup();phase='idle';notify('Server and game versions differ. Refresh the game.');onEnd('Version mismatch.');return;}
-    ws.send(JSON.stringify({type:'join',protocol:PROTOCOL_VERSION,rules:RULES_VERSION,profile}));
+    ws.send(JSON.stringify({type:'join',protocol:PROTOCOL_VERSION,rules:RULES_VERSION,profile,token,queue:$('#online-queue')?.value??'casual'}));
    }else if(msg.type==='queued'){clearTimeout(timeout);phase='queued';notify(`Waiting for an opponent… Queue position ${msg.position}. You can cancel any time.`);}
    else if(msg.type==='matched'){clearTimeout(timeout);slot=msg.slot;phase=msg.phase;$('#online-cancel').hidden=true;$('#online-leave').hidden=false;onState(msg,slot);}
    else if(msg.type==='snapshot'){phase=msg.phase;onState(msg,slot);if(phase==='matchOver'){cleanup();phase='finished';}}

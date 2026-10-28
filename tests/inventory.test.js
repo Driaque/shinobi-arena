@@ -9,7 +9,7 @@ const use=(s,n=40)=>{stepMatch(s,[{useItem:true},{}]);advance(s,n);};
 test('loadouts have exactly two weapon slots and four finite items, copied from client data',()=>{
  const raw=load(['raijinKunai','paperBomb','poison','smokeBomb']);const profile=playerProfile({...raw,name:'Player'});raw.items[0]='poison';raw.weapons[1]='tachi';assert.equal(profile.items[0],'raijinKunai');assert.equal(profile.weapons[1],'katana');
  assert.throws(()=>validateLoadout({...raw,items:['raijinKunai','raijinKunai',null,null]}));
- for(const bad of [{items:['paperBomb']},{items:['constructor',null,null,null]},{weapons:['kunai','__proto__']},{weapons:['katana','kunai']},{items:[{id:'paperBomb',count:999},null,null,null]}])assert.throws(()=>validateLoadout({...load(),...bad}));
+ for(const bad of [{items:Array(5).fill('paperBomb')},{items:['constructor',null,null,null]},{weapons:['kunai','__proto__']},{weapons:['katana','kunai']},{items:[{id:'paperBomb',count:999},null,null,null]}])assert.throws(()=>validateLoadout({...load(),...bad}));
  const old=validateLoadout({character:'naruto',weapon:'kunai'});assert.deepEqual(old.weapons,['kunai',null]);assert.deepEqual(old.items,[null,null,null,null]);
  const clean=cleanInput({useItem:true,swapWeapon:true,itemCount:99,weapons:['tachi','tachi']});assert.equal(clean.useItem,true);assert.equal(clean.itemCount,undefined);assert.equal(clean.weapons,undefined);
 });

@@ -1,7 +1,7 @@
 import {createStickGestures} from './packages/input/analog.js';
 import { ACTIONS } from './packages/input/index.js';
 import { STORAGE_KEY, CONTROL_IDS, DEFAULT_KEYS, freshSettings, readSettings, stickVector, defaultLayout, defaultDockLayout, layoutProfile, projectControl, layoutOverlaps, rebind, keyLabel, keyForAction } from './packages/input/preferences.js';
-export const ACTION_LABELS={swapWeapon:'Swap weapon',cycleItem:'Choose consumable',useItem:'Use consumable',crouch:'Crouch',awakening:'Awakening',stick:'Movement stick',left:'Move left',right:'Move right',jump:'Double jump',attack:'Basic attack',weapon:'Weapon',block:'Guard',special1:'Signature 1',special2:'Signature 2',bloodline:'Bloodline',replacement:'Replacement',dashForward:'Dash forward',dashBack:'Dash backward'};
+export const ACTION_LABELS={jutsu4:'Jutsu 4',jutsu5:'Jutsu 5',jutsu6:'Jutsu 6',jutsu7:'Jutsu 7',charge:'Charge chakra',swapWeapon:'Swap weapon',cycleItem:'Choose consumable',useItem:'Use consumable',crouch:'Crouch',awakening:'Awakening',stick:'Movement stick',left:'Move left',right:'Move right',jump:'Double jump',attack:'Basic attack',weapon:'Weapon',block:'Guard',special1:'Signature 1',special2:'Signature 2',bloodline:'Bloodline',replacement:'Replacement',dashForward:'Dash forward',dashBack:'Dash backward'};
 export function createControls({inputs,onPause,isPlaying}) {
   const $=s=>document.querySelector(s),arena=$('.arena'),stick=$('#joystick');
   const nodes=Object.fromEntries(CONTROL_IDS.map(id=>[id,$(`[data-control="${id}"]`)]));
@@ -128,7 +128,7 @@ export function createControls({inputs,onPause,isPlaying}) {
   $('#control-opacity').addEventListener('input',event=>{draft.opacity=Number(event.target.value)/100;applyLayout();});
   $('#control-placement').addEventListener('change',event=>{reset();draft.placement=event.target.value;applyLayout();});
   // Suppress native zoom/scroll only on the live play surface; menus retain normal scrolling.
-  const preventPlayGesture=event=>{if(!editing&&isPlaying()&&!event.target.closest('#overlay,#layout-editor,dialog'))event.preventDefault();};
+  const preventPlayGesture=event=>{if(!editing&&isPlaying()&&!event.target.closest('#overlay,#layout-editor,#jutsu-tray,dialog'))event.preventDefault();};
   for(const type of ['touchstart','touchmove','gesturestart','gesturechange','gestureend','dblclick'])arena.addEventListener(type,preventPlayGesture,{passive:false});
   for(const id of CONTROL_IDS)$('#control-select').add(new Option(ACTION_LABELS[id],id));
   $('#control-select').addEventListener('change',event=>select(event.target.value));

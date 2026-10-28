@@ -123,3 +123,13 @@ New rounds restore the chosen inventory, active weapon slot 1 and clear all zone
 Dora adds fan basic chains, a selectable Bladed Fans weapon, Tidal Edict weakening, Triune Flow guard counters and Limit Release. Royal Tempest schedules a separate interruptible heavy strike only after a clean opener; 12 ticks of hitstun precede an 18-tick follow-up startup, allowing counterplay. Block/parry/Replacement/whiff prevent the opener from scheduling it. Chakra is charged once at the opener, cooldown remains attached to the signature slot, and normal damage scaling, guard and invulnerability apply to both strikes. See [Dora’s full kit](DORA.md).
 
 Projectile spawns capture actual weaken potency, matching melee attacks rather than forcing every debuff to 30%.
+
+## v0.15 strategy effects
+
+The 54-entry technique library supports up to seven distinct equipped jutsus, two weapons and four consumables. Replacement and awakening remain built-in actions outside the selected technique slots. Shared attacks can be cross-trained; explicit bloodlines retain fighter ownership. Awakening only replaces native techniques actually equipped, including later slots.
+
+Elemental ground fields spawn 180 units ahead, radius 125, last 240 ticks and affect enemies below 35 height. At most two fields per owner. A field checks once per 60 ticks, deals 12 guardable damage and applies burn (8/s), slow (35%), bind (24 ticks) or poison-slow (6/s and 40% movement reduction). Non-bind effects from a field last 90 ticks; staying in the zone refreshes them. Jumping, spacing, guard and timely cleansing offer counterplay. Zone ticks cannot confirm a missed basic attack into a combo.
+
+Bind prevents voluntary movement/jumps/dashes, not guarding, attacks, gravity or incoming knockback. Poison-slow affects movement and dash speed. Haste grants +15% movement for four seconds; Ward reduces HP damage by 25% for four seconds. Healing restores 120 HP after 36-tick interruptible startup. Cleanse clears harmful effects after 12-tick startup and cannot begin during hitstun. Bleed deals six HP per second for four seconds.
+
+Charge is held, grounded and stationary, requires stamina, and stops for movement/actions/guard/stun/bind. It adds 18 chakra per second plus ordinary regeneration and costs 12 stamina per second; a hit into a charging opponent gains the normal 20% punish bonus. Water Absorption requires front guard and catches ordinary non-full-pierce projectiles for up to 12 chakra, while melee and bombs counter it. Chakra drains transfer only available enemy chakra that fits below the attacker’s 100 cap; guard prevents the gain. Lifesteal remains based on actual HP damage.

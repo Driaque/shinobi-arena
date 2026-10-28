@@ -1,76 +1,83 @@
-import {createMatch,stepMatch,nextRound,TICK_RATE} from '../../packages/engine/index.js';
+import {randomUUID} from 'node:crypto';
+import {createMatch,stepMatch,nextRound,TICK_RATE,CHARACTERS,MOVES,AWAKENINGS} from '../../packages/engine/index.js';
 import {playerProfile,cleanInput,PROTOCOL_VERSION,RULES_VERSION} from '../../packages/network/protocol.js';
-// One process owns the queue and every match. Clients send intentions, never combat state.
-export function createArena({countdownTicks=180,roundBreakTicks=180,maxClients=200,maxMatches=80}={}){
- const clients=new Set(),queue=[],matches=new Set();let tick=0,nextId=1;
- const send=(client,value)=>{if(clients.has(client))client.send(value);};
- const queueStatus=()=>queue.forEach((c,i)=>send(c,{type:'queued',position:i+1,waiting:queue.length}));
+export function createArena({countdownTicks=180,roundBreakTicks=180,maxClients=200,maxMatches=20,maxSpectators=40,onResult=()=>{},now=()=>Date.now()}={}){
+ const clients=new Set(),queue=[],matches=new Set();let tick=0;
+ const send=(c,value)=>{if(clients.has(c))c.send(value);};
+ const queueStatus=()=>queue.forEach(c=>{const own=queue.filter(p=>p.queueMode===c.queueMode);send(c,{type:'queued',position:own.indexOf(c)+1,waiting:own.length,mode:c.queueMode});});
  function removeQueued(c){const i=queue.indexOf(c);if(i>=0){queue.splice(i,1);queueStatus();}}
- function end(match,reason,leaver=null){
-  if(!matches.delete(match))return;
-  for(const c of match.players){c.match=null;c.input={};c.pending=[];c.ready=false;send(c,{type:'ended',reason,winner:leaver?match.players.indexOf(leaver)===0?1:0:null});}
+ function unwatch(c){if(c.spectating){c.spectating.spectators.delete(c);c.spectating=null;}}
+ const publicPlayers=m=>m.players.map(p=>({...p.profile,playerId:p.playerId??null}));
+ const snapshot=m=>({type:'snapshot',id:m.id,players:publicPlayers(m),state:m.state,phase:m.phase,mode:m.mode,countdown:Math.ceil(m.remaining/TICK_RATE)});
+ function frame(m){const frames=m.replay.frames;if(frames.length>=4500){m.replay.truncated=true;return;}frames.push({at:tick-m.startedTick,phase:m.phase,state:structuredClone(m.state)});}
+ function record(m,reason,winner){
+  if(m.recorded)return;m.recorded=true;frame(m);
+  m.replay.duration=tick-m.startedTick;m.replay.reason=reason;m.replay.winner=winner;
+  const record={id:m.id,createdAt:m.createdAt,mode:m.mode,players:publicPlayers(m),winner,reason,wins:[...m.state.wins],playedTicks:m.playedTicks,replay:m.replay};
+  onResult(record);
+ }
+ function end(m,reason,leaver=null){
+  if(!matches.delete(m))return;
+  if(!m.recorded)record(m,leaver&&m.playedTicks>0?reason:'cancelled',leaver&&m.playedTicks>0?(m.players.indexOf(leaver)===0?1:0):null);
+  for(const c of m.spectators){c.spectating=null;send(c,{type:'ended',reason,id:m.id});}m.spectators.clear();
+  for(const c of m.players){c.match=null;c.input={};c.pending=[];c.ready=false;send(c,{type:'ended',reason,winner:leaver?m.players.indexOf(leaver)===0?1:0:null,id:m.id});}
  }
  function pair(){
-  while(queue.length>=2&&matches.size<maxMatches){
-   const players=queue.splice(0,2),state=createMatch(players.map(c=>c.profile));
-   const match={id:`match-${nextId++}`,players,state,phase:'countdown',remaining:countdownTicks};matches.add(match);
-   players.forEach((c,slot)=>{c.match=match;c.slot=slot;c.ready=false;c.input={};c.pending=[];send(c,{type:'matched',id:match.id,slot,players:players.map(p=>p.profile),state,phase:match.phase,countdown:Math.ceil(match.remaining/TICK_RATE)});});
+  for(const mode of ['casual','ranked'])while(matches.size<maxMatches){
+   const eligible=queue.filter(c=>c.queueMode===mode);if(eligible.length<2)break;
+   const players=eligible.slice(0,2);for(const p of players)queue.splice(queue.indexOf(p),1);
+   const state=createMatch(players.map(c=>c.profile)),id=randomUUID(),createdAt=now();
+   const m={id,createdAt,mode,players,state,spectators:new Set(),phase:'countdown',remaining:countdownTicks,startedTick:tick,playedTicks:0,recorded:false,replay:{schema:1,id,rules:RULES_VERSION,tickRate:TICK_RATE,createdAt,mode,players:players.map(c=>({...c.profile,playerId:c.playerId??null})),catalog:{characters:CHARACTERS,moves:MOVES,awakenings:AWAKENINGS},loadouts:structuredClone(state.loadouts),frames:[],inputs:[],rounds:[],truncated:false}};
+   matches.add(m);frame(m);
+   players.forEach((c,slot)=>{c.match=m;c.slot=slot;c.ready=false;c.input={};c.pending=[];send(c,{...snapshot(m),type:'matched',slot});});
   }
   queueStatus();
  }
- function connect(sendFn){
-  if(clients.size>=maxClients)return null;
-  const c={send:sendFn,match:null,input:{},pending:[],lastInput:tick,lastSeq:-1,budget:0,budgetAt:tick,profile:null,ready:false};clients.add(c);
-  send(c,{type:'hello',protocol:PROTOCOL_VERSION,rules:RULES_VERSION});return c;
- }
+ function connect(sendFn){if(clients.size>=maxClients)return null;const c={send:sendFn,match:null,spectating:null,input:{},pending:[],lastInput:tick,lastSeq:-1,budget:0,budgetAt:tick,profile:null,ready:false,playerId:null};clients.add(c);send(c,{type:'hello',protocol:PROTOCOL_VERSION,rules:RULES_VERSION});return c;}
  function message(c,msg){
-  if(!clients.has(c))return;
-  if(tick-c.budgetAt>=60){c.budget=0;c.budgetAt=tick;}
-  if(++c.budget>180){disconnect(c);return;}
+  if(!clients.has(c))return;if(tick-c.budgetAt>=60){c.budget=0;c.budgetAt=tick;}if(++c.budget>180){disconnect(c);return;}
   try{
    if(!msg||typeof msg!=='object')throw new Error('Invalid message.');
+   if(msg.type==='ping'){send(c,{type:'pong',sent:msg.sent});return;}
+   if(msg.type==='watch'){
+    if(c.match||queue.includes(c))throw new Error('Leave your match or queue before spectating.');
+    if(msg.protocol!==PROTOCOL_VERSION||msg.rules!==RULES_VERSION)throw new Error('Game version changed. Refresh before watching.');
+    const m=[...matches].find(m=>m.id===msg.id);if(!m)throw new Error('Match has ended.');if(m.spectators.size>=maxSpectators)throw new Error('Spectator seats are full.');unwatch(c);c.spectating=m;m.spectators.add(c);send(c,{...snapshot(m),type:'watching'});return;
+   }
+   if(msg.type==='cancel'){unwatch(c);if(c.match)end(c.match,c.match.phase==='matchOver'?'match-complete':'opponent-left',c.match.phase==='matchOver'?null:c);removeQueued(c);send(c,{type:'cancelled'});pair();return;}
+   if(c.spectating)throw new Error('Spectators are read-only.');
    if(msg.type==='join'){
     if(c.match||queue.includes(c))throw new Error('Already in a queue or match.');
     if(msg.protocol!==PROTOCOL_VERSION||msg.rules!==RULES_VERSION)throw new Error('Game version changed. Refresh before joining.');
+    if(c.playerId&&[...clients].some(p=>p!==c&&p.playerId===c.playerId&&(p.match||queue.includes(p))))throw new Error('This player profile is already playing or queued.');
+    c.queueMode=msg.queue==='ranked'?'ranked':'casual';if(c.queueMode==='ranked'&&!c.playerId)throw new Error('Create or restore your player profile for ranked play.');
     c.profile=playerProfile(msg.profile);c.lastSeq=-1;queue.push(c);pair();
-   }else if(msg.type==='cancel'){if(c.match)end(c.match,c.match.phase==='matchOver'?'match-complete':'opponent-left',c.match.phase==='matchOver'?null:c);removeQueued(c);send(c,{type:'cancelled'});pair();}
-   else if(msg.type==='input'){
+   }else if(msg.type==='input'){
     if(!c.match||c.match.phase!=='playing'||c.match.state.status!=='playing')return;
-    if(!Number.isSafeInteger(msg.seq)||msg.seq<=c.lastSeq)return;
-    c.lastSeq=msg.seq;c.lastInput=tick;
-    const input=cleanInput(msg.input);
-    // Keep a bounded ordered set of edge packets until the next simulation tick.
-    // Repeating held state must not repeat a one-shot press/dash.
-    c.pending.push(input);if(c.pending.length>8)c.pending.shift();
+    if(!Number.isSafeInteger(msg.seq)||msg.seq<=c.lastSeq)return;c.lastSeq=msg.seq;c.lastInput=tick;const input=cleanInput(msg.input);c.pending.push(input);if(c.pending.length>8)c.pending.shift();
    }else if(msg.type==='ready'){
     const m=c.match;if(!m||m.phase!=='roundOver')return;c.ready=true;
-    if(m.players.every(p=>p.ready)){nextRound(m.state);m.phase='countdown';m.remaining=countdownTicks;for(const p of m.players){p.input={};p.pending=[];p.ready=false;}}
-   }else if(msg.type==='ping')send(c,{type:'pong',sent:msg.sent});
+    if(m.players.every(p=>p.ready)){nextRound(m.state);m.phase='countdown';m.remaining=countdownTicks;m.replay.rounds.push({at:tick-m.startedTick,state:structuredClone(m.state)});frame(m);for(const p of m.players){p.input={};p.pending=[];p.ready=false;}}
+   }else throw new Error('Unknown message.');
   }catch(error){send(c,{type:'error',message:error.message});}
  }
- function disconnect(c){
-  if(!clients.has(c))return;removeQueued(c);clients.delete(c);c.closed=true;if(c.match)end(c.match,c.match.phase==='matchOver'?'match-complete':'opponent-disconnected',c.match.phase==='matchOver'?null:c);pair();
- }
+ function disconnect(c){if(!clients.has(c))return;unwatch(c);removeQueued(c);clients.delete(c);c.closed=true;if(c.match)end(c.match,c.match.phase==='matchOver'?'match-complete':'opponent-disconnected',c.match.phase==='matchOver'?null:c);pair();}
  function advance(){
   tick++;
   for(const m of matches){
-   if(m.phase==='countdown'){
-    if(--m.remaining<=0)m.phase='playing';
-   }else if(m.phase==='playing'){
-    const inputs=m.players.map(c=>{
-     if(tick-c.lastInput>30){c.input={};c.pending=[];}
-     if(c.pending.length){c.input=c.pending.shift();}
-     const value=c.input;c.input={...value,pressedActions:[]};delete c.input.dashDirection;return value;
-    });
-    stepMatch(m.state,inputs);
-    if(m.state.status==='roundOver'){m.phase='roundOver';m.remaining=roundBreakTicks;}
-    if(m.state.status==='matchOver')m.phase='matchOver';
+   if(m.phase==='countdown'){if(--m.remaining<=0)m.phase='playing';}
+   else if(m.phase==='playing'){
+    const inputs=m.players.map(c=>{if(tick-c.lastInput>30){c.input={};c.pending=[];}if(c.pending.length)c.input=c.pending.shift();const value=c.input;c.input={...value,pressedActions:[]};delete c.input.dashDirection;return value;});
+    if(m.replay.inputs.length<40000){const key=JSON.stringify(inputs),last=m.replay.inputs.at(-1);if(last&&m.lastInputKey===key)last.count++;else m.replay.inputs.push({tick:m.state.tick+1,count:1,inputs:structuredClone(inputs)});m.lastInputKey=key;}else m.replay.truncated=true;
+    stepMatch(m.state,inputs);m.playedTicks++;
+    if(m.state.status==='roundOver'){m.phase='roundOver';m.remaining=roundBreakTicks;frame(m);}
+    if(m.state.status==='matchOver'){m.phase='matchOver';record(m,'completed',m.state.wins[0]>=2?0:1);}
    }
-   if(tick%3===0){for(const c of m.players)send(c,{type:'snapshot',state:m.state,phase:m.phase,countdown:Math.ceil(m.remaining/TICK_RATE)});}
-   // Finished rooms expire even if a player never presses Leave.
+   if(!m.recorded&&tick%12===0)frame(m);
+   if(tick%3===0){const value=snapshot(m);for(const c of [...m.players,...m.spectators])send(c,value);}
    if((m.phase==='roundOver'||m.phase==='matchOver')&&--m.remaining<=-TICK_RATE*120)end(m,'room-expired');
   }
  }
  function close(){for(const m of [...matches])end(m,'server-shutdown');clients.clear();queue.length=0;}
- return {connect,message,disconnect,advance,close,stats:()=>({connections:clients.size,queued:queue.length,matches:matches.size,tick})};
+ return {connect,message,disconnect,advance,close,list:()=>[...matches].filter(m=>m.phase!=='matchOver').map(m=>({id:m.id,mode:m.mode,phase:m.phase,round:m.state.round,wins:m.state.wins,players:publicPlayers(m),spectators:m.spectators.size,capacity:maxSpectators})),stats:()=>({connections:clients.size,queued:queue.length,matches:matches.size,tick,spectators:[...clients].filter(c=>c.spectating).length})};
 }

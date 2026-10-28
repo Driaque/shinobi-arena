@@ -1,3 +1,4 @@
+import {EXTRA_MOVES,SHARED_TECHNIQUES,effectDescription} from './techniques.js';
 import {ITEMS} from './items.js';
 export {ITEMS};
 // Gameplay adaptations. Costs, durations and damage are balance choices, not canon claims.
@@ -54,6 +55,7 @@ export const AWAKENINGS=Object.freeze({
  sage:{name:'Sage Mode',color:'#8bedd5',threshold:400,duration:600,damage:1.15,speed:1.25,defence:.9,regen:.1,overrides:{}}
 });
 export const MOVES = Object.freeze({
+  ...EXTRA_MOVES,
   doraFan1:strike('Dora · Rippling Fan',{startup:5,active:4,recovery:13,damage:65,reach:100,cost:0,knockback:24,cooldown:0,fanStrike:true,element:'metal',color:'#79dce0'}),
   doraFan2:strike('Dora · Crossing Breeze',{startup:5,active:4,recovery:15,damage:50,reach:115,cost:0,knockback:10,cooldown:0,hitstun:20,fanStrike:true,element:'wind',color:'#79dce0'}),
   doraFan3:strike('Dora · Royal Ascent',{startup:8,active:4,recovery:24,damage:90,reach:140,cost:0,knockback:60,cooldown:0,launch:10,hitstun:22,fanStrike:true,element:'wind',color:'#79dce0'}),
@@ -82,13 +84,13 @@ export const MOVES = Object.freeze({
   harmoniousSlash:strike('Harmonious Slash',{damage:125,startup:9,reach:165,pierce:.5,sword:true,element:'metal',color:'#a3ddf3'}),
   echoingRift:strike('Echoing Rift',{damage:70,startup:16,reach:270,knockback:0,pull:90,effect:'metalVulnerable',duration:180,potency:.2,cost:30,element:'metal',color:'#a3ddf3'}),
   tetsugan:strike('Tetsugan · Middle Guard',{startup:8,active:1,recovery:15,damage:0,reach:0,cost:30,buff:'tetsugan',duration:180,cooldown:480}),
-  mizukumi:strike('Mizukumi',{damage:125,startup:9,active:8,dash:12,reach:130,cost:25,sword:true,element:'lightning',color:'#ff627f'}),
-  eclipseDrain:strike('Eclipse Drain',{damage:100,startup:13,reach:160,cost:30,lifesteal:.35,element:'water',color:'#ae8ee8'}),
+  mizukumi:strike('Mizukumi',{damage:125,startup:9,active:8,dash:12,reach:130,cost:25,energyDrain:8,sword:true,element:'lightning',color:'#ff627f'}),
+  eclipseDrain:strike('Eclipse Drain',{damage:100,startup:13,reach:160,cost:30,lifesteal:.35,energyDrain:12,element:'water',color:'#ae8ee8'}),
   shinraiOu:strike('Shinrai Ōu',{startup:8,active:1,recovery:15,damage:0,reach:0,cost:30,buff:'shinrai',duration:300,cooldown:600}),
   ascendantSlash:strike('Ascendant · Harmonious Slash',{damage:145,startup:7,reach:180,pierce:.5,sword:true,element:'metal',color:'#a3ddf3'}),
   ascendantRift:strike('Ascendant · Echoing Rift',{damage:85,startup:13,reach:300,knockback:0,pull:110,effect:'metalVulnerable',duration:180,potency:.2,cost:30,element:'metal',color:'#a3ddf3'}),
-  dominionMizukumi:strike('Dominion · Mizukumi',{damage:145,startup:7,active:8,dash:15,reach:145,cost:25,sword:true,element:'lightning',color:'#ff627f'}),
-  dominionDrain:strike('Dominion · Eclipse Drain',{damage:115,startup:11,reach:180,cost:30,lifesteal:.4,element:'water',color:'#ff627f'}),
+  dominionMizukumi:strike('Dominion · Mizukumi',{damage:145,startup:7,active:8,dash:15,reach:145,cost:25,energyDrain:8,sword:true,element:'lightning',color:'#ff627f'}),
+  dominionDrain:strike('Dominion · Eclipse Drain',{damage:115,startup:11,reach:180,cost:30,lifesteal:.4,energyDrain:15,element:'water',color:'#ff627f'}),
   tachi:strike('Tachi slash',{startup:11,active:5,recovery:25,damage:105,reach:165,cost:0,knockback:38,cooldown:50,sword:true,element:'metal'}),
   kaiken:strike('Kaiken cut',{startup:5,active:4,recovery:13,damage:65,reach:100,cost:0,knockback:20,cooldown:30,sword:true,element:'metal'}),
   attack:{name:'Basic attack',startup:5,active:4,recovery:13,damage:65,reach:90,cost:0,knockback:24},
@@ -132,16 +134,23 @@ export const MOVES = Object.freeze({
   karmaRasengan:strike('Karma Rasengan',{damage:165,startup:10,active:8,dash:12,reach:140,pierce:.5,cost:30,color:'#6fc8ff'}),
   katana:{name:'Katana slash' ,sword:true,element:'metal',startup:10,active:5,recovery:24,damage:100,reach:150,cost:0,knockback:38,cooldown:48}
 });
+const nativeIds=[...new Set(Object.values(CHARACTERS).flatMap(c=>[c.special1,c.special2,c.bloodline]).filter(Boolean))];
+const restricted=new Set(Object.values(CHARACTERS).map(c=>c.bloodline).filter(Boolean));
+export const JUTSUS=Object.freeze(Object.fromEntries([...nativeIds,...SHARED_TECHNIQUES].map(id=>[id,{id,name:MOVES[id].name,element:MOVES[id].element??MOVES[id].ground?.element??'chakra',description:effectDescription(MOVES[id]),owners:restricted.has(id)?Object.values(CHARACTERS).filter(c=>c.bloodline===id).map(c=>c.id):null}])));
+export const canEquipJutsu=(character,id)=>Object.hasOwn(JUTSUS,id)&&(!JUTSUS[id].owners||JUTSUS[id].owners.includes(character));
+export const defaultJutsus=character=>{const c=CHARACTERS[character];return [c.special1,c.special2,c.bloodline??null,null,null,null,null];};
 export function validateLoadout(l){
  if(!l||!Object.hasOwn(CHARACTERS,l.character))throw new Error('Unknown character');
  const weapon=l.weapon??l.weapons?.[0];
- if(!Object.hasOwn(WEAPONS,weapon))throw new Error('Unknown weapon');
+ if(!Object.hasOwn(WEAPONS,weapon))throw new Error('Choose at least one valid weapon');
  const weapons=l.weapons===undefined?[weapon,null]:l.weapons;
- if(!Array.isArray(weapons)||weapons.length!==2||weapons[0]!==weapon||weapons.some((w,i)=>!(i===1&&w===null)&&!Object.hasOwn(WEAPONS,w)))throw new Error('Choose two valid weapon slots');
- const items=l.items===undefined?[null,null,null,null]:l.items;
- if(!Array.isArray(items)||items.length!==4||items.some(id=>id!==null&&!Object.hasOwn(ITEMS,id)))throw new Error('Choose four valid consumable slots');
+ if(!Array.isArray(weapons)||weapons.length<1||weapons.length>2||weapons[0]!==weapon||weapons.some((w,i)=>!(i===1&&w===null)&&!Object.hasOwn(WEAPONS,w)))throw new Error('Choose at most two valid weapons');
+ const items=l.items===undefined?[]:l.items;
+ if(!Array.isArray(items)||items.length>4||items.some(id=>id!==null&&!Object.hasOwn(ITEMS,id)))throw new Error('Choose at most four consumables');
  if(items.filter(id=>id==='raijinKunai').length>1)throw new Error('Carry at most one Flying Raijin Kunai');
- return {character:l.character,weapon,weapons:[...weapons],items:[...items]};
+ const jutsus=l.jutsus===undefined?defaultJutsus(l.character):l.jutsus;
+ if(!Array.isArray(jutsus)||jutsus.length>7||jutsus.some(id=>id!==null&&!canEquipJutsu(l.character,id))||new Set(jutsus.filter(Boolean)).size!==jutsus.filter(Boolean).length)throw new Error('Choose up to seven distinct jutsus; bloodlines must match your fighter');
+ return {character:l.character,weapon,weapons:[weapon,weapons[1]??null],items:[...items,...Array(4-items.length).fill(null)],jutsus:[...jutsus,...Array(7-jutsus.length).fill(null)]};
 }
 export function validateLoadouts(loadouts){
  if(!Array.isArray(loadouts)||loadouts.length!==2)throw new Error('Two loadouts required');
