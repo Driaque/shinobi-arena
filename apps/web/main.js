@@ -72,7 +72,7 @@ function finish(){
     state.status==='matchOver'?'Rematch':'Next round');
 }
 $('#play').addEventListener('click',()=>{
-  if(touch.matches&&portrait.matches)return;
+  if(!$('#rotate').hidden)return;
   if(!started||state.status==='matchOver')state=newMatch(readLoadouts());
   else if(state.status==='roundOver')nextRound(state);
   clearInputs();paused=false;started=true;accumulator=0;lastTime=performance.now();$('#overlay').hidden=true;$('#play').blur();$('#feedback').textContent='';
