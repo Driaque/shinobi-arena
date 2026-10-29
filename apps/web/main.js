@@ -1,3 +1,4 @@
+import {mountIcon} from './packages/ui/jutsu-icons.js';
 import {createGamepads} from './packages/input/gamepad.js';
 import {createExperience,experience,padBindings} from './experience.js';
 import {createPrediction} from './packages/network/prediction.js';
@@ -160,7 +161,7 @@ online=createOnline({getProfile:()=>readLoadouts()[0],onStatus:()=>{
 
 createExperience({onOpen:()=>{clearInputs();pause();},onChange:()=>window.dispatchEvent(new Event('arena:experience'))});
 const netLabel=document.createElement('span');netLabel.id='network-quality';document.querySelector('.topbar').after(netLabel);
-createArenaHub({onTakeover:next=>{online.reset();$('#mode').value='training';$('#mode').dispatchEvent(new Event('change'));next.status='playing';next.result=null;next.training={drill:'free',dummy:'attack',unlimitedResources:false,refillHealth:true,instantCooldowns:false,showRanges:true,step:0,completed:false,feedback:'Replay takeover: practice from the preceding recorded sample as P1.',feedbackUntil:next.tick+240,stats:{damage:0,hits:0,bestCombo:0}};for(const f of next.fighters)f.hp=Math.max(1,f.hp);useTrainingState(next);$('#overlay').hidden=true;paused=false;started=true;clearInputs();},onOpen:()=>{clearInputs();pause();},isBusy:()=>mode==='online'&&['connecting','queued','playing','countdown','roundOver'].includes(online.phase)});
+const arenaHub=createArenaHub({onFight:id=>{online.reset();$('#mode').value='online';$('#mode').dispatchEvent(new Event('change'));online.join({tournamentId:id});},onTakeover:next=>{online.reset();$('#mode').value='training';$('#mode').dispatchEvent(new Event('change'));next.status='playing';next.result=null;next.training={drill:'free',dummy:'attack',unlimitedResources:false,refillHealth:true,instantCooldowns:false,showRanges:true,step:0,completed:false,feedback:'Replay takeover: practice from the preceding recorded sample as P1.',feedbackUntil:next.tick+240,stats:{damage:0,hits:0,bestCombo:0}};for(const f of next.fighters)f.hp=Math.max(1,f.hp);useTrainingState(next);$('#overlay').hidden=true;paused=false;started=true;clearInputs();},onOpen:()=>{clearInputs();pause();},isBusy:()=>mode==='online'&&['connecting','queued','playing','countdown','roundOver'].includes(online.phase)});
 techniqueTray=createTechniqueTray({input:inputs[0],getPlayer:()=>state.fighters[mode==='online'?online.slot:0],isPlaying:()=>started&&!paused&&!controls?.editing&&$('#rotate').hidden&&state.status==='playing'&&(mode!=='online'||online.phase==='playing'),binding:key=>controls.binding(0,key),visible:key=>controls.visible(key)});
 window.addEventListener('blur',()=>{clearInputs();pause();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){clearInputs();pause();}});
@@ -181,6 +182,7 @@ function paintHud(){
   const player=state.fighters[mode==='online'?online.slot:0];
   for(const [key,name,meta,bind] of [['special1','s1-name','s1-meta','U'],['special2','s2-name','s2-meta','I'],['bloodline','bl-name','bl-meta','O']]){
     const move=moveFor(player,key),cooldown=player.cooldowns[key]??0;
+    const control=$(`#${name}`).closest('button');let art=control.querySelector('.technique-art');if(!art){art=document.createElement('span');art.className='technique-art';control.prepend(art);}mountIcon(art,move??'chakra');
     $(`#${name}`).textContent=move?(shortNames[move]??MOVES[move].name.toUpperCase()):'EMPTY SLOT';
     $(`#${meta}`).textContent=move?`${controls?.binding(0,key)??bind} · ${cooldown>0?(cooldown/60).toFixed(1)+'s':MOVES[move].cost}`:`${controls?.binding(0,key)??bind} · NONE`;
   }
@@ -229,6 +231,7 @@ function paintHud(){
   if(mode==='training')$('#p2-help').textContent='Training dummy · Practice configures behavior and challenges';
   const snap=inputs[0].snapshot();buttons.forEach(b=>{
     const key=b.dataset.action,move=moveFor(player,key),cost=key==='replacement'?25:move?MOVES[move].cost:0;
+    if(['special1','special2','bloodline'].includes(key))b.hidden=!controls?.visible(key)||(!controls?.editing&&!move);
     b.disabled=!controls?.editing&&mode!=='training'&&((['special1','special2','bloodline'].includes(key)&&!move)||(key==='awakening'&&!awakeningReady(player))||(key==='swapWeapon'&&!player.weapons[1])||(key==='useItem'&&!move));
     if(!move&&key==='bloodline')b.title='This fighter has no technique in this slot.';
     if(move)b.title=`${MOVES[move].name} · ${MOVES[move].cost} chakra · ${staminaCost(key)} stamina · ${MOVES[move].reach||'projectile'} range`;

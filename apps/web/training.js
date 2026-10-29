@@ -4,6 +4,10 @@ export function createTrainingUI({pause,clearInputs,getState,setState,getLoadout
  const $=s=>document.querySelector(s),dialog=$('#training-dialog');
  const write=(id,value)=>{const node=$(id);if(node.textContent!==value)node.textContent=value;};
  let completed=[];try{const value=JSON.parse(localStorage.getItem('shinobi-arena.drills.v1'));if(Array.isArray(value))completed=[...new Set(value.filter(id=>id!=='free'&&Object.hasOwn(DRILLS,id)))];}catch{}
+ let coachVisible=true;try{coachVisible=localStorage.getItem('shinobi.practice.coach.v1')!=='hidden';}catch{}
+ const coachToggle=document.createElement('button');coachToggle.id='training-coach-toggle';coachToggle.type='button';coachToggle.setAttribute('aria-controls','training-coach');document.querySelector('.tools').append(coachToggle);
+ coachToggle.onclick=()=>{coachVisible=!coachVisible;try{localStorage.setItem('shinobi.practice.coach.v1',coachVisible?'shown':'hidden');}catch{}draw();};
+ const hideCoach=document.createElement('button');hideCoach.type='button';hideCoach.textContent='Hide';hideCoach.id='training-coach-hide';hideCoach.setAttribute('aria-label','Hide practice hints');hideCoach.onclick=()=>coachToggle.click();$('#training-coach').prepend(hideCoach);
  const settings=()=>({drill:$('#training-drill').value,dummy:$('#training-dummy').value,unlimitedResources:$('#training-resources').checked,refillHealth:$('#training-health').checked,instantCooldowns:$('#training-cooldowns').checked,showRanges:$('#training-ranges').checked});
  function options(){
   $('#training-drill').replaceChildren();for(const [id,drill]of Object.entries(DRILLS))$('#training-drill').add(new Option(`${drill.name}${completed.includes(id)?' ✓':''}`,id));
@@ -31,7 +35,7 @@ export function createTrainingUI({pause,clearInputs,getState,setState,getLoadout
  $('#training-reset').addEventListener('click',()=>{if(isTraining()){setState(resetTraining(getState()));clearInputs();$('#training-reset').blur();}});
  function draw(){
   const state=getState(),t=state.training;
-  $('#training-settings').hidden=!isTraining();$('#training-settings').disabled=isEditing();$('#training-reset').hidden=!isTraining();$('#training-reset').disabled=!isStarted()||isEditing();$('#training-coach').hidden=!isTraining();
+  $('#training-settings').hidden=!isTraining();$('#training-settings').disabled=isEditing();$('#training-reset').hidden=!isTraining();$('#training-reset').disabled=!isStarted()||isEditing();$('#training-coach').hidden=!isTraining()||!coachVisible;coachToggle.hidden=!isTraining();coachToggle.textContent=coachVisible?'Hide hints':'Show hints';coachToggle.setAttribute('aria-expanded',String(coachVisible));
   document.body.classList.toggle('training-mode',isTraining());
   if(!isTraining()||!t)return;
   const drill=DRILLS[t.drill];

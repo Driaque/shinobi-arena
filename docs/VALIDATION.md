@@ -129,3 +129,7 @@ Startup/history browser checks simulate repeated 503 health responses, automatic
 ## v0.19 validation
 
 222 unit/integration checks cover expanded proportional bodies, every character’s legal starters/routes, confirmed jutsu cancels versus guard/whiff, meta sample exclusions and persistent store aggregation, applied-input acknowledgements, bounded prediction reconciliation, aimed projectile sanitization, coaching and existing replay/result invariants. The new tactical-experience browser program covers named builds, comfort persistence, crouch guard, recording/playback and replay bookmarks/takeover. All eleven browser programs are required for CI.
+
+## v0.20 validation
+
+230 unit/integration checks include tournament registration concurrency and owner/capacity rules, advancement, duplicate/stale/interrupted results, persisted rewards, daily opportunity caps, signup expiry, exact bracket matchmaking, unique vector jutsu art and stat-equivalent reward moves. Twelve browser programs include independent desktop/mobile tournament profiles, real HTTP/WebSocket signup/start/check-in, server-simulated battle time and forfeit progression, points/gear ownership, rejected unearned equipment, database restart, Practice hint visibility persistence and compact mobile icon bounds.

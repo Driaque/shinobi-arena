@@ -1,4 +1,4 @@
-> **v0.19: More space, tactical jutsu routes, strategy recommendations and learning tools.** [Release notes](docs/releases/0.19.0.md).
+> **v0.20: Compact visual jutsu controls and persistent tournaments with rewards.** [Release notes](docs/releases/0.20.0.md).
 
 # Shinobi Arena
 

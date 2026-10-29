@@ -128,7 +128,7 @@ export function createControls({inputs,onPause,isPlaying}) {
   $('#control-opacity').addEventListener('input',event=>{draft.opacity=Number(event.target.value)/100;applyLayout();});
   $('#control-placement').addEventListener('change',event=>{reset();draft.placement=event.target.value;applyLayout();});
   // Suppress native zoom/scroll only on the live play surface; menus retain normal scrolling.
-  const preventPlayGesture=event=>{if(!editing&&isPlaying()&&!event.target.closest('#overlay,#layout-editor,#jutsu-tray,dialog'))event.preventDefault();};
+  const preventPlayGesture=event=>{if(!editing&&isPlaying()&&!event.target.closest('#overlay,#layout-editor,#jutsu-tray,#training-coach,dialog'))event.preventDefault();};
   for(const type of ['touchstart','touchmove','gesturestart','gesturechange','gestureend','dblclick'])arena.addEventListener(type,preventPlayGesture,{passive:false});
   for(const id of CONTROL_IDS)$('#control-select').add(new Option(ACTION_LABELS[id],id));
   $('#control-select').addEventListener('change',event=>select(event.target.value));

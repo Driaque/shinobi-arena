@@ -1,6 +1,6 @@
 import {ACTIONS} from '../input/index.js';
 import {CHARACTERS,WEAPONS,validateLoadout,RULES_VERSION} from '../engine/index.js';
-export const PROTOCOL_VERSION=5;
+export const PROTOCOL_VERSION=6;
 export {RULES_VERSION};
 export function playerProfile(value){
   if(!value||typeof value.name!=='string')throw new Error('Enter a player name.');

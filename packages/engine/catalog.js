@@ -44,6 +44,7 @@ export const CHARACTERS = Object.freeze({
 
 });
 export const WEAPONS = Object.freeze({
+  championKatana:{id:'championKatana',name:'Champion’s Katana',move:'katana',unlock:'championKatana',description:'Tournament champion reward · gold finish · same stats as Katana'},
   fans:{id:'fans',name:'Bladed Fans',move:'fanStrike',description:'Sweeping metal fans · 85 damage · 145 reach'},
   kunai:{ id:'kunai',name:'Kunai',move:'kunai',description:'Quick close-range thrust · 75 damage' },
   shuriken:{ id:'shuriken',name:'Shuriken',move:'shuriken',description:'Ranged throw · 55 damage · no chakra cost' },

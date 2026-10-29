@@ -1,5 +1,9 @@
 # Release notes
 
+## 0.20.0
+
+Toggleable Practice hints, 64 shared jutsu pictograms and compact mobile icon controls. Persistent player-created tournaments with signups, bracket battles, automatic progression, points and exclusive balanced equipment variants. [Release notes](docs/releases/0.20.0.md).
+
 ## 0.19.0
 
 Expanded arena, proportionate smaller fighters, tactical jutsu routes and strategy advisor, named builds, bounded rated-match meta statistics, comfort/aiming settings, coaching, recorded Practice and replay takeover, plus optional reconciled online movement prediction. [Release notes](docs/releases/0.19.0.md).
