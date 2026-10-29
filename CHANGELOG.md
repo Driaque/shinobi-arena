@@ -1,5 +1,9 @@
 # Release notes
 
+## 0.17.0
+
+Held crouch guards survive blocked-hit recovery; explicit low-guard HUD and mobile two-finger support. Fighters and corresponding body collisions are 12% smaller, preserving old replay scale. [Release notes](docs/releases/0.17.0.md).
+
 ## 0.16.0
 
 Launcher jump cancels, aerial basic strings, four aerial strategy techniques, bounded juggles, smoother air steering and visual interpolation. Detailed fighter poses and Moonlit Shrine scenery. [Release notes](docs/releases/0.16.0.md).

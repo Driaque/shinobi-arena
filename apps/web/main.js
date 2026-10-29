@@ -195,12 +195,13 @@ function paintHud(){
     $(`#combo${i}`).textContent=f.combo.hits>1&&state.tick-f.combo.lastTick<60?`${f.y>0?'AIR · ':''}${f.combo.hits} HITS · ${f.combo.damage} DAMAGE`:'';
     $(`#name${i}`).textContent=mode==='online'&&onlinePlayers[i]?`${onlinePlayers[i].name} · ${f.name}`:f.name.toUpperCase();
     const labels=[...f.effects.map(e=>`${e.type==='metalVulnerable'?'METAL EXPOSED':e.type==='poisonslow'?'POISON-SLOW':e.type.toUpperCase()} ${(e.remaining/60).toFixed(1)}s`),...f.buffs.map(b=>`${({aquaGuard:'TRIUNE FLOW',tetsugan:'TETSUGAN GUARD',counter:'COUNTER READY',shinrai:'SHINRAI ŌU',poisonCoating:'POISON COATED'})[b.type]??b.type.toUpperCase()} ${(b.remaining/60).toFixed(1)}s`)];
+    if(f.crouching&&f.blocking)labels.push('CROUCH GUARD');
     if(f.invulnerable>0)labels.push('SUBSTITUTION');
     $(`#effects${i}`).textContent=labels.join(' · ');
     $(`#hp${i}`).textContent=Math.ceil(f.hp);$(`#health${i}`).style.width=`${f.hp/10}%`;$(`#chakra${i}`).style.width=`${f.chakra}%`;
     $(`#wins${i}`).textContent=[0,1].map(n=>n<state.wins[i]?'●':'○').join(' ');
   });
-  $('#movement-state').textContent=player.charging?'CHARGING CHAKRA':player.effects.some(e=>e.type==='bind')?'BOUND':player.crouching?'CROUCH':player.dash?(player.dash.air?'AIR DASH':'DASH'):player.y>0?`AIR · ${player.jumps}/2 JUMPS`:'';
+  $('#movement-state').textContent=player.charging?'CHARGING CHAKRA':player.effects.some(e=>e.type==='bind')?'BOUND':player.crouching?(player.blocking?'CROUCH GUARD':'CROUCH'):player.dash?(player.dash.air?'AIR DASH':'DASH'):player.y>0?`AIR · ${player.jumps}/2 JUMPS`:'';
   $('#canvas').setAttribute('aria-label',`${state.fighters[0].name} versus ${state.fighters[1].name}. ${$('#movement-state').textContent}`);
   $('#timer').textContent=mode==='training'?'∞':Math.ceil(state.remainingTicks/TICK_RATE).toString().padStart(2,'0');
   $('#round').textContent=mode==='training'?'PRACTICE':`ROUND ${state.round.toString().padStart(2,'0')}`;

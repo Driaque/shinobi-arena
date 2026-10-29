@@ -1,4 +1,4 @@
-> **v0.16: Aerial combat and Moonlit Shrine.** 58-jutsu library, launcher jump chases, air strings, fluid poses and richer procedural art. [Release notes](docs/releases/0.16.0.md).
+> **v0.17: Crouch guard, aerial combat and Moonlit Shrine.** 58-jutsu library, launcher jump chases, air strings, fluid poses and richer procedural art. [Release notes](docs/releases/0.17.0.md).
 
 
 # Shinobi Arena
@@ -100,7 +100,7 @@ CI and deployment run unit checks, build and browser checks before publishing.
 `packages/engine` owns combat; `packages/input` owns independent input sources and quick-tap capture;
 `apps/web` owns browser events and procedural rendering. Neither engine nor input library imports the DOM.
 `apps/server` owns the online queue and authoritative matches; `packages/network` validates the wire protocol.
-Simulation rules version: `duel-0.16.0`.
+Simulation rules version: `duel-0.17.0`.
 
 See [project plan](docs/PROJECT_PLAN.md), [combat rules](docs/COMBAT_RULES.md), [character kits](docs/CHARACTER_KITS.md),
 [mobile design](docs/MOBILE_DESIGN.md), [control settings](docs/CONTROL_SETTINGS.md), [architecture](docs/ARCHITECTURE.md),
