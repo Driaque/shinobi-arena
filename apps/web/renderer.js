@@ -73,6 +73,10 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
     const dark=orange?'#223446':'#242d48', skin=character.skin??(f.character==='silent'?'#d6c2b4':'#e6b18b');
     if(f.character==='dora'){c.fillStyle=character.hair;c.beginPath();c.moveTo(-19,-130);c.quadraticCurveTo(-46,-85,-28,form?-20:-48);c.lineTo(8,form?-25:-52);c.lineTo(13,-125);c.fill();}
     if(['silent','winta'].includes(f.character)){c.fillStyle=character.hair;c.beginPath();c.moveTo(-17,-134);c.quadraticCurveTo(-39-pose.trail,-98,-31-pose.trail,-63);c.lineTo(-13,-75);c.lineTo(3,-123);c.fill();for(let strand=0;strand<4;strand++)line(-19-strand*3,-117,-27-strand*3-pose.trail,-70+strand*3,'#ffffff22',1);}
+    // Recognizable back silhouettes sit behind the articulated limbs.
+    if(character.id==='gaara'){c.fillStyle='#a9936b';c.beginPath();c.ellipse(-27,-71,20,29,-.2,0,Math.PI*2);c.ellipse(-31,-106,13,18,-.2,0,Math.PI*2);c.fill();line(-43,-83,-12,-76,'#4d3d37',4);line(-43,-66,-11,-61,'#4d3d37',3);}
+    if(['itachi','orochimaru','minato'].includes(character.id)){c.fillStyle=character.id==='minato'?'#dfd5b7':character.id==='itachi'?'#162532':'#a29c8b';c.beginPath();c.moveTo(-25,-98);c.lineTo(-38-pose.trail*.5,-13);c.lineTo(34,-15);c.lineTo(22,-96);c.fill();line(-35-pose.trail*.5,-17,30,-19,character.id==='itachi'?'#9f5261':'#a87961',3);}
+    if(['sasuke','sarada','minato'].includes(character.id))line(-30,-36,4,-121,'#25394b',6);
     // Bent legs, sandals and torso.
     line(-12,-48,-15-stride,pose.backKnee,dark,17);line(-15-stride,pose.backKnee,-16+stride,-6+pose.foot,cloth,13);
     line(11,-48,14+stride,pose.knee,dark,17);line(14+stride,pose.knee,20-stride,-6+pose.foot,cloth,13);
@@ -87,6 +91,10 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
     for(let i=0;i<3;i++)line(-18,-77+i*6,-6,-74+i*6,'#00000038',2);
     c.fillStyle='#182632';c.fillRect(-27,-57,12,14);line(-25,-55,-17,-55,trim,2);circle(3,-54,3,'#b2a184');
     line(-5,-52,-19-pose.trail,-36,'#263c50',4);line(-4,-52,-12-pose.trail,-29,'#63798c',3);
+    if(character.id==='naruto'){c.fillStyle='#253449';c.fillRect(-22,-89,13,23);line(1,-88,1,-60,'#f3d7a0',2);circle(1,-77,2,'#243648');}
+    if(['sasuke','boruto','kawaki'].includes(character.id)){line(-19,-94,-10,-82,'#343648',7);line(14,-94,8,-81,'#343648',7);line(-19,-56,22,-56,character.id==='sasuke'?'#9b85b8':'#d6a4bd',5);}
+    if(['silent','winta','madara','kakashi'].includes(character.id)){const armor=character.id==='kakashi'?'#637e68':character.id==='silent'?'#6a8b9e':'#8c4c56';for(let plate=0;plate<3;plate++){c.fillStyle=armor;c.fillRect(-19,-86+plate*9,35,7);line(-17,-84+plate*9,13,-84+plate*9,'#ffffff2b',1);}for(const side of [-1,1]){c.fillStyle=armor;c.beginPath();c.moveTo(side*16,-94);c.lineTo(side*30,-89);c.lineTo(side*30,-76);c.lineTo(side*18,-82);c.fill();line(side*20,-91,side*28,-88,'#cad5d455',2);}}
+    if(['lee','hinata','sakura'].includes(character.id)){for(let wrap=0;wrap<3;wrap++){line(-19+stride,-18+pose.foot+wrap*4,-9+stride,-18+pose.foot+wrap*4,'#d5d9cd',2);line(15-stride,-18+pose.foot+wrap*4,24-stride,-18+pose.foot+wrap*4,'#d5d9cd',2);}}
     const armY=pose.armY,armX=pose.armX;
     if(pose.weight>.2&&(action?.move==='attack3'||action?.move==='airAttack3')){line(10,-48,66,-66,cloth,16);line(66,-66,93,-96,dark,13);}
     line(-14,-86,-27,-64,dark,13);line(-27,-64,-16,-52,skin,11);
@@ -98,6 +106,9 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
     c.closePath();c.fill();
     if(character.id==='dora'){line(-17,-123,16,-123,'#dfbe75',3);circle(3,-124,3,'#8ce5df');}
     else{line(-17,-120,16,-120,'#304257',9);line(-9,-120,10,-120,'#9eafb9',6);}circle(8,-110,2,'#21334b');line(5,-114,13,-114,'#34303b',1.5);line(14,-107,17,-104,'#a97362',1);line(4,-99,11,-99,'#a77565',1);circle(-16,-109,4,skin);
+    if(character.id==='naruto')for(const y of [-108,-104]){line(-12,y,-4,y+2,'#966d50',1);line(9,y+1,16,y-1,'#966d50',1);}
+    if(character.id==='itachi'){line(-10,-113,-8,-102,'#665764',1);circle(-18,-70,7,'#ad5361');circle(-10,-70,6,'#ad5361');line(-23,-65,-5,-65,'#d58a8c',1);}
+    if(character.id==='silent'){line(-28,-72,-36,-34,'#273f55',8);line(-36,-34,-49-pose.trail,-23,'#668396',4);}
     // Headband ribbons trail behind the fighter.
     line(-19,-120,-41-pose.trail,-113+Math.sin(phase)*4,dark,4);line(-19,-119,-42-pose.trail,-125+Math.cos(phase)*4,dark,4);
     if(f.blocking || state.tick-f.lastHit<5&&f.blockedHit){c.strokeStyle='#80d6eb';c.lineWidth=4;c.beginPath();c.ellipse(26,-70,30,65,0,-1.4,1.4);c.stroke();}
