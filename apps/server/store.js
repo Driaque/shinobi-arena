@@ -31,19 +31,20 @@ export async function createStore({databaseURL=process.env.DATABASE_URL,filename
   const ids=record.players.map(p=>p.playerId??null),pairKey=ids.every(Boolean)?[...ids].sort().join(':'):record.id;
   const day=new Date(record.createdAt);day.setUTCHours(0,0,0,0);
   const pairCount=Number((await q('SELECT COUNT(*) AS n FROM matches WHERE pair_key=$1 AND ranked=1 AND created_at>=$2',[pairKey,day.getTime()]))[0].n);
-  const ranked=record.mode==='ranked'&&ids.every(Boolean)&&ids[0]!==ids[1]&&record.reason!=='cancelled';
+  const benchmark=record.tournament?.benchmark===true;
+  const ranked=!benchmark&&record.mode==='ranked'&&ids.every(Boolean)&&ids[0]!==ids[1]&&record.reason!=='cancelled';
   const enough=record.playedTicks>=1200,eligible=ranked&&pairCount<3;
   const players=await Promise.all(ids.map(async id=>id?(await q('SELECT * FROM players WHERE id=$1',[id]))[0]:null));
   const deltas=[0,0];
   if(eligible&&players.every(Boolean)){
    for(let i=0;i<2;i++){const score=record.winner===null?.5:record.winner===i?1:0;const expected=1/(1+10**((players[1-i].rating-players[i].rating)/400));deltas[i]=enough?Math.round(24*(score-expected)):record.winner!==null&&record.winner!==i?-12:0;}
   }
-  for(let i=0;i<2;i++)if(players[i]&&record.reason!=='cancelled'){
+  for(let i=0;i<2;i++)if(!benchmark&&players[i]&&record.reason!=='cancelled'){
    const won=record.winner===i,lost=record.winner!==null&&!won,draw=record.winner===null;
    await q('UPDATE players SET games=games+1,wins=wins+$1,losses=losses+$2,draws=draws+$3,rating=rating+$4,rated_games=rated_games+$5 WHERE id=$6',[Number(won),Number(lost),Number(draw),deltas[i],Number(eligible&&(enough||lost)),ids[i]]);
   }
   const result={winner:record.winner,reason:record.reason,wins:record.wins,mode:record.mode,playedTicks:record.playedTicks,ratingDelta:deltas,rated:eligible&&enough,rankingNote:!ranked?'Casual or cancelled':pairCount>=3?'Pair limit: first 3 ranked matches per day affect rating':!enough?'Under 20 seconds: no winner reward; forfeiting player loses 12 rating':'Rated'};
-  if(record.tournament){result.tournament=record.tournament;result.rankingNote='Tournament · Elo unchanged';}
+  if(record.tournament){result.tournament=record.tournament;result.rankingNote=benchmark?'Character benchmark · player standings and rewards unchanged':'Tournament · Elo unchanged';}
   const archive=gzipSync(Buffer.from(JSON.stringify(record.replay)),{level:6});if(archive.length>4*1024*1024)throw new Error('Replay exceeds archive limit');
   await q('INSERT INTO matches(id,created_at,rules,participants,result,archive,pair_key,ranked) VALUES($1,$2,$3,$4,$5,$6,$7,$8)',[record.id,record.createdAt,record.replay.rules,JSON.stringify(record.players),JSON.stringify(result),archive,pairKey,Number(ranked)]);
   await tournaments.complete(q,record);

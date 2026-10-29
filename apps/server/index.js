@@ -28,7 +28,7 @@ export function createOnlineServer({origins=[],port=Number(process.env.PORT||417
    if(req.method==='OPTIONS'){res.writeHead(204,{'Access-Control-Allow-Headers':'Authorization, Content-Type','Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Max-Age':'600'}).end();return;}
    try{
     const store=await storeReady;
-    if(req.method==='GET'&&url.pathname==='/api/status'){reply(res,200,{storage:store.kind,durable:store.durable,rankedAvailable:store.durable&&storageHealthy,expiresAt:storageExpiresAt,replayRetentionDays:14,maxReplays:200,tournamentsAvailable:Boolean(store.tournaments&&store.durable&&storageHealthy)});return;}
+    if(req.method==='GET'&&url.pathname==='/api/status'){reply(res,200,{storage:store.kind,durable:store.durable,rankedAvailable:store.durable&&storageHealthy,expiresAt:storageExpiresAt,replayRetentionDays:14,maxReplays:200,tournamentsAvailable:Boolean(store.tournaments&&store.durable&&storageHealthy),characterBenchmarksAvailable:Boolean(store.tournaments&&store.durable&&storageHealthy)});return;}
     if(req.method==='GET'&&url.pathname==='/api/meta'){reply(res,200,await store.meta());return;}
     if(url.pathname==='/api/tournaments'||url.pathname.startsWith('/api/tournaments/')){
      if(!store.tournaments){reply(res,503,{error:'Tournaments are unavailable.'});return;}
@@ -70,7 +70,7 @@ export function createOnlineServer({origins=[],port=Number(process.env.PORT||417
     const store=await storeReady;client.tournament=null;if(msg.queue==='ranked'&&(!store.durable||!storageHealthy))throw new Error('Ranked storage is temporarily unavailable. Casual play is available.');
     if(msg.token){const identity=await store.identity(msg.token);if(!identity)throw new Error('Player profile expired. Restore or create a profile.');client.playerId=identity.id;const profile=playerProfile(msg.profile);await store.rename(identity.id,profile.name);}
     const profile=playerProfile(msg.profile);await store.tournaments?.validateEquipment(client.playerId,profile);
-    if(msg.tournamentId){if(!store.durable||!storageHealthy||!client.playerId)throw new TournamentError('Tournament play requires a saved profile and persistent storage.');await tournamentAction(async()=>{client.tournament=await store.tournaments.prepare(msg.tournamentId,client.playerId);arena.message(client,msg);});return;}
+    if(msg.tournamentId){if(!store.durable||!storageHealthy||!client.playerId)throw new TournamentError('Tournament play requires a saved profile and persistent storage.');await tournamentAction(async()=>{client.tournament=await store.tournaments.prepare(msg.tournamentId,client.playerId,profile.character);arena.message(client,msg);});return;}
    }arena.message(client,msg);if(client.closed)ws.close(1008,'Rate limit exceeded');}catch(e){if(e instanceof SyntaxError)ws.close(1008,'Invalid JSON');else if(ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:'error',message:e instanceof TournamentError||e.message?.startsWith('Player profile')||e.message?.startsWith('Ranked storage')?e.message:'Unable to join. Check your profile and loadout.'}));}});});
   ws.on('pong',()=>{alive=true;});const handshakeTimeout=setTimeout(()=>{if(!client.profile&&!client.spectating)ws.close(1008,'Join timeout');},30000);handshakeTimeout.unref();const heartbeat=setInterval(()=>{if(!alive){ws.terminate();return;}alive=false;ws.ping();},10000);heartbeat.unref();
   ws.on('error',()=>{});ws.on('close',()=>{clearInterval(heartbeat);clearTimeout(handshakeTimeout);arena.disconnect(client);});
