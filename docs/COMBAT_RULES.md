@@ -139,3 +139,7 @@ Charge is held, grounded and stationary, requires stamina, and stops for movemen
 A confirmed launcher can jump-cancel its action using the existing jump buffer and normal two-jump allowance. Guard, whiff, bind and hitstun do not qualify. Airborne Basic selects its own three-stage chain; clean confirms can cancel into compatible equipped jutsus. Sky Cleave additionally confirms into a distinct equipped jutsu. Ground fields and stationary utility actions require the floor. Aerial-only attacks cancel on landing with six ticks of landing recovery.
 
 Each fighter gets four air attack starts per landing, including paid jutsus, weapons and projectiles. A second jump does not replenish this budget. Four damaging hits against an already airborne victim trigger a downward recovery: further aerial hits, including simultaneous projectile packets, are ignored until landing. Replacement can escape hitstun throughout. These checks run in the authoritative simulation; animation interpolation cannot change collision or action eligibility.
+
+## Crouch guard and scaled bodies (v0.17)
+
+Crouch + Guard retains the low stance and held shield through blocked-hit recovery; no attack or voluntary movement is permitted during recovery. Ordinary hitstun and guard breaks disable defending; crouch alone does not block. Live fighter scale is 0.88, shared by rendering, push collision, projectile bodies/spawns and melee vertical tolerance. Archived fighters without an explicit scale use 1.0 to retain their original presentation. Attack reach and locomotion speed remain unchanged.

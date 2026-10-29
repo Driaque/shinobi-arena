@@ -1,6 +1,6 @@
 import {fighterPose,interpolateFighter} from './motion.js';
 import {actionPhase} from './packages/engine/training.js';
-import { ARENA, MOVES as LIVE_MOVES, CHARACTERS as LIVE_CHARACTERS, AWAKENINGS as LIVE_AWAKENINGS } from './packages/engine/index.js';
+import { ARENA, fighterBody, MOVES as LIVE_MOVES, CHARACTERS as LIVE_CHARACTERS, AWAKENINGS as LIVE_AWAKENINGS } from './packages/engine/index.js';
 export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACTERS,awakenings=LIVE_AWAKENINGS}={}) {
   const MOVES=moves,CHARACTERS=characters;
   const activeAwakening=f=>f.awakeningTicks>0?awakenings[CHARACTERS[f.character].awakening]:null;
@@ -62,7 +62,8 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
       else if(f.character!=='naruto')for(let r=0;r<5;r++)line(-45+r*23,-15,-45+r*23,-170-(r%2)*30,form.color+'77',2);
       c.restore();
     }
-    if(!ghost){c.fillStyle='#0005';c.beginPath();c.ellipse(0,f.y,Math.max(19,39-f.y*.05),7,0,0,Math.PI*2);c.fill();}
+    if(!ghost){c.fillStyle='#0005';c.beginPath();c.ellipse(0,f.y,Math.max(17,39*(f.scale??1)-f.y*.05),7,0,0,Math.PI*2);c.fill();}
+    c.scale(f.scale??1,f.scale??1);
     const action=f.action, move=action?MOVES[action.move]:null;
     const attacking=action && action.age>=move.startup && action.age<move.startup+move.active;
     const pose=fighterPose(f,state.tick,move,reducedMotion.matches),phase=state.tick*.29,stride=pose.stride;
@@ -203,7 +204,7 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
         const color=phase.name==='Active'?'#ff8d77':phase.name==='Recovery'?'#ffd17d':'#79dbc7';
         c.save();c.strokeStyle=color;c.fillStyle=color+'19';c.lineWidth=2;c.setLineDash([7,5]);
         if(!m.projectile&&!m.buff){const x=f.facing===1?f.x:f.x-m.reach;c.fillRect(x,ground-100,m.reach,100);c.strokeRect(x,ground-100,m.reach,100);}
-        c.strokeStyle='#b9d5eb66';c.strokeRect(f.x-26,ground-(f.crouching?76:120),52,f.crouching?76:120);c.setLineDash([]);
+        c.strokeStyle='#b9d5eb66';c.strokeRect(f.x-fighterBody(f).width/2,ground-fighterBody(f).height,fighterBody(f).width,fighterBody(f).height);c.setLineDash([]);
         c.font='bold 13px system-ui';c.textAlign='center';c.fillStyle=color;c.fillText(`${phase.name.toUpperCase()}${phase.remaining?' · '+phase.remaining+'f':''}`,f.x,ground-165);c.restore();
       }
     }

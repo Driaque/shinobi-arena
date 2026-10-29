@@ -1,0 +1,19 @@
+import {chromium} from 'playwright';import {spawn} from 'node:child_process';import assert from 'node:assert/strict';import {mkdir} from 'node:fs/promises';
+const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'4193'},stdio:['ignore','pipe','inherit']});let browser;
+try{
+ await new Promise((resolve,reject)=>{server.stdout.once('data',resolve);server.once('error',reject);});browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH,args:['--no-sandbox','--disable-dev-shm-usage']}: {})});await mkdir('test-results',{recursive:true});const errors=[];
+ for(const mobile of [false,true]){
+  const context=await browser.newContext({viewport:mobile?{width:844,height:390}:{width:1440,height:960},isMobile:mobile,hasTouch:mobile}),p=await context.newPage();p.on('pageerror',e=>errors.push(e.message));await p.clock.install({time:new Date('2030-01-01T00:00:00Z')});await p.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));await p.goto('http://127.0.0.1:4193');await p.selectOption('#mode','training');await p.click('#play');await p.clock.runFor(32);await p.click('#training-settings');await p.selectOption('#training-dummy','attack');await p.uncheck('#training-health');await p.uncheck('#training-ranges');await p.click('#training-start');
+  let cdp,down;
+  if(mobile){const box=await p.locator('[data-control=stick]').boundingBox(),guard=await p.locator('[data-control=block]').boundingBox();cdp=await context.newCDPSession(p);const center={x:box.x+box.width/2,y:box.y+box.height/2,id:1,radiusX:4,radiusY:4};down={...center,y:center.y+box.height*.42};await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[center]});await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[down]});await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[down,{x:guard.x+guard.width/2,y:guard.y+guard.height/2,id:2,radiusX:4,radiusY:4}]});}
+  else{await p.keyboard.down('KeyS');await p.keyboard.down('KeyK');}
+  // Observe every frame across a real blocked hit and its recovery, not just idle stance.
+  await p.clock.runFor(32);let damaged=false;for(let frame=0;frame<38;frame++){await p.clock.runFor(16);assert.equal(await p.locator('#movement-state').innerText(),'CROUCH GUARD',JSON.stringify({mobile,frame,hp:await p.locator('#hp0').innerText(),phase:await p.locator('#training-readout').innerText()}));if(Number(await p.locator('#hp0').innerText())<1000)damaged=true;}
+  // Dummy attacks on a 150-frame cadence; cover its next swing if the first preceded setup.
+  if(!damaged){await p.clock.runFor(1900);for(let frame=0;frame<30;frame++){await p.clock.runFor(16);assert.equal(await p.locator('#movement-state').innerText(),'CROUCH GUARD',JSON.stringify({mobile,frame,hp:await p.locator('#hp0').innerText(),phase:await p.locator('#training-readout').innerText()}));if(Number(await p.locator('#hp0').innerText())<1000)damaged=true;}}
+  assert.equal(damaged,true);assert.ok(Number(await p.locator('#hp0').innerText())>950);await p.screenshot({path:`test-results/crouch-shield-${mobile?'mobile':'desktop'}.png`});
+  if(mobile){await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await p.clock.runFor(32);assert.equal(await p.locator('#movement-state').innerText(),'');}else{await p.keyboard.up('KeyK');await p.clock.runFor(32);assert.equal(await p.locator('#movement-state').innerText(),'CROUCH');await p.keyboard.up('KeyS');}
+  await p.clock.runFor(32);await context.close();
+ }
+ assert.deepEqual(errors,[]);console.log('Crouch shield/scale browser checks passed: keyboard and simultaneous mobile analog + Guard, chip damage, continuous low guard through block recovery, release semantics and detailed scaled scene.');
+}finally{await browser?.close();server.kill();}
