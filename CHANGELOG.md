@@ -1,5 +1,11 @@
 # Release notes
 
+## 0.22.0
+
+- Completed tournaments show a champion, first runner-up and shared second runners-up when no bronze match was played.
+- Tournament polling checks for updates without rebuilding the results view; readers choose when to refresh.
+- Canonical play links and a direct-backend reminder point to the static splash-first entry without redirecting or migrating private profiles.
+
 ## 0.21.1
 
 - Publish the exact successful main CI artifact to Pages, with trusted-event and current-commit checks, instead of repeating browser tests during publishing.

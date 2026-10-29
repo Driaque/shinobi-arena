@@ -1,4 +1,5 @@
 (()=>{
+ const originNote=document.querySelector('#launch-origin-note');if(originNote)originNote.hidden=location.hostname!=='shinobi-arena-online.onrender.com';
  const splash=document.querySelector('#startup-splash'),status=document.querySelector('#startup-status'),detail=document.querySelector('#startup-detail'),game=document.querySelector('#game');
  if(!splash)return;let ready=document.documentElement.dataset.gameReady==='true',online=false,offline=false,done=false,trying=false,timer,start=performance.now(),attempts=0;
  const announce=(text,extra)=>{status.textContent=text;detail.textContent=extra;};

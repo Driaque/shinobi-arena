@@ -137,3 +137,7 @@ Startup/history browser checks simulate repeated 503 health responses, automatic
 ## v0.21 character benchmark
 
 League tests cover all 28 unique opponent pairs, seven disjoint rounds, balanced sides, deterministic standings and knockout exclusion, complete 35-match progression, quarterfinal seed paths, duplicate result idempotency, interrupted-result retries, character locks, withdrawal rejection and zero changes to player Elo/statistics/rewards. Existing eight-player knockout/reward suites remain required. A browser fixture checks desktop/mobile standings and seeded round labels, plus opening a real archived replay directly from its pairing.
+
+## v0.22 results and launch validation
+
+Placement tests cover two-player podiums, shared semifinalist third place, exclusion of league standings, incomplete-event suppression and immutable result inputs. Desktop/mobile league browser checks hold a card reference, scroll position, keyboard focus, expanded signup section and unsubmitted input across a real changed-data polling interval, then explicitly refresh and open an archived replay. Startup tests verify canonical/static play links, branded splash preservation when a backend responds with provider HTML, and a direct-backend reminder that preserves the current origin and browser state. Existing combat/browser suites remain required.
