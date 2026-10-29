@@ -1,3 +1,4 @@
+import {experience} from './experience.js';
 import {createStickGestures} from './packages/input/analog.js';
 import { ACTIONS } from './packages/input/index.js';
 import { STORAGE_KEY, VISIBILITY_IDS, CONTROL_IDS, DEFAULT_KEYS, freshSettings, readSettings, stickVector, defaultLayout, defaultDockLayout, layoutProfile, projectControl, layoutOverlaps, rebind, keyLabel, keyForAction } from './packages/input/preferences.js';
@@ -7,7 +8,7 @@ export function createControls({inputs,onPause,isPlaying}) {
   const nodes=Object.fromEntries(CONTROL_IDS.map(id=>[id,$(`[data-control="${id}"]`)]));
   const editor=$('#layout-editor'),keysDialog=$('#keys-dialog'),overlay=$('#overlay');
   let settings;try{settings=readSettings(localStorage.getItem(STORAGE_KEY));}catch{settings=freshSettings();}
-  const gestures=createStickGestures();
+  const gestures=createStickGestures(()=>({doublePullMs:experience().doublePullMs}));
   let draft=null,editing=false,selected='stick',drag=null,stickPointer=null,listening=null,previousOverlay=false;
   const current=()=>draft??settings;
   const dimensions=()=>({width:arena.clientWidth,height:arena.clientHeight});
@@ -27,7 +28,7 @@ export function createControls({inputs,onPause,isPlaying}) {
     $('#control-placement').value=current().placement;
     for(const [id,node]of Object.entries(nodes)){
       node.hidden=current().visibility[id]===false;
-      const p=projectControl(positions[id],width,height,id,current().placement);
+      const raw=positions[id],p=projectControl(experience().leftHanded?{...raw,x:1-raw.x}:raw,width,height,id,current().placement);
       Object.assign(node.style,{left:`${p.x}px`,top:`${p.y}px`,width:`${p.size}px`,height:`${p.size}px`});
       node.classList.toggle('selected-control',editing&&selected===id);
     }
@@ -56,10 +57,10 @@ export function createControls({inputs,onPause,isPlaying}) {
     if(stickPointer!==event.pointerId)return;
     const r=stick.getBoundingClientRect(),radius=r.width*.36;
     const dx=event.clientX-r.left-r.width/2,dy=event.clientY-r.top-r.height/2;
-    const vector=stickVector(dx,dy,radius),distance=Math.hypot(dx,dy),limit=distance>radius?radius/distance:1;
-    const intent=gestures.update(vector,performance.now());
+    const vector=stickVector(dx,dy,radius,experience().deadZone),distance=Math.hypot(dx,dy),limit=distance>radius?radius/distance:1;
+    vector.x=Math.max(-1,Math.min(1,vector.x*experience().sensitivity));vector.y=Math.max(-1,Math.min(1,vector.y*experience().sensitivity));const intent=gestures.update(vector,performance.now());
     inputs[0].setAxis('stick',intent.moveX);
-    inputs[0].setDepth('stick',vector.y);
+    inputs[0].setDepth('stick',intent.moveZ);
     if(intent.dashDirection)inputs[0].dash(intent.dashDirection);
     stick.style.setProperty('--stick-x',`${dx*limit}px`);stick.style.setProperty('--stick-y',`${dy*limit}px`);
     stick.classList.toggle('active',Math.hypot(vector.x,vector.y)>.01);
@@ -70,7 +71,7 @@ export function createControls({inputs,onPause,isPlaying}) {
       if(!isPlaying()||node.disabled)return;
       if(id==='stick'){
         if(stickPointer!==null)return;
-        event.preventDefault();stickPointer=event.pointerId;node.setPointerCapture(event.pointerId);moveStick(event);
+        event.preventDefault();if(experience().floating){const r=arena.getBoundingClientRect();stick.style.left=Math.max(48,Math.min(r.width-48,event.clientX-r.left))+'px';stick.style.top=Math.max(48,Math.min(r.height-48,event.clientY-r.top))+'px';}stickPointer=event.pointerId;node.setPointerCapture(event.pointerId);moveStick(event);
       }else{event.preventDefault();node.setPointerCapture(event.pointerId);inputs[0].press(id,`pointer:${event.pointerId}`);node.classList.add('active');}
     });
     node.addEventListener('pointermove',event=>{if(editing)dragMove(event);else if(id==='stick')moveStick(event);});
@@ -149,6 +150,7 @@ export function createControls({inputs,onPause,isPlaying}) {
     if(player<0||!isPlaying()||player===1&&$('#mode').value==='cpu')return;
     event.preventDefault();inputs[player].press(current().keys[player][event.code],event.code);
   });
+  window.addEventListener('arena:experience',()=>{reset();applyLayout();});
   window.addEventListener('keyup',event=>inputs.forEach(i=>i.release(event.code)));
   new ResizeObserver(()=>{reset();applyLayout();}).observe(arena);
   applyLayout();

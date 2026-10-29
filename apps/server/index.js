@@ -27,6 +27,7 @@ export function createOnlineServer({origins=[],port=Number(process.env.PORT||417
    try{
     const store=await storeReady;
     if(req.method==='GET'&&url.pathname==='/api/status'){reply(res,200,{storage:store.kind,durable:store.durable,rankedAvailable:store.durable&&storageHealthy,expiresAt:storageExpiresAt,replayRetentionDays:14,maxReplays:200});return;}
+    if(req.method==='GET'&&url.pathname==='/api/meta'){reply(res,200,await store.meta());return;}
     if(req.method==='GET'&&url.pathname==='/api/live'){reply(res,200,{matches:arena.list()});return;}
     if(req.method==='GET'&&url.pathname==='/api/leaderboard'){reply(res,200,{players:await store.leaderboard(paging(url))});return;}
     if(req.method==='GET'&&url.pathname==='/api/history'){reply(res,200,{matches:await store.history(paging(url))});return;}

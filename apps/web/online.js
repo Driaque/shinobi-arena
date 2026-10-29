@@ -1,7 +1,8 @@
+import {connectionQuality} from './packages/network/prediction.js';
 import {apiBase,ensureIdentity} from './arena-api.js';
 import {PROTOCOL_VERSION,RULES_VERSION,playerProfile} from './packages/network/protocol.js';
 export function createOnline({getProfile,onState,onEnd,onStatus}){
- let socket=null,generation=0,slot=0,phase='idle',seq=0,timeout,pingTimer,lastMessage=0,latency=null;
+ let socket=null,generation=0,slot=0,phase='idle',seq=0,timeout,pingTimer,lastMessage=0,latency=null;const samples=[];
  const $=s=>document.querySelector(s),status=$('#online-status');
  const notify=text=>{status.textContent=text;onStatus?.(text);};
  try{$('#player-name').value=localStorage.getItem('shinobi-arena.player-name')||'';}catch{}
@@ -40,7 +41,7 @@ export function createOnline({getProfile,onState,onEnd,onStatus}){
   let profile,url;
   try{profile=playerProfile({...getProfile(),name:$('#player-name').value});url=serverURL();}catch(e){notify(e.message);return;}
   let token;try{token=await ensureIdentity(profile.name,await apiBase(url));}catch(e){notify(e.message);return;}
-  const previousClosed=cleanup();phase='connecting';seq=0;latency=null;const current=generation;
+  const previousClosed=cleanup();phase='connecting';seq=0;latency=null;samples.length=0;const current=generation;
   try{localStorage.setItem('shinobi-arena.player-name',profile.name);}catch{}
   $('#player-name').disabled=true;$('#online-server').disabled=true;$('#online-cancel').hidden=false;
   notify('Connecting to the arena…');
@@ -59,7 +60,7 @@ export function createOnline({getProfile,onState,onEnd,onStatus}){
    }else if(msg.type==='queued'){clearTimeout(timeout);phase='queued';notify(`Waiting for an opponent… Queue position ${msg.position}. You can cancel any time.`);}
    else if(msg.type==='matched'){clearTimeout(timeout);slot=msg.slot;phase=msg.phase;$('#online-cancel').hidden=true;$('#online-leave').hidden=false;onState(msg,slot);}
    else if(msg.type==='snapshot'){phase=msg.phase;onState(msg,slot);if(phase==='matchOver'){cleanup();phase='finished';}}
-   else if(msg.type==='pong'){latency=Math.round(performance.now()-msg.sent);}
+   else if(msg.type==='pong'){latency=Math.round(performance.now()-msg.sent);samples.push(latency);if(samples.length>12)samples.shift();}
    else if(msg.type==='ended'){const text=msg.reason==='opponent-disconnected'||msg.reason==='opponent-left'?'Opponent left. You win by forfeit.':msg.reason==='server-shutdown'?'Server is restarting. Join again shortly.':msg.reason==='match-complete'?'Match complete. Find another opponent.':'Room expired. Join the queue again.';cleanup();phase='idle';onEnd(text);notify(text);}
    else if(msg.type==='error'){cleanup();phase='idle';onEnd(msg.message);notify(msg.message);}
   });
@@ -67,5 +68,5 @@ export function createOnline({getProfile,onState,onEnd,onStatus}){
   ws.addEventListener('close',()=>{if(current!==generation)return;cleanup();phase='idle';const text='Connection closed. Check the server and join the queue again.';notify(text);onEnd(text);});
  }
  $('#online-cancel').addEventListener('click',leave);$('#online-leave').addEventListener('click',leave);
- return {join,leave,reset(){cleanup();phase='idle';},send(input){if(phase==='playing'&&socket?.readyState===WebSocket.OPEN)socket.send(JSON.stringify({type:'input',seq:seq++,input}));},ready(){if(phase==='roundOver'&&socket?.readyState===WebSocket.OPEN)socket.send(JSON.stringify({type:'ready'}));},get slot(){return slot;},get phase(){return phase;},get latency(){return latency;},get busy(){return ['connecting','queued'].includes(phase);}};
+ return {join,leave,reset(){cleanup();phase='idle';},send(input){if(phase==='playing'&&socket?.readyState===WebSocket.OPEN){const sent=seq++;socket.send(JSON.stringify({type:'input',seq:sent,input}));return sent;}return null;},ready(){if(phase==='roundOver'&&socket?.readyState===WebSocket.OPEN)socket.send(JSON.stringify({type:'ready'}));},get slot(){return slot;},get phase(){return phase;},get quality(){return connectionQuality(samples);},get latency(){return latency;},get busy(){return ['connecting','queued'].includes(phase);}};
 }

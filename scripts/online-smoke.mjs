@@ -15,7 +15,7 @@ try{
  const p=await context1.newPage(),q=await context2.newPage();let snapshot;
  q.on('websocket',socket=>socket.on('framereceived',({payload})=>{try{const msg=JSON.parse(payload);if(msg.state)snapshot=msg.state;}catch{}}));
  const near=async()=>{const until=Date.now()+5000;while(Date.now()<until){if(snapshot&&Math.abs(snapshot.fighters[0].x-snapshot.fighters[1].x)<=60)return;await new Promise(r=>setTimeout(r,20));}throw new Error(`Did not approach: ${snapshot?.fighters.map(f=>f.x)}`);};
- for(const page of [p,q]){if(process.env.ONLINE_TEST_URL)page.on('console',m=>{if(m.type()==='error')console.error(m.text());});page.on('pageerror',e=>{errors.push(e.stack);console.error(e.stack);});await page.goto(baseURL);await page.selectOption('#mode','online');}
+ for(const page of [p,q]){if(process.env.ONLINE_TEST_URL)page.on('console',m=>{if(m.type()==='error')console.error(m.text());});page.on('pageerror',e=>{errors.push(e.stack);console.error(e.stack);});await page.addInitScript(()=>localStorage.setItem('shinobi.experience.v1',JSON.stringify({prediction:true})));await page.goto(baseURL);await page.selectOption('#mode','online');}
  await p.fill('#player-name','Silent');await p.locator('#character0 input[value=silent]').check();await equip(p,'#weapon0','tachi');await equip(p,'#weapon-secondary0','kaiken');await equip(p,'#item0-0','smokeBomb');
  await p.click('#play');await p.waitForFunction(()=>document.querySelector('#online-status').textContent.includes('Waiting for an opponent'));assert.equal(await p.locator('#online-cancel').isVisible(),true);
  await p.click('#online-cancel');await p.waitForFunction(()=>document.querySelector('#play').disabled===false);await p.click('#play');await p.waitForFunction(()=>document.querySelector('#online-status').textContent.includes('Waiting for an opponent'));
@@ -29,7 +29,7 @@ try{
  await q.locator('[data-action=swapWeapon]').tap();await q.waitForFunction(()=>document.querySelector('#weapon-label').textContent.includes('TACHI'));
  await p.keyboard.press('KeyX');await p.waitForFunction(()=>document.querySelector('#inventory-status0').textContent.includes('3/4 ITEMS'));
  await q.locator('[data-action=useItem]').tap();await q.waitForFunction(()=>document.querySelector('#effects1').textContent.includes('POISON COATED'));
- assert.equal(snapshot.fighters[1].character,'dora');
+ assert.equal(snapshot.fighters[1].character,'dora');assert.match(await p.locator('#network-quality').innerText(),/movement prediction/);
  // Each device drives its own slot. Walk toward each other, then confirm real damage.
  await p.keyboard.down('KeyD');const cdp=await context2.newCDPSession(q),stick=await q.locator('#joystick').boundingBox();
  const center={x:stick.x+stick.width/2,y:stick.y+stick.height/2,id:1},left={...center,x:center.x-stick.width*.4};

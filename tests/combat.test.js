@@ -74,5 +74,5 @@ test('computer opponent completes a round against an idle player',()=>{
  assert.equal(s.status,'roundOver');assert.equal(s.result,'player2');
 });
 test('body collision prevents two grounded fighters passing through each other',()=>{
- const s=closeMatch();advance(s,50,[{right:true},{left:true}]);assert.ok(s.fighters[1].x-s.fighters[0].x>=52*.96-.001);
+ const s=closeMatch();advance(s,50,[{right:true},{left:true}]);assert.ok(s.fighters[1].x-s.fighters[0].x>=52*.86-.001);
 });

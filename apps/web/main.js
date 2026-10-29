@@ -1,3 +1,7 @@
+import {createGamepads} from './packages/input/gamepad.js';
+import {createExperience,experience,padBindings} from './experience.js';
+import {createPrediction} from './packages/network/prediction.js';
+import {summarizeFight} from './packages/engine/tactics.js';
 import {createAudio} from './audio.js';
 import {createArenaHub} from './arena-hub.js';
 import {createLoadouts} from './loadouts.js';
@@ -13,6 +17,7 @@ import { createControls } from './controls.js';
 import { createRenderer } from './renderer.js';
 const $ = selector => document.querySelector(selector);
 const sound=createAudio({moves:MOVES,onOpen:()=>{clearInputs();pause();}});
+const prediction=createPrediction();const frameTimes=[];
 const inputs=[createInput(),createInput()];
 const buttons=[...document.querySelectorAll('[data-action]')];
 const render=createRenderer($('#canvas'));
@@ -83,8 +88,10 @@ function orientation(){
   $('#rotate p').textContent=mode==='online'?'Online matches keep running. Turn sideways to regain your controls.':'Your match is paused. Landscape gives your thumbs room to fight.';
   if(gated)pause();$('#rotate').hidden=!gated;$('#game').inert=gated;
 }
+const coach=document.createElement('section');coach.id='match-coach';coach.className='match-coach';coach.hidden=true;document.querySelector('#overlay-description').after(coach);
+function showCoach(slot=0){const report=summarizeFight(state,slot);coach.replaceChildren();const p=document.createElement('p');p.textContent=`Direct damage dealt ${report.mine.damage??0} · Taken ${state.fighters[slot].damageTaken??0} (${report.other.fieldDamage??0} from fields) · Parries ${report.mine.parries??0} · Recovery punishes ${report.mine.punishes??0} · Jutsu links ${report.mine.links??0}`;const tip=document.createElement('p');tip.textContent=report.tip;coach.append(p,tip);const practice=document.createElement('button');practice.type='button';practice.textContent='Practice this matchup';practice.onclick=()=>{if(mode==='online')online.reset();$('#mode').value='training';$('#mode').dispatchEvent(new Event('change'));trainingUI.openSettings();};coach.append(practice);coach.hidden=false;}
 function finish(){
-  clearInputs();paused=true;
+  clearInputs();paused=true;showCoach();
   const name=state.fighters[state.result==='player1'?0:1].name;
   const draw=state.result==='draw';
   const cheer=!draw&&state.fighters[state.result==='player1'?0:1].character==='dora'?'Yaaay! · ':'';
@@ -93,7 +100,7 @@ function finish(){
     state.status==='matchOver'?'Rematch':'Next round');
 }
 $('#play').addEventListener('click',()=>{
-  if(!$('#rotate').hidden)return;
+  if(!$('#rotate').hidden)return;coach.hidden=true;
   if(mode==='online'){if(online.phase==='roundOver'){online.ready();$('#play').disabled=true;$('#play').textContent='Waiting for opponent…';}else {online.reset();online.join();}return;}
   if(!started||state.status==='matchOver')state=newMatch(readLoadouts());
   else if(state.status==='roundOver')nextRound(state);
@@ -107,7 +114,7 @@ $('#difficulty').addEventListener('change',event=>{
 });
 
 $('#mode').addEventListener('change',event=>{
-  online?.reset();for(const el of document.querySelectorAll('#character0 input,#weapon0,#weapon-secondary0,#item0-0,#item0-1,#item0-2,#item0-3'))el.disabled=false;onlineScreen='';mode=event.target.value;document.body.classList.toggle('online-mode',mode==='online');$('#online-lobby').hidden=mode!=='online';$('#play').disabled=false;$('#difficulty').disabled=mode!=='cpu';$('.difficulty-label').hidden=mode==='training'||mode==='online';state=newMatch();paused=true;started=false;clearInputs();
+  prediction.reset();coach.hidden=true;online?.reset();for(const el of document.querySelectorAll('#character0 input,#weapon0,#weapon-secondary0,#item0-0,#item0-1,#item0-2,#item0-3'))el.disabled=false;onlineScreen='';mode=event.target.value;document.body.classList.toggle('online-mode',mode==='online');$('#online-lobby').hidden=mode!=='online';$('#play').disabled=false;$('#difficulty').disabled=mode!=='cpu';$('.difficulty-label').hidden=mode==='training'||mode==='online';state=newMatch();paused=true;started=false;clearInputs();
   $('#mode-name').textContent=mode==='training'?'TRAINING':mode==='cpu'?`CPU · ${difficultyFor(difficulty).name.toUpperCase()}`:mode==='online'?`ONLINE · P${(online?.slot??0)+1}${online?.latency!==null?' · '+online.latency+'ms':''}`:'LOCAL TWO PLAYER';
   $('#opponent-label').textContent=mode==='training'?'TRAINING DUMMY':mode==='cpu'?'COMPUTER':'PLAYER TWO';
   document.querySelectorAll('#character1 .pick-mark').forEach(mark=>mark.textContent=mode==='training'?'DUMMY':mode==='cpu'?'CPU':'P2');
@@ -131,7 +138,7 @@ online=createOnline({getProfile:()=>readLoadouts()[0],onStatus:()=>{
  dialog('ONLINE ARENA','Return to the lobby',message,'Find opponent');$('#play').disabled=false;
 },onState:(message,slot)=>{
  if(mode!=='online')return;if(message.players)onlinePlayers=message.players;
- state=message.state;started=true;paused=false;
+ prediction.reconcile(message,slot);state=message.state;started=true;paused=false;
  const key=`${message.phase}:${state.round}`;
  $('#mode-name').textContent=`ONLINE · YOU ARE P${slot+1}`;
  if(message.phase==='playing'){$('#overlay').hidden=true;onlineScreen=key;}
@@ -147,10 +154,13 @@ online=createOnline({getProfile:()=>readLoadouts()[0],onStatus:()=>{
   $('#online-lobby').hidden=message.phase==='roundOver';$('#loadout-panel').hidden=message.phase==='roundOver';$('#play').hidden=false;$('#play').disabled=false;onlineScreen=key;
  }
  if(message.phase==='playing')$('#play').hidden=false;
+ if(message.phase==='matchOver')showCoach(slot);
  if(message.phase==='matchOver')for(const el of document.querySelectorAll('#character0 input,#weapon0,#weapon-secondary0,#item0-0,#item0-1,#item0-2,#item0-3'))el.disabled=false;
 }});
 
-createArenaHub({onOpen:()=>{clearInputs();pause();},isBusy:()=>mode==='online'&&['connecting','queued','playing','countdown','roundOver'].includes(online.phase)});
+createExperience({onOpen:()=>{clearInputs();pause();},onChange:()=>window.dispatchEvent(new Event('arena:experience'))});
+const netLabel=document.createElement('span');netLabel.id='network-quality';document.querySelector('.topbar').after(netLabel);
+createArenaHub({onTakeover:next=>{online.reset();$('#mode').value='training';$('#mode').dispatchEvent(new Event('change'));next.status='playing';next.result=null;next.training={drill:'free',dummy:'attack',unlimitedResources:false,refillHealth:true,instantCooldowns:false,showRanges:true,step:0,completed:false,feedback:'Replay takeover: practice from the preceding recorded sample as P1.',feedbackUntil:next.tick+240,stats:{damage:0,hits:0,bestCombo:0}};for(const f of next.fighters)f.hp=Math.max(1,f.hp);useTrainingState(next);$('#overlay').hidden=true;paused=false;started=true;clearInputs();},onOpen:()=>{clearInputs();pause();},isBusy:()=>mode==='online'&&['connecting','queued','playing','countdown','roundOver'].includes(online.phase)});
 techniqueTray=createTechniqueTray({input:inputs[0],getPlayer:()=>state.fighters[mode==='online'?online.slot:0],isPlaying:()=>started&&!paused&&!controls?.editing&&$('#rotate').hidden&&state.status==='playing'&&(mode!=='online'||online.phase==='playing'),binding:key=>controls.binding(0,key),visible:key=>controls.visible(key)});
 window.addEventListener('blur',()=>{clearInputs();pause();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){clearInputs();pause();}});
@@ -227,23 +237,27 @@ function paintHud(){
     b.classList.toggle('unavailable',b.disabled||player.chakra<cost||player.stamina<staminaCost(key)||(key==='bloodline'&&!move)||(key==='awakening'&&!awakeningReady(player))||(key==='swapWeapon'&&!player.weapons[1])||(key==='useItem'&&!move));
   });
 }
+let padMap=padBindings();window.addEventListener('arena:pad-map',()=>padMap=padBindings());
+const gamepads=createGamepads({inputs,settings:experience,bindings:()=>padMap,isPlaying:()=>started&&!paused&&state.status==='playing'&&$('#rotate').hidden&&!document.querySelector('dialog[open]'),isLocal:()=>mode==='local',onPause:pause});
 function frame(now){
+  gamepads.poll();
   if(!lastTime)lastTime=now;
   if(mode==='online'){
     accumulator+=Math.min((now-lastTime)/1000,.1);
-    while(accumulator>=1/TICK_RATE){online.send($('#rotate').hidden?inputs[0].consume():{});inputs[1].reset();accumulator-=1/TICK_RATE;}
+    while(accumulator>=1/TICK_RATE){const input=$('#rotate').hidden?inputs[0].consume():{},seq=online.send(input);if(seq!==null)prediction.push(seq,input);inputs[1].reset();accumulator-=1/TICK_RATE;}
   }else if(!paused&&state.status==='playing'){
-    accumulator+=Math.min((now-lastTime)/1000,.1);
+    accumulator+=Math.min((now-lastTime)/1000,.1)*(mode==='training'?experience().speed:1);
     while(accumulator>=1/TICK_RATE&&state.status==='playing'){
       if(mode==='cpu')cpu=computerInput(state);
       if(mode==='training')stepTraining(state,inputs[0].consume());else stepMatch(state,[inputs[0].consume(),mode==='cpu'?cpu:inputs[1].consume()]);accumulator-=1/TICK_RATE;
-      const event=state.events.find(e=>['aerialBlocked','airChase','airFinish','airEscape','weaponSwap','raijinWarp','smokeBlocked','parry','guardBreak','punish','exhausted','hit','block','empty','pierce','replacement','unavailable','poison','burn','cooldown','awakeningBlocked'].includes(e.type));
-      if(event){const messages={aerialBlocked:event.reason,airChase:'AIR CHASE · LINK BASIC OR AERIAL JUTSU',airFinish:'AERIAL FINISHER',airEscape:'JUGGLE LIMIT · AIR RECOVERY',weaponSwap:'WEAPON SWAPPED',raijinWarp:'FLYING RAIJIN · WARP',smokeBlocked:'SMOKE BLOCKED PROJECTILE',parry:'PARRY · COUNTER NOW',guardBreak:'GUARD BROKEN',punish:'RECOVERY PUNISH · +20%',exhausted:'LOW STAMINA · CREATE SPACE',empty:'NOT ENOUGH CHAKRA',block:'GUARDED',replacement:'REPLACEMENT JUTSU',unavailable:'NO TECHNIQUE OR ITEM AVAILABLE',cooldown:'TECHNIQUE ON COOLDOWN',awakeningBlocked:'AWAKENING NOT READY OR UNABLE TO ACT'};
+      const event=state.events.find(e=>['jutsuLink','aerialBlocked','airChase','airFinish','airEscape','weaponSwap','raijinWarp','smokeBlocked','parry','guardBreak','punish','exhausted','hit','block','empty','pierce','replacement','unavailable','poison','burn','cooldown','awakeningBlocked'].includes(e.type));
+      if(event){const messages={jutsuLink:'JUTSU LINK · FULL COST / WATCH THE COUNTER',aerialBlocked:event.reason,airChase:'AIR CHASE · LINK BASIC OR AERIAL JUTSU',airFinish:'AERIAL FINISHER',airEscape:'JUGGLE LIMIT · AIR RECOVERY',weaponSwap:'WEAPON SWAPPED',raijinWarp:'FLYING RAIJIN · WARP',smokeBlocked:'SMOKE BLOCKED PROJECTILE',parry:'PARRY · COUNTER NOW',guardBreak:'GUARD BROKEN',punish:'RECOVERY PUNISH · +20%',exhausted:'LOW STAMINA · CREATE SPACE',empty:'NOT ENOUGH CHAKRA',block:'GUARDED',replacement:'REPLACEMENT JUTSU',unavailable:'NO TECHNIQUE OR ITEM AVAILABLE',cooldown:'TECHNIQUE ON COOLDOWN',awakeningBlocked:'AWAKENING NOT READY OR UNABLE TO ACT'};
         $('#feedback').textContent=messages[event.type]??`${event.type==='pierce'?'GUARD PIERCED · ':event.type==='poison'?'POISON · ':event.type==='burn'?'BURN · ':''}${event.damage} DAMAGE`;feedbackUntil=now+700;}
     }
     if(state.status!=='playing')finish();
   }else accumulator=0;
-  lastTime=now;if(now>feedbackUntil)$('#feedback').textContent='';render(state,{interpolate:mode==='online'});sound.update(state,started&&!paused&&$('#rotate').hidden);paintHud();requestAnimationFrame(frame);
+  if(lastTime&&now-lastTime<250){frameTimes.push(now-lastTime);if(frameTimes.length>120)frameTimes.shift();}const q=online?.quality;netLabel.textContent=mode==='online'?`${q?.label??'Measuring'} · RTT ${q?.rtt??'—'}ms · jitter ${q?.jitter??0}ms · ${experience().prediction?'movement prediction':'authoritative movement'}`:mode==='training'?`Practice ${experience().speed}× · frame p95 ${Math.round([...frameTimes].sort((a,b)=>a-b)[Math.floor(frameTimes.length*.95)]??0)}ms`:'';
+  lastTime=now;if(now>feedbackUntil)$('#feedback').textContent='';render(state,{interpolate:mode==='online',predicted:mode==='online'&&experience().prediction?prediction.sample(state):null,localSlot:online?.slot??0});sound.update(state,started&&!paused&&$('#rotate').hidden);paintHud();requestAnimationFrame(frame);
 }
 $('#overlay-hint').textContent=`${difficultyFor(difficulty).name} · ${difficultyFor(difficulty).description}`;
 orientation();requestAnimationFrame(frame);

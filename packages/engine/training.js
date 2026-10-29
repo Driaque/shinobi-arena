@@ -1,7 +1,7 @@
 import {createMatch,stepMatch,moveFor,MOVES,CHARACTERS,awakeningFor,awakeningReady,staminaCost} from './index.js';
 export const DRILLS=Object.freeze({
  free:{name:'Free practice',steps:[],hint:'Explore your kit. Set a dummy behavior, inspect ranges, and reset whenever you like.'},
- movement:{name:'Double jump → air dash',steps:['Jump','Jump again in the air','Dash before landing'],hint:'Pull up, center, then up again; double-pull sideways to air dash. Buttons/keys also work. Save the dash until after the second jump.'},
+ movement:{name:'Double jump → air dash',steps:['Jump','Jump again in the air','Dash before landing'],hint:'Press Jump twice; double-pull sideways to air dash. Analog up/down changes lane. Save the dash until after the second jump.'},
  combo:{name:'Three-hit combo',steps:['Land the opening basic','Link the second basic','Land the launching finisher'],hint:'Tap Basic with rhythm. Each follow-up needs a confirmed hit; holding does not repeat.'},
  counter:{name:'Guard → weapon counter',steps:['Guard or parry a strike','Land a weapon during the opening'],hint:'The dummy swings a katana every 2.5 seconds. Guard, release, then punish with your equipped weapon.'},
  awakening:{name:'Unlock your awakening',steps:['Take damage to fill the meter','Awaken when free to act'],hint:'Let the dummy hit you until READY, then wait for hitstun to end and press Awaken. HP refills do not remove damage charge.'}
@@ -10,7 +10,7 @@ const validDrill=id=>Object.hasOwn(DRILLS,id)?id:'free';
 const defaults={drill:'free',dummy:'idle',unlimitedResources:true,refillHealth:true,instantCooldowns:false,showRanges:true};
 export function createTraining(loadouts,options={}){
  const config={...defaults};for(const key of ['unlimitedResources','refillHealth','instantCooldowns','showRanges'])if(typeof options[key]==='boolean')config[key]=options[key];
- config.drill=validDrill(options.drill);config.dummy=['idle','guard','attack'].includes(options.dummy)?options.dummy:'idle';
+ config.drill=validDrill(options.drill);config.dummy=['idle','guard','attack','projectile','aerial','counter','recorded'].includes(options.dummy)?options.dummy:'idle';
  let selected=loadouts?loadouts.map(l=>({...l})):undefined;
  let note='';
  if(config.drill==='awakening'&&selected&&!CHARACTERS[selected[0]?.character]?.awakening){selected[0]={...selected[0],character:'naruto',jutsus:undefined};note='This drill uses Naruto because the selected fighter has no awakening.';}
@@ -20,7 +20,7 @@ export function createTraining(loadouts,options={}){
  state.training={...config,step:0,completed:false,feedback:note||DRILLS[config.drill].hint,feedbackUntil:240,note,guardTick:-1000,parried:false,stats:{damage:0,hits:0,bestCombo:0}};
  return state;
 }
-export function resetTraining(state){if(!state.training)throw new Error('Training state required');return createTraining(state.loadouts,state.training);}
+export function resetTraining(state){if(!state.training)throw new Error('Training state required');const next=createTraining(state.loadouts,state.training);next.training.sequence=structuredClone(state.training.sequence??[]);return next;}
 export function chargeTrainingAwakening(state){
  if(!state.training||state.training.drill!=='free')return false;
  const f=state.fighters[0],form=awakeningFor(f);if(!form)return false;
@@ -29,9 +29,14 @@ export function chargeTrainingAwakening(state){
 }
 export function dummyInput(state){
  const t=state.training;if(!t||t.completed)return {};
+ if(t.recording)return {};
  const f=state.fighters[1],other=state.fighters[0];
  const behavior=t.drill==='counter'||t.drill==='awakening'?'attack':t.drill==='free'?t.dummy:'idle';
  if(t.drill==='awakening'&&awakeningReady(other))return {};
+ if(behavior==='recorded'){const data=t.sequence??[];if(!data.length)return {};const sample=data[Math.max(0,state.tick-1-(t.playbackStart??0))%data.length];return {...sample,left:sample.right,right:sample.left,moveX:-(sample.moveX??0),aimX:Number.isFinite(sample.aimX)?-sample.aimX:undefined};}
+ if(behavior==='counter'){if(other.action)return {block:true};return state.tick%100===0?{weapon:true}:{};}
+ if(behavior==='projectile')return state.tick%90===0?{special2:true}:{};
+ if(behavior==='aerial')return state.tick%100===0?{jump:true}:f.y>0&&state.tick%20===0?{attack:true}:{};
  if(behavior==='guard')return {block:true};
  if(behavior!=='attack'||f.stun||f.action||f.dash)return {};
  const distance=Math.abs(f.x-other.x);
@@ -66,7 +71,7 @@ function feedback(state,input,before){
  if(['jump','dashForward','dashBack','attack','weapon','special1','special2'].some(pressed)&&before.stun>0){hint(state,'You are in hitstun. Wait for recovery, or escape with Replacement.');return;}
  if(before.action&&f.action?.move===before.action.move){
   const m=MOVES[f.action.move],end=m.startup+m.active;
-  if(before.action.age<end&&f.action.age>=end&&!f.action.hit&&!m.buff&&!m.projectile){hint(state,Math.abs(f.y-other.y)>=100?'Missed: your target is at a different height.':Math.abs(f.x-other.x)>m.reach?`Missed: distance ${Math.round(Math.abs(f.x-other.x))}, reach ${m.reach}. Move closer.`:'Missed: check facing and the target’s invulnerability.');return;}
+  if(before.action.age<end&&f.action.age>=end&&!f.action.hit&&!m.buff&&!m.projectile){hint(state,Math.abs(f.y-other.y)>=100?'Missed: your target is at a different height.':Math.abs(f.x-other.x)>m.reach?`Missed: distance ${Math.round(Math.abs(f.x-other.x))}, reach ${m.reach}. Move closer.`:Math.abs((f.depth??0)-(other.depth??0))>36?'Missed: different lane. Align your ground markers.':'Missed: check facing and the target’s invulnerability.');return;}
  }
  if(state.events.some(e=>e.target===1&&e.type==='block')){hint(state,'Guarded: blocked basics cannot continue a combo. Wait, reposition, or try a piercing technique.');return;}
  if(before.action&&['attack','weapon','special1','special2'].some(pressed)&&!(before.action.confirmed&&before.action.chain>0))hint(state,'Input buffered briefly. A committed attack must recover before another action can start.');
@@ -101,6 +106,7 @@ function progress(state,before){
 export function stepTraining(state,input={}){
  if(!state.training)throw new Error('Training state required');
  const t=state.training;
+ if(t.recording){t.sequence??=[];if(t.sequence.length<600)t.sequence.push(structuredClone(input));else t.recording=false;}
  for(const f of state.fighters){if(t.unlimitedResources){f.stamina=100;f.chakra=100;}if(t.refillHealth)f.hp=1000;if(t.instantCooldowns){f.cooldowns={};f.dashCooldown=0;}}
  const p=state.fighters[0],before={jumps:p.jumps,y:p.y,stun:p.stun,airDashUsed:p.airDashUsed,dashCooldown:p.dashCooldown,previous:{...p.previous},action:p.action?{...p.action}:null,dummyStun:state.fighters[1].stun};
  stepMatch(state,[input,dummyInput(state)]);
