@@ -1,3 +1,4 @@
+import {tournamentPodium} from './packages/engine/tournament-placements.js';
 import {CHARACTERS} from './packages/engine/catalog.js';
 import {arenaRequest,profileToken,ensureIdentity} from './arena-api.js';
 import {REWARD_ITEMS} from './packages/engine/rewards.js';
@@ -13,9 +14,11 @@ export async function showTournaments(content,base,{onFight,onReplay,isBusy,refr
  content.append(el('p','Single elimination · each pairing is a normal best-of-three match. Champion: 100 points + Champion’s Katana. Runner-up: 40 points + Victory Smoke. Other eligible players: 10 points. Reward gear has standard combat stats. At least 20 seconds of tournament battle time qualifies; maximum three completed tournament reward opportunities per UTC day.'));
  if(me){const form=el('div',undefined,'tournament-create'),name=el('input'),size=el('select');name.id='tournament-name';name.placeholder='Tournament name';name.maxLength=40;name.value=draftName;name.setAttribute('aria-label','Tournament name');name.oninput=()=>draftName=name.value;size.id='tournament-capacity';size.setAttribute('aria-label','Tournament size');for(const n of [2,4,8])size.add(new Option(n+' players',String(n)));size.value=draftCapacity;size.onchange=()=>draftCapacity=size.value;
  form.append(name,size,act('Create & join',async()=>{await arenaRequest('/api/tournaments',{base,token,method:'POST',body:{name:name.value,capacity:Number(size.value)}});draftName='';refresh();}));content.append(form);}
- content=destination;content.append(act('Refresh brackets',refresh));
+ content=destination;const refreshButton=act('Refresh brackets',refresh);refreshButton.className='tournament-refresh';content.append(refreshButton);
  if(!data.tournaments.length)content.append(el('p','No tournaments yet. Create one and invite players to sign up here.'));
- for(const t of data.tournaments){const card=el('article',undefined,'tournament-card');card.dataset.tournamentId=t.id;card.append(el('h3',t.name),el('p',`${t.status.toUpperCase()} · ${t.participants.length}/${t.capacity} players`),el('p',t.participants.map(p=>p.name).join(' · ')));if(t.benchmark){card.append(el('p','CHARACTER BENCHMARK · league then seeded knockouts · no player Elo, player statistics or equipment rewards. Results are provisional for the recorded loadouts.'));}
+ for(const t of data.tournaments){const card=el('article',undefined,'tournament-card');card.dataset.tournamentId=t.id;card.append(el('h3',t.name),el('p',`${t.status.toUpperCase()} · ${t.participants.length}/${t.capacity} players`));
+ const places=tournamentPodium(t);if(places.length){const podium=el('ol',undefined,'tournament-podium');podium.setAttribute('aria-label','Tournament podium');for(const place of places){const item=el('li');item.dataset.place=place.place;item.append(el('span',String(place.place),'podium-medal'),el('small',place.title),el('strong',place.players.map(p=>p.name).join(' & ')));podium.append(item);}card.append(podium);if(places.some(p=>p.place===3&&p.players.length>1))card.append(el('p','Third place is shared by the semifinalists; no bronze match was played.','podium-caption'));}
+ card.append(el('p',t.participants.map(p=>p.name).join(' · ')));if(t.benchmark){card.append(el('p','CHARACTER BENCHMARK · league then seeded knockouts · no player Elo, player statistics or equipment rewards. Results are provisional for the recorded loadouts.'));}
  const member=me&&t.participants.some(p=>p.id===me.player.id),owner=me?.player.id===t.ownerId;
  const post=action=>async()=>{await arenaRequest(`/api/tournaments/${t.id}/${action}`,{base,token,method:'POST',body:{}});refresh();};
  if(me&&!t.benchmark&&t.status==='registration'){if(!member&&t.participants.length<t.capacity)card.append(act('Sign up',post('join')));if(member&&!owner)card.append(act('Leave signup',post('leave')));if(owner){const start=act('Start bracket',post('start'));start.disabled=t.participants.length!==t.capacity;card.append(start,act('Cancel registration',post('cancel')));}}
@@ -25,4 +28,5 @@ export async function showTournaments(content,base,{onFight,onReplay,isBusy,refr
  if(t.champion)card.append(el('p','Champion: '+t.participants.find(p=>p.id===t.champion)?.name));
  const award=t.awards.find(a=>a.playerId===me?.player.id);if(award)card.append(el('p',`Your reward: ${award.points} points · ${award.unlocks.map(id=>REWARD_ITEMS[id]?.name??id).join(', ')||'No gear'} · ${award.note}`));content.append(card);
  }
+ return {tournaments:data.tournaments,refreshButton};
 }

@@ -1,4 +1,4 @@
-> **v0.20: Compact visual jutsu controls and persistent tournaments with rewards.** [Release notes](docs/releases/0.20.0.md).
+> **v0.22: Tournament podiums, stable results reading and a permanent splash-first launch link.** [Release notes](docs/releases/0.22.0.md).
 
 # Shinobi Arena
 
@@ -8,6 +8,8 @@ a landscape analog stick and customizable touch controls, online matchmaking, lo
 ## Play
 
 https://driaque.github.io/shinobi-arena/
+
+Bookmark this static play page. It shows the game splash while the online server wakes. Opening the direct Render backend address can display Render’s own loading screen before the application can run; existing profiles at that origin remain accessible and can be restored on the play page with their private recovery code.
 
 For online play, choose ONLINE MATCHMAKING, enter your name, choose your own fighter/weapon, and Find opponent. The shared internet server is configured automatically. Both players choose Find opponent; the first available pair enters a match. For solo/shared-keyboard play choose VS COMPUTER or LOCAL TWO PLAYER, select both characters, equip each fighter with a weapon, and enter the arena. First to two round wins.
 Both sides have independent visual character grids with portraits and selection badges. Tap a card, or use the keyboard to navigate the radio group. The opponent grid is labelled Computer or Player Two to match the mode.
