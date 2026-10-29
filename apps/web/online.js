@@ -37,7 +37,7 @@ export function createOnline({getProfile,onState,onEnd,onStatus}){
   return closing;
  }
  function leave(){cleanup();phase='idle';onEnd('You left online play.');notify('Choose your fighter and find another opponent.');}
- async function join(){
+ async function join({tournamentId=null}={}){
   let profile,url;
   try{profile=playerProfile({...getProfile(),name:$('#player-name').value});url=serverURL();}catch(e){notify(e.message);return;}
   let token;try{token=await ensureIdentity(profile.name,await apiBase(url));}catch(e){notify(e.message);return;}
@@ -56,12 +56,12 @@ export function createOnline({getProfile,onState,onEnd,onStatus}){
    if(current!==generation)return;lastMessage=performance.now();let msg;try{msg=JSON.parse(event.data);}catch{return;}
    if(msg.type==='hello'){
     if(msg.protocol!==PROTOCOL_VERSION||msg.rules!==RULES_VERSION){cleanup();phase='idle';notify('Server and game versions differ. Refresh the game.');onEnd('Version mismatch.');return;}
-    ws.send(JSON.stringify({type:'join',protocol:PROTOCOL_VERSION,rules:RULES_VERSION,profile,token,queue:$('#online-queue')?.value??'casual'}));
-   }else if(msg.type==='queued'){clearTimeout(timeout);phase='queued';notify(`Waiting for an opponent… Queue position ${msg.position}. You can cancel any time.`);}
+    ws.send(JSON.stringify({type:'join',protocol:PROTOCOL_VERSION,rules:RULES_VERSION,profile,token,tournamentId,queue:$('#online-queue')?.value??'casual'}));
+   }else if(msg.type==='queued'){clearTimeout(timeout);phase='queued';notify(msg.mode==='tournament'?'Waiting for your bracket opponent to check in. Open the bracket to see the pairing.':`Waiting for an opponent… Queue position ${msg.position}. You can cancel any time.`);}
    else if(msg.type==='matched'){clearTimeout(timeout);slot=msg.slot;phase=msg.phase;$('#online-cancel').hidden=true;$('#online-leave').hidden=false;onState(msg,slot);}
    else if(msg.type==='snapshot'){phase=msg.phase;onState(msg,slot);if(phase==='matchOver'){cleanup();phase='finished';}}
    else if(msg.type==='pong'){latency=Math.round(performance.now()-msg.sent);samples.push(latency);if(samples.length>12)samples.shift();}
-   else if(msg.type==='ended'){const text=msg.reason==='opponent-disconnected'||msg.reason==='opponent-left'?'Opponent left. You win by forfeit.':msg.reason==='server-shutdown'?'Server is restarting. Join again shortly.':msg.reason==='match-complete'?'Match complete. Find another opponent.':'Room expired. Join the queue again.';cleanup();phase='idle';onEnd(text);notify(text);}
+   else if(msg.type==='ended'){const text=msg.reason==='tournament-updated'?'Tournament bracket updated. Open Arena → Tournaments.':msg.reason==='opponent-disconnected'||msg.reason==='opponent-left'?'Opponent left. You win by forfeit.':msg.reason==='server-shutdown'?'Server is restarting. Join again shortly.':msg.reason==='match-complete'?'Match complete. Find another opponent.':'Room expired. Join the queue again.';cleanup();phase='idle';onEnd(text);notify(text);}
    else if(msg.type==='error'){cleanup();phase='idle';onEnd(msg.message);notify(msg.message);}
   });
   ws.addEventListener('error',()=>{});

@@ -1,3 +1,4 @@
+import {createTournaments} from './tournaments.js';
 import {aggregateMeta} from '../../packages/engine/meta.js';
 import {RULES_VERSION} from '../../packages/engine/index.js';
 import {randomBytes,randomUUID,createHash} from 'node:crypto';
@@ -20,6 +21,7 @@ export async function createStore({databaseURL=process.env.DATABASE_URL,filename
    await query('BEGIN IMMEDIATE');try{const value=await fn(query);await query('COMMIT');return value;}catch(e){await query('ROLLBACK');throw e;}
   };const pending=tail.then(run);tail=pending.catch(()=>{});return pending;
  }
+ const tournaments=await createTournaments({query,transaction,now});
  const publicPlayer=p=>p?{id:p.id,name:p.name,rating:Number(p.rating),games:Number(p.games),wins:Number(p.wins),losses:Number(p.losses),draws:Number(p.draws),ratedGames:Number(p.rated_games),tier:tier({rating:Number(p.rating),ratedGames:Number(p.rated_games)})}:null;
  async function identity(token){if(typeof token!=='string'||!/^[A-Za-z0-9_-]{43}$/.test(token))return null;return publicPlayer((await query('SELECT * FROM players WHERE token_hash=$1',[hash(token)]))[0]);}
  async function createIdentity(name){const id=randomUUID(),token=randomBytes(32).toString('base64url');await transaction(q=>q('INSERT INTO players(id,token_hash,name,created_at) VALUES($1,$2,$3,$4)',[id,hash(token),name,now()]));return {token,player:await identity(token)};}
@@ -41,8 +43,10 @@ export async function createStore({databaseURL=process.env.DATABASE_URL,filename
    await q('UPDATE players SET games=games+1,wins=wins+$1,losses=losses+$2,draws=draws+$3,rating=rating+$4,rated_games=rated_games+$5 WHERE id=$6',[Number(won),Number(lost),Number(draw),deltas[i],Number(eligible&&(enough||lost)),ids[i]]);
   }
   const result={winner:record.winner,reason:record.reason,wins:record.wins,mode:record.mode,playedTicks:record.playedTicks,ratingDelta:deltas,rated:eligible&&enough,rankingNote:!ranked?'Casual or cancelled':pairCount>=3?'Pair limit: first 3 ranked matches per day affect rating':!enough?'Under 20 seconds: no winner reward; forfeiting player loses 12 rating':'Rated'};
+  if(record.tournament){result.tournament=record.tournament;result.rankingNote='Tournament · Elo unchanged';}
   const archive=gzipSync(Buffer.from(JSON.stringify(record.replay)),{level:6});if(archive.length>4*1024*1024)throw new Error('Replay exceeds archive limit');
   await q('INSERT INTO matches(id,created_at,rules,participants,result,archive,pair_key,ranked) VALUES($1,$2,$3,$4,$5,$6,$7,$8)',[record.id,record.createdAt,record.replay.rules,JSON.stringify(record.players),JSON.stringify(result),archive,pairKey,Number(ranked)]);
+  await tournaments.complete(q,record);
   await q('UPDATE matches SET archive=NULL WHERE created_at<$1',[now()-14*86400000]);
   await q('UPDATE matches SET archive=NULL WHERE id IN (SELECT id FROM matches WHERE archive IS NOT NULL ORDER BY created_at DESC LIMIT 10000 OFFSET 200)');
   return {id:record.id,result};
@@ -52,5 +56,5 @@ export async function createStore({databaseURL=process.env.DATABASE_URL,filename
  async function replay(id){return (await query('SELECT archive FROM matches WHERE id=$1',[id]))[0]?.archive??null;}
  let metaCache=null,metaAt=0;
  async function meta(){if(metaCache&&now()-metaAt<60000)return metaCache;const rows=await query('SELECT rules,participants,result FROM matches WHERE rules=$1 AND ranked=1 AND created_at>=$2 ORDER BY created_at DESC LIMIT 500',[RULES_VERSION,now()-30*86400000]);metaCache=aggregateMeta(rows.map(r=>({rules:r.rules,players:JSON.parse(r.participants),result:JSON.parse(r.result)})),RULES_VERSION);metaAt=now();return metaCache;}
- return {meta,createIdentity,identity,rename,save,leaderboard,history,replay,durable:postgres||filename!==':memory:',kind:postgres?'postgres':'sqlite',ping:()=>query('SELECT 1 AS ok'),close:async()=>{await tail;await shutdown();}};
+ return {tournaments,meta,createIdentity,identity,rename,save,leaderboard,history,replay,durable:postgres||filename!==':memory:',kind:postgres?'postgres':'sqlite',ping:()=>query('SELECT 1 AS ok'),close:async()=>{await tail;await shutdown();}};
 }

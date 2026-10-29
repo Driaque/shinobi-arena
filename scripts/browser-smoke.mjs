@@ -158,7 +158,7 @@ try {
  // Edit the touch layout, rebind a key, and persist both on this device.
  // Dock targets never cover the actual battle viewport, even at the arena edges.
  const fight=await mobile.locator('.battle-view').boundingBox();
- for(const control of await mobile.locator('[data-control]').all()){const rect=await control.boundingBox();assert.ok(rect.y>=fight.y+fight.height,'control stays below fighting viewport');}
+ for(const control of await mobile.locator('[data-control]:visible').all()){const rect=await control.boundingBox();assert.ok(rect.y>=fight.y+fight.height,'control stays below fighting viewport');}
  assert.equal(await mobile.locator('.arena').getAttribute('data-control-placement'),'dock');
  await mobile.clock.runFor(550); // Finish the earlier basic attack before testing free movement.
  // Actual touch jump and air dash through independent pointers; no injected combat state.
@@ -212,12 +212,12 @@ try {
  await mobile.click('#reset-layout');await mobile.click('#cancel-controls');
  assert.equal(await mobile.evaluate(()=>localStorage.getItem('shinobi-arena.controls.v1')),saved,'cancel discards layout reset');
  await mobile.click('#play');await mobile.clock.runFor(32);
- for(const button of await mobile.locator('[data-action]').all()){
+ for(const button of await mobile.locator('[data-action]:visible').all()){
   const box=await button.boundingBox();assert.ok(box.width>=48&&box.height>=48,'touch targets are at least 48px');
   assert.ok(box.x>=0&&box.x+box.width<=844&&box.y>=0&&box.y+box.height<=390,'touch targets fit landscape viewport');
  }
  await mobile.setViewportSize({width:667,height:375});await mobile.clock.runFor(32);
- for(const button of await mobile.locator('[data-action]').all()){
+ for(const button of await mobile.locator('[data-action]:visible').all()){
    const b=await button.boundingBox();assert.ok(b.width>=48&&b.height>=48&&b.x>=0&&b.x+b.width<=667&&b.y>=0&&b.y+b.height<=375,'controls fit smaller landscape phone: '+JSON.stringify({action:await button.getAttribute('data-action'),box:b}));
  }
  assert.deepEqual(mobileErrors,[],'no mobile page errors');await context.close();

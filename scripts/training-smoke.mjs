@@ -39,7 +39,7 @@ try{
  await mobileDrill('combo');const attack=point(await mobile.locator('[data-action=attack]').boundingBox(),3);
  for(const [held,gap]of [[100,16],[100,100],[200,0]]){await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[attack]});await mobile.clock.runFor(held);await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});if(gap)await mobile.clock.runFor(gap);}
  assert.match(await mobile.locator('#training-coach-title').innerText(),/COMPLETE/);await mobile.screenshot({path:'test-results/mobile-training.png'});
- const fight=await mobile.locator('.battle-view').boundingBox(),coach=await mobile.locator('#training-coach').boundingBox();assert.ok(coach.y>=fight.y&&coach.y+coach.height<=fight.y+fight.height);for(const node of await mobile.locator('[data-control]').all()){const rect=await node.boundingBox();assert.ok(rect.y>=fight.y+fight.height,'training controls stay below the fight');}
+ const fight=await mobile.locator('.battle-view').boundingBox(),coach=await mobile.locator('#training-coach').boundingBox();assert.ok(coach.y>=fight.y&&coach.y+coach.height<=fight.y+fight.height);for(const node of await mobile.locator('[data-control]:visible').all()){const rect=await node.boundingBox();assert.ok(rect.y>=fight.y+fight.height,'training controls stay below the fight');}
  // The analog now changes lane; jumping/crouching have dedicated actions.
  await mobileDrill('free');
  const stick=await mobile.locator('#joystick').boundingBox(),center=point(stick,9),radius=stick.width*.36;

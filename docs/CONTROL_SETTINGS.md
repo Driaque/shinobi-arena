@@ -92,3 +92,7 @@ The analog now drives horizontal and shallow depth movement; it no longer casts 
 ## v0.19 game feel
 
 Feel opens analog dead-zone/sensitivity/double-pull timing, left-handed/floating controls, compact duplicate-button hiding, equipped-row scale/offset, screen shake/particles, optional hold-drag-release jutsu aiming and experimental online movement prediction. Crouch Guard in the equipped row holds both actions with one touch. Practice speed affects offline Practice only. Existing Controls remains the per-button position, size, visibility and opacity editor; Feel does not overwrite its saved layout.
+
+## v0.20 visual controls
+
+Show hints / Hide hints toggles the Practice coach without resetting the dummy or drill; the preference survives reload. Hide is also available on the panel. Jutsus use the same original SVG pictograms in selection, the equipped row, expanded menu and signature controls. Coarse-pointer devices show compact icons and cooldown/key indicators; names remain accessible labels/tooltips. Unused slots stay hidden, and all existing visibility/opacity controls continue to apply.

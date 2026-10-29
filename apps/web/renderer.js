@@ -79,6 +79,7 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
     if(character.id==='gaara'){c.fillStyle='#a9936b';c.beginPath();c.ellipse(-27,-71,20,29,-.2,0,Math.PI*2);c.ellipse(-31,-106,13,18,-.2,0,Math.PI*2);c.fill();line(-43,-83,-12,-76,'#4d3d37',4);line(-43,-66,-11,-61,'#4d3d37',3);}
     if(character.faction==='Akatsuki'||['itachi','orochimaru','minato'].includes(character.id)){c.fillStyle=character.id==='minato'?'#dfd5b7':character.faction==='Akatsuki'?'#162532':'#a29c8b';c.beginPath();c.moveTo(-25,-98);c.lineTo(-38-pose.trail*.5,-13);c.lineTo(34,-15);c.lineTo(22,-96);c.fill();line(-35-pose.trail*.5,-17,30,-19,character.id==='itachi'?'#9f5261':'#a87961',3);}
     if(['sasuke','sarada','minato'].includes(character.id))line(-30,-36,4,-121,'#25394b',6);
+    if(f.weapon==='championKatana'){line(-21,-94,-41,-20,'#e9c166',5);line(-32,-45,-45,-51,'#fff0aa',3);}
     // Bent legs, sandals and torso.
     for(const [i,leg]of pose.legs.entries()){line(i?11:-12,-48,leg.kx,leg.ky,dark,16);line(leg.kx,leg.ky,leg.fx,leg.fy-2,cloth,12);line(leg.fx-7,leg.fy,leg.fx+9,leg.fy,'#172338',9);line(leg.fx-4,leg.fy-4,leg.fx+5,leg.fy-4,'#91a4ae',2);line(leg.kx-3,leg.ky,leg.kx+3,leg.ky,'#ffffff33',2);}
     const fabric=c.createLinearGradient(-23,-90,25,-48);fabric.addColorStop(0,shade(cloth,22));fabric.addColorStop(.4,cloth);fabric.addColorStop(1,shade(cloth,-35));c.fillStyle=fabric;c.beginPath();c.moveTo(-22,-94);c.lineTo(17,-94);c.lineTo(23,-49);c.lineTo(-20,-49);c.closePath();c.fill();c.strokeStyle='#07131c';c.lineWidth=1.5;c.stroke();
@@ -219,7 +220,7 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
       if(z.kind==='elemental'){const zoneFloor=ARENA.floor+(z.depth??0)*.65,m=MOVES[z.move],color=({fire:'#ef9c62',water:'#69c6e2',earth:'#d2b77f',poison:'#b2d36d'})[m.ground.element];c.save();c.globalAlpha=Math.min(.7,z.remaining/60);c.fillStyle=color+'55';c.strokeStyle=color;c.lineWidth=2;c.beginPath();c.ellipse(z.x,zoneFloor,z.radius,36,0,0,Math.PI*2);c.fill();c.stroke();for(let i=0;i<7;i++){const x=z.x-z.radius+20+i*34;line(x,zoneFloor,x+Math.sin(state.tick*.1+i)*8,zoneFloor-15-(state.tick+i*9)%45,color+'99',2);}c.font='bold 12px system-ui';c.textAlign='center';c.fillStyle=color;c.fillText(m.name.toUpperCase(),z.x,zoneFloor+35);c.restore();continue;}
       const y=ARENA.floor+(z.depth??0)*.65-z.y;c.save();
       if(z.kind==='smoke'){
-        c.globalAlpha=Math.min(.55,z.remaining/60);for(let i=0;i<5;i++)circle(z.x-70+i*35,y+Math.sin(state.tick*.04+i)*12,60,'#99acbb');
+        c.globalAlpha=Math.min(.55,z.remaining/60);for(let i=0;i<5;i++)circle(z.x-70+i*35,y+Math.sin(state.tick*.04+i)*12,60,z.appearance==='victory'?'#c8b3da':'#99acbb');
         c.fillStyle='#e5eef7';c.font='bold 13px system-ui';c.textAlign='center';c.fillText('SMOKE · PROJECTILE COVER',z.x,y-75);
       }else{c.globalAlpha=z.remaining/15;c.strokeStyle='#ffcf79';c.lineWidth=8;c.beginPath();c.arc(z.x,y,z.radius*(1.5-z.remaining/30),0,Math.PI*2);c.stroke();}
       c.restore();

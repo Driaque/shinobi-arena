@@ -7,7 +7,7 @@ try{
  browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH,args:['--no-sandbox','--disable-dev-shm-usage']}: {})});await mkdir('test-results',{recursive:true});
  const context=await browser.newContext({viewport:{width:1280,height:1000}}),page=await context.newPage(),errors=[];page.on('pageerror',e=>{errors.push(e.message);console.error(e.stack);});
  await page.clock.install({time:new Date('2030-01-01T00:00:00Z')});await page.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));await page.goto('http://127.0.0.1:4186');
- await page.selectOption('#mode','local');assert.equal(await page.locator('#weapon-secondary0').inputValue(),'katana');assert.equal(await page.locator('#item0-0 option').count(),7);
+ await page.selectOption('#mode','local');assert.equal(await page.locator('#weapon-secondary0').inputValue(),'katana');assert.equal(await page.locator('#item0-0 option').count(),8);
  await equip(page,'#item0-0','poison');await equip(page,'#item0-1','raijinKunai');assert.equal(await page.locator('#item0-2 option[value=raijinKunai]').evaluate(el=>el.disabled),true,JSON.stringify(await page.locator('#item0-1').inputValue()));await page.screenshot({path:'test-results/inventory-loadout.png'});
  await page.click('#play');const tap=async(key,ms=500)=>{await page.keyboard.down(key);await page.clock.runFor(32);await page.keyboard.up(key);await page.clock.runFor(ms);};
  await tap('KeyF');assert.match(await page.locator('#weapon-label').innerText(),/KATANA/);await tap('KeyX');assert.match(await page.locator('#effects0').innerText(),/POISON COATED/);assert.match(await page.locator('#inventory-status0').innerText(),/3\/4 ITEMS/);

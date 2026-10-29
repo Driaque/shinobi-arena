@@ -9,7 +9,7 @@ await writeFile('dist/online-config.json',JSON.stringify({url:onlineURL}));
 // Fingerprint the complete native-module graph, not just main.js, across version upgrades.
 async function versionModules(dir){for(const e of await readdir(dir,{withFileTypes:true})){const path=`${dir}/${e.name}`;if(e.isDirectory())await versionModules(path);else if(e.name.endsWith('.js')){const source=await readFile(path,'utf8');await writeFile(path,source.replace(/(\bfrom\s*['"])(\.\.?\/[^'"]+\.js)(['"])/g,`$1$2?v=${version}$3`));}}}
 await versionModules('dist');
-const html=await readFile('dist/index.html','utf8');await writeFile('dist/index.html',html.replace('./main.js"',`./main.js?v=${version}"`).replace('./startup.js"',`./startup.js?v=${version}"`).replace('./styles.css"',`./styles.css?v=${version}"`));
+const html=await readFile('dist/index.html','utf8');await writeFile('dist/index.html',html.replace('./main.js"',`./main.js?v=${version}"`).replace('./startup.js"',`./startup.js?v=${version}"`).replace('./styles.css"',`./styles.css?v=${version}"`).replace('./icons.css"',`./icons.css?v=${version}"`));
 const escape=s=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 const inline=s=>escape(s).replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/`([^`]+)`/g,'<code>$1</code>');
 const article=notes=>notes.trim().split(/\n\n+/).map(block=>block.startsWith('## ')?`<h2>${inline(block.slice(3))}</h2>`:block.startsWith('# ')?`<h1>${inline(block.slice(2))}</h1>`:block.startsWith('- ')?`<ul>${block.split('\n').map(line=>`<li>${inline(line.replace(/^- /,''))}</li>`).join('')}</ul>`:`<p>${inline(block.replaceAll('\n',' '))}</p>`).join('\n');

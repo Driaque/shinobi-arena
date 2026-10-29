@@ -8,7 +8,7 @@ export const TICK_RATE = 60;
 export const FIGHTER_SCALE=.86;
 export const fighterBody=f=>({scale:f.scale??1,width:52*(f.scale??1),height:(f.crouching?76:120)*(f.scale??1),meleeHeight:100*(f.scale??1),projectileRadius:48*(f.scale??1)});
 export const ARENA = Object.freeze({ width: 1600, height: 720, floor: 570, margin: 46 });
-export const RULES_VERSION = 'duel-0.19.0';
+export const RULES_VERSION = 'duel-0.20.0';
 export function advanceResource(resource, cost) {
   if (![resource, cost].every(Number.isFinite) || resource < 0 || cost < 0) throw new Error('Invalid resource');
   return resource >= cost ? { accepted: true, remaining: resource - cost } : { accepted: false, remaining: resource };
@@ -240,7 +240,7 @@ export function stepMatch(state, inputs = [{}, {}]) {
         a.fired=true;
         if(m.inventoryEffect==='swap'){f.weaponSlot=1-f.weaponSlot;f.weapon=f.weapons[f.weaponSlot];state.events.push({type:'weaponSwap',target:f.id});}
         if(m.inventoryEffect==='poison')f.buffs=[...f.buffs.filter(b=>b.type!=='poisonCoating'),{type:'poisonCoating',remaining:360}];
-        if(m.inventoryEffect==='smoke')state.zones.push({kind:'smoke',owner:f.id,x:f.x,depth:f.depth??0,y:f.y+65*(f.scale??1),radius:125,remaining:180});
+        if(m.inventoryEffect==='smoke')state.zones.push({kind:'smoke',appearance:f.items[a.itemSlot]?.id==='victorySmoke'?'victory':null,owner:f.id,x:f.x,depth:f.depth??0,y:f.y+65*(f.scale??1),radius:125,remaining:180});
         if(m.inventoryEffect==='warp'&&f.raijinMark){f.x=clamp(f.raijinMark.x,ARENA.margin,ARENA.width-ARENA.margin);f.y=0;f.vy=0;f.jumps=0;f.airDashUsed=false;f.depth=f.raijinMark.depth??0;f.raijinMark=null;state.events.push({type:'raijinWarp',target:f.id});}
       }
       if(m.utility&&a.age>=m.startup&&!a.fired){

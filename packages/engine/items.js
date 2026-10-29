@@ -1,5 +1,6 @@
 // Limited, one-use tactical tools. These are real-time gameplay adaptations.
 export const ITEMS=Object.freeze({
+ victorySmoke:{id:'victorySmoke',name:'Victory Smoke',short:'VICTORY',move:'itemSmoke',unlock:'victorySmoke',description:'Tournament finalist reward · same projectile-blocking cloud and duration as Smoke Bomb.'},
  paperBomb:{id:'paperBomb',name:'Paper Bomb',short:'BOMB',move:'itemBomb',description:'Delayed blast after 0.75 s of travel; 110 damage in a 110-unit radius. Jump, dash or guard to answer it.'},
  throwingKunai:{id:'throwingKunai',name:'Throwing Kunai',short:'KUNAI',move:'itemKunai',description:'Fast straight projectile; 45 damage. One use.'},
  throwingShuriken:{id:'throwingShuriken',name:'Shuriken Fan',short:'FAN',move:'itemShuriken',description:'Three low-damage shuriken at different heights. Can pressure guard.'},
