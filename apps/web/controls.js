@@ -1,7 +1,7 @@
 import {createStickGestures} from './packages/input/analog.js';
 import { ACTIONS } from './packages/input/index.js';
-import { STORAGE_KEY, CONTROL_IDS, DEFAULT_KEYS, freshSettings, readSettings, stickVector, defaultLayout, defaultDockLayout, layoutProfile, projectControl, layoutOverlaps, rebind, keyLabel, keyForAction } from './packages/input/preferences.js';
-export const ACTION_LABELS={jutsu4:'Jutsu 4',jutsu5:'Jutsu 5',jutsu6:'Jutsu 6',jutsu7:'Jutsu 7',charge:'Charge chakra',swapWeapon:'Swap weapon',cycleItem:'Choose consumable',useItem:'Use consumable',crouch:'Crouch',awakening:'Awakening',stick:'Movement stick',left:'Move left',right:'Move right',jump:'Double jump',attack:'Basic attack',weapon:'Weapon',block:'Guard',special1:'Signature 1',special2:'Signature 2',bloodline:'Bloodline',replacement:'Replacement',dashForward:'Dash forward',dashBack:'Dash backward'};
+import { STORAGE_KEY, VISIBILITY_IDS, CONTROL_IDS, DEFAULT_KEYS, freshSettings, readSettings, stickVector, defaultLayout, defaultDockLayout, layoutProfile, projectControl, layoutOverlaps, rebind, keyLabel, keyForAction } from './packages/input/preferences.js';
+export const ACTION_LABELS={jutsu4:'Jutsu 4',jutsu5:'Jutsu 5',jutsu6:'Jutsu 6',jutsu7:'Jutsu 7',depthUp:'Move toward rear',depthDown:'Move toward front',charge:'Charge chakra',swapWeapon:'Swap weapon',cycleItem:'Choose consumable',useItem:'Use consumable',crouch:'Crouch',awakening:'Awakening',stick:'Movement stick',left:'Move left',right:'Move right',jump:'Double jump',attack:'Basic attack',weapon:'Weapon',block:'Guard',special1:'Signature 1',special2:'Signature 2',bloodline:'Bloodline',replacement:'Replacement',dashForward:'Dash forward',dashBack:'Dash backward'};
 export function createControls({inputs,onPause,isPlaying}) {
   const $=s=>document.querySelector(s),arena=$('.arena'),stick=$('#joystick');
   const nodes=Object.fromEntries(CONTROL_IDS.map(id=>[id,$(`[data-control="${id}"]`)]));
@@ -59,8 +59,7 @@ export function createControls({inputs,onPause,isPlaying}) {
     const vector=stickVector(dx,dy,radius),distance=Math.hypot(dx,dy),limit=distance>radius?radius/distance:1;
     const intent=gestures.update(vector,performance.now());
     inputs[0].setAxis('stick',intent.moveX);
-    if(intent.jump){inputs[0].press('jump','stick-jump');inputs[0].release('stick-jump');}
-    if(intent.crouch)inputs[0].press('crouch','stick-crouch');else inputs[0].release('stick-crouch');
+    inputs[0].setDepth('stick',vector.y);
     if(intent.dashDirection)inputs[0].dash(intent.dashDirection);
     stick.style.setProperty('--stick-x',`${dx*limit}px`);stick.style.setProperty('--stick-y',`${dy*limit}px`);
     stick.classList.toggle('active',Math.hypot(vector.x,vector.y)>.01);
@@ -111,7 +110,7 @@ export function createControls({inputs,onPause,isPlaying}) {
     reset();editing=false;draft=null;arena.classList.remove('editing-controls');editor.hidden=true;$('#mode').disabled=false;
     overlay.hidden=previousOverlay;applyLayout();$('#control-settings').focus();
   }
-  for(const id of CONTROL_IDS){
+  for(const id of VISIBILITY_IDS){
     const label=document.createElement('label'),box=document.createElement('input');box.type='checkbox';box.dataset.controlVisible=id;box.checked=true;
     box.addEventListener('change',()=>{reset();draft.visibility[id]=box.checked;applyLayout();});label.append(box,document.createTextNode(ACTION_LABELS[id]));$('#control-visibility').append(label);
   }
@@ -153,6 +152,6 @@ export function createControls({inputs,onPause,isPlaying}) {
   window.addEventListener('keyup',event=>inputs.forEach(i=>i.release(event.code)));
   new ResizeObserver(()=>{reset();applyLayout();}).observe(arena);
   applyLayout();
-  return {reset,get editing(){return editing;},binding:(player,action)=>keyLabel(keyForAction(current().keys,player,action))};
+  return {reset,get editing(){return editing;},visible:action=>current().visibility[action]!==false,binding:(player,action)=>keyLabel(keyForAction(current().keys,player,action))};
 }
 

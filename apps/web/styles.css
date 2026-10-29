@@ -28,9 +28,9 @@
 
 /* A clear fight viewport above a separate touch deck. */
 .battle-view{position:absolute;inset:0;overflow:hidden;touch-action:none}
-.control-deck{display:none;position:absolute;inset:auto 0 0;height:136px;border-top:1px solid #52708b66;background:linear-gradient(#122436,#091523);pointer-events:none}
+.control-deck{display:none;position:absolute;inset:auto 0 0;height:180px;border-top:1px solid #52708b66;background:linear-gradient(#122436,#091523);pointer-events:none}
 .control-deck>span{position:absolute;left:47%;top:8px;font-size:7px;letter-spacing:2px;color:#69859e}
-.arena[data-control-placement=dock] .battle-view{bottom:136px}
+.arena[data-control-placement=dock] .battle-view{bottom:180px}
 .arena[data-control-placement=dock] .control-deck{display:block}
 .controls{touch-action:none;-webkit-touch-callout:none}
 .controls [data-control]{opacity:var(--control-opacity,.65)}
@@ -148,3 +148,10 @@ html.play-view-open,html.play-view-open body{overflow:hidden;overscroll-behavior
 .equipment-grid{touch-action:pan-y}.equipment-slots{touch-action:pan-x}
 
 .technique-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}.technique-tags>span{font-size:8px;letter-spacing:.6px;padding:3px 5px;border:1px solid #86d5e955;border-radius:4px;color:#9fdce9;background:#15313d}.equipment-card:has(.technique-tags){min-height:190px}
+
+.combat-techniques{position:absolute;z-index:4;left:10px;right:10px;bottom:136px;height:40px;display:flex;gap:5px;pointer-events:auto;opacity:var(--control-opacity,.8)}.combat-techniques[hidden]{display:none}.combat-techniques button{flex:1;min-width:0;max-width:180px;border-radius:7px;padding:3px 5px;font-size:9px;line-height:1.2;background:#162c42;border-color:#7abfc066;touch-action:none;user-select:none}.combat-techniques button[hidden]{display:none}.combat-techniques button:disabled{opacity:.45}.combat-techniques [data-quick-action=charge]{border-color:#75d2e4;color:#a5e7f0}.control-deck>span{display:none}.arena[data-control-placement=overlay] .combat-techniques{bottom:4px}.arena[data-control-placement=dock] #jutsu-tray{bottom:184px;max-height:calc(100% - 190px)}
+@media(max-height:520px){.combat-techniques{gap:3px;left:6px;right:6px}.combat-techniques button{font-size:8px;padding:2px}.timer strong{font-size:23px}.timer{min-width:70px}}
+
+#audio-dialog{max-width:440px;background:#102235;color:#dbe9ee;border:1px solid #648598;border-radius:12px;padding:22px}#audio-dialog label{display:flex;justify-content:space-between;align-items:center;gap:18px;margin:18px 0;font-size:13px}#audio-dialog p{font-size:12px;line-height:1.5;color:#a2becd}#audio-dialog::backdrop{background:#020b15aa}@media(max-height:520px){#audio-settings{padding:6px;font-size:9px}.tools{gap:4px}}
+
+@media(max-height:520px){.tools button{font-size:9px;padding:6px}.tools select{max-width:132px}.difficulty-label select{max-width:78px}}@media(max-width:720px) and (orientation:landscape){.topbar>.brand{display:none}.tools{width:100%;justify-content:space-between}}

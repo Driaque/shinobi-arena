@@ -19,9 +19,7 @@ export function createStickGestures(){
     else lastPull={direction,time:now};
     horizontal=direction;
    }
-   if(!up&&y<=-STICK_GESTURES.enter&&Math.abs(y)>=Math.abs(x)*.9){jump=true;up=true;}
-   if(y>=STICK_GESTURES.enter&&y>=Math.abs(x)*.9)down=true;
-   return {moveX:x,jump,crouch:down,dashDirection};
+   return {moveX:x,moveZ:y,jump:false,crouch:false,dashDirection};
   },
   release(){horizontal=0;up=false;down=false;},
   reset(){horizontal=0;lastPull=null;up=false;down=false;}

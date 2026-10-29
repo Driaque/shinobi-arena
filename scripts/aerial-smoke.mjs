@@ -17,8 +17,7 @@ try{
    assert.match(await page.locator('#combo0').innerText(),/AIR.*[34] HITS/);await page.screenshot({path:'test-results/aerial-combo-desktop.png'});await press('KeyO',200);assert.match(await page.locator('#combo0').innerText(),/5 HITS/,JSON.stringify(await page.locator('#combo0,#training-readout,#feedback').allTextContents()));await page.clock.runFor(600);await page.screenshot({path:'test-results/moonlit-shrine-desktop.png'});
   }else{
    await page.click('#jutsu-toggle');assert.equal(await page.locator('[data-jutsu-cast=special2]').isDisabled(),true);await page.click('#jutsu-toggle');
-   const box=await page.locator('[data-control=stick]').boundingBox(),cdp=await context.newCDPSession(page);const center={x:box.x+box.width/2,y:box.y+box.height/2,id:1,radiusX:4,radiusY:4};
-   await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[center]});await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{...center,y:center.y-box.height*.42}]});await page.clock.runFor(32);await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+   await page.locator('[data-action=jump]').tap();await page.clock.runFor(32);
    await page.click('#jutsu-toggle');assert.equal(await page.locator('[data-jutsu-cast=special2]').isDisabled(),false);await page.locator('[data-jutsu-cast=special2]').tap();await page.clock.runFor(100);assert.match(await page.locator('#training-readout').innerText(),/STARTUP|ACTIVE/);assert.match(await page.locator('#s2-name').innerText(),/SKY CLEAVE/);await page.screenshot({path:'test-results/aerial-mobile.png'});
   }
   await context.close();
