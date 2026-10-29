@@ -179,7 +179,7 @@ export function stepMatch(state, inputs = [{}, {}]) {
     const mobility=bound?0:slow*(f.buffs.some(b=>b.type==='haste')?1.15:1);
     f.charging=Boolean(input.charge&&f.hp>0&&f.y===0&&!f.stun&&!f.action&&!f.dash&&!bound&&!f.buffer&&!input.left&&!input.right&&!input.moveX&&!input.jump&&!input.block&&f.chakra<100&&f.stamina>=.2);
     if(f.charging){f.chakra=Math.min(100,f.chakra+.3);f.stamina=Math.max(0,f.stamina-.2);f.lastExertion=state.tick;}
-    const wasStunned = f.stun > 0,guardStunned=wasStunned&&f.guardStun>0;
+    const wasStunned = f.stun > 0,guardStunned=wasStunned&&f.guardStun>0&&f.stun<=f.guardStun;
     f.guardStun=Math.max(0,(f.guardStun??0)-1);
     if (f.stun > 0) f.stun--;
     f.chakra = Math.min(100, f.chakra + (activeAwakening(f)?.regen??0.035));

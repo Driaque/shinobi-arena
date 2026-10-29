@@ -28,3 +28,8 @@ test('projectile body collision matches the reduced standing height rather than 
  for(const [scale,hp]of [[.88,1000],[1,945]]){const s=duel();s.fighters[0].scale=scale;shot(s,110);stepMatch(s,[{},{}]);assert.equal(s.fighters[0].hp,hp);}
  const input=cleanInput({...low,scale:10,guardStun:100});assert.equal(input.block,true);assert.equal(input.crouch,true);assert.equal(input.scale,undefined);assert.equal(input.guardStun,undefined);
 });
+
+
+test('a simultaneous blocked shot cannot overwrite real piercing hitstun with shield recovery',()=>{
+ const s=duel(),f=s.fighters[0];s.projectiles.push({id:s.nextId++,owner:1,x:614,y:50,direction:-1,life:20,move:'fireball',pierce:1});shot(s);stepMatch(s,[low,{}]);assert.ok(f.stun>f.guardStun);stepMatch(s,[low,{}]);assert.equal(f.blocking,false);assert.equal(f.crouching,false);
+});
