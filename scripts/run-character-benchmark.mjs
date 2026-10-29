@@ -28,6 +28,7 @@ async function fight(pair){return new Promise((resolve,reject)=>{
    if(m.type==='snapshot'||m.type==='matched'){
     if((pair.matchId&&m.id!==pair.matchId)||m.tournament?.id!==event.id||m.tournament?.pairId!==pair.id||m.players.some(p=>!pair.players.includes(p.playerId)))throw new Error('Unexpected pairing; stopping.');
     const slot=m.players.findIndex(p=>p.playerId===playerId);if(slot<0)throw new Error('Missing entrant');
+    if(m.players.map(p=>p.playerId).join('|')!==pair.players.join('|'))throw new Error('Benchmark starting sides differ from the schedule.');
     if(m.type==='matched'&&slot===0)console.log('LIVE',JSON.stringify({stage:pair.stage??'knockout',id:m.id,names:m.players.map(p=>p.name)}));
     if(m.phase==='roundOver')ws.send(JSON.stringify({type:'ready'}));
     if(m.phase==='playing'){const state={...m.state,tick:Math.floor(m.state.tick/4)*4},input=computerInput(state,slot,'xtreme');ws.send(JSON.stringify({type:'input',seq:seq++,input}));}
@@ -47,7 +48,9 @@ try{
   console.log('STANDINGS',JSON.stringify(event.standings));await writeFile(folder+'/results.json',JSON.stringify({base,event,loadouts:profiles,ai:'xtreme',rules:RULES_VERSION},null,2));
  }
  if(event.status!=='completed'||event.rounds.flat().length!==35)throw new Error('Incomplete benchmark');
- for(const p of event.rounds.flat()){const r=await request('/api/replays/'+p.matchId);if(r.truncated||r.frames.length<2||r.reason!=='completed')throw new Error('Replay incomplete: '+p.matchId);}
+ const startingSides=Object.fromEntries(roster.map(c=>[c,0]));
+ for(const p of event.rounds.flat()){const r=await request('/api/replays/'+p.matchId);if(r.truncated||r.frames.length<2||r.reason!=='completed')throw new Error('Replay incomplete: '+p.matchId);const players=r.players.map(v=>v.playerId),score=p.players.map(id=>r.frames.at(-1).state.wins[players.indexOf(id)]);if(JSON.stringify(score)!==JSON.stringify(p.score))throw new Error('Stored score differs from replay: '+p.matchId);if(p.stage==='league')startingSides[r.players[0].character]++;}
+ if(Object.values(startingSides).some(n=>n!==3&&n!==4))throw new Error('League starting sides are not balanced.');
  for(const member of checkpoint.identities){const me=await request('/api/me',{token:member.token});if(me.player.games!==0||me.player.rating!==1000||me.rewards.points||me.rewards.unlocks.length)throw new Error('Benchmark affected player statistics');}
- console.log('VERIFIED',JSON.stringify({id:event.id,matches:35,replays:35,leagueRanks:event.standings.map(r=>({name:r.name,rank:r.rank,wins:r.wins,losses:r.losses,points:r.points})),champion:event.participants.find(p=>p.id===event.champion)?.name}));
+ console.log('VERIFIED',JSON.stringify({id:event.id,matches:35,replays:35,startingSides,leagueRanks:event.standings.map(r=>({name:r.name,rank:r.rank,wins:r.wins,losses:r.losses,points:r.points})),champion:event.participants.find(p=>p.id===event.champion)?.name}));
 }finally{for(const ws of sockets)ws.close();}
