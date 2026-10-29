@@ -88,3 +88,7 @@ Seven equipped jutsus use U/I/O and 1/2/3/4 for P1; P2 uses comma/period/slash a
 ## v0.18 equipped deck and movement
 
 The analog now drives horizontal and shallow depth movement; it no longer casts Jump or Crouch. Dedicated Jump remains, with Crouch and Hold Charge visible in the equipped technique row. The row displays all equipped slots with names/cooldowns; extra slots, Charge and Crouch have visibility checkboxes. Keyboard depth is Z/L for P1 and Num 9/Num 6 for P2. Existing custom bindings and hidden-control choices migrate without being overwritten.
+
+## v0.19 game feel
+
+Feel opens analog dead-zone/sensitivity/double-pull timing, left-handed/floating controls, compact duplicate-button hiding, equipped-row scale/offset, screen shake/particles, optional hold-drag-release jutsu aiming and experimental online movement prediction. Crouch Guard in the equipped row holds both actions with one touch. Practice speed affects offline Practice only. Existing Controls remains the per-button position, size, visibility and opacity editor; Feel does not overwrite its saved layout.

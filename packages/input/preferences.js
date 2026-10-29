@@ -2,7 +2,7 @@ import { ACTIONS } from './index.js';
 export const SETTINGS_VERSION = 6;
 export const STORAGE_KEY = 'shinobi-arena.controls.v1';
 export const CONTROL_IDS = Object.freeze(['stick', ...ACTIONS.filter(a => !['left','right','crouch','jutsu4','jutsu5','jutsu6','jutsu7','charge','depthUp','depthDown'].includes(a))]);
-export const VISIBILITY_IDS=Object.freeze([...CONTROL_IDS,'jutsu4','jutsu5','jutsu6','jutsu7','charge','crouch']);
+export const VISIBILITY_IDS=Object.freeze([...CONTROL_IDS,'jutsu4','jutsu5','jutsu6','jutsu7','charge','crouch','crouchGuard']);
 export const DEFAULT_KEYS = Object.freeze([
   {KeyZ:'depthUp',KeyL:'depthDown',Digit1:'jutsu4',Digit2:'jutsu5',Digit3:'jutsu6',Digit4:'jutsu7',KeyG:'charge',KeyF:'swapWeapon',KeyC:'cycleItem',KeyX:'useItem',KeyS:'crouch',KeyA:'left',KeyD:'right',KeyW:'jump',KeyJ:'attack',KeyK:'block',KeyU:'special1',KeyI:'special2',KeyH:'weapon',KeyO:'bloodline',KeyR:'replacement',KeyQ:'dashBack',KeyE:'dashForward',KeyT:'awakening'},
   {Numpad9:'depthUp',Numpad6:'depthDown',Numpad1:'jutsu4',Numpad2:'jutsu5',Numpad3:'jutsu6',Numpad4:'jutsu7',Numpad0:'charge',Digit7:'swapWeapon',Digit8:'cycleItem',Digit9:'useItem',ArrowDown:'crouch',ArrowLeft:'left',ArrowRight:'right',ArrowUp:'jump',KeyN:'attack',KeyM:'block',Comma:'special1',Period:'special2',KeyB:'weapon',Slash:'bloodline',KeyV:'replacement',KeyY:'awakening',BracketLeft:'dashBack',BracketRight:'dashForward'}

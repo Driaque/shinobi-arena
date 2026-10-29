@@ -1,5 +1,9 @@
 # Release notes
 
+## 0.19.0
+
+Expanded arena, proportionate smaller fighters, tactical jutsu routes and strategy advisor, named builds, bounded rated-match meta statistics, comfort/aiming settings, coaching, recorded Practice and replay takeover, plus optional reconciled online movement prediction. [Release notes](docs/releases/0.19.0.md).
+
 ## 0.18.0
 
 Fix movement blend lag; add depth movement, visible equipped jutsus/Charge/Crouch, larger detailed fighters, Akatsuki roster additions original music/layered combat audio, startup readiness splash and browsable release history. [Release notes](docs/releases/0.18.0.md).

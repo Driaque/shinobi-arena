@@ -1,3 +1,5 @@
+import {aggregateMeta} from '../../packages/engine/meta.js';
+import {RULES_VERSION} from '../../packages/engine/index.js';
 import {randomBytes,randomUUID,createHash} from 'node:crypto';
 import {gzipSync} from 'node:zlib';
 const hash=token=>createHash('sha256').update(token).digest('hex');
@@ -48,5 +50,7 @@ export async function createStore({databaseURL=process.env.DATABASE_URL,filename
  async function leaderboard({offset=0,limit=25}={}){const rows=await query('SELECT * FROM players WHERE games>0 ORDER BY rating DESC,rated_games DESC,id LIMIT $1 OFFSET $2',[limit,offset]);return rows.map((p,i)=>({...publicPlayer(p),position:offset+i+1}));}
  async function history({offset=0,limit=20,playerId=null}={}){const filter=playerId?' WHERE participants LIKE $3':'';const args=[limit,offset,...(playerId?['%"playerId":"'+playerId+'"%']:[])];const rows=await query('SELECT id,created_at,rules,participants,result,CASE WHEN archive IS NULL THEN 0 ELSE 1 END AS replay_available FROM matches'+filter+' ORDER BY created_at DESC LIMIT $1 OFFSET $2',args);return rows.map(r=>({id:r.id,createdAt:Number(r.created_at),rules:r.rules,players:JSON.parse(r.participants),result:JSON.parse(r.result),replayAvailable:Boolean(r.replay_available)}));}
  async function replay(id){return (await query('SELECT archive FROM matches WHERE id=$1',[id]))[0]?.archive??null;}
- return {createIdentity,identity,rename,save,leaderboard,history,replay,durable:postgres||filename!==':memory:',kind:postgres?'postgres':'sqlite',ping:()=>query('SELECT 1 AS ok'),close:async()=>{await tail;await shutdown();}};
+ let metaCache=null,metaAt=0;
+ async function meta(){if(metaCache&&now()-metaAt<60000)return metaCache;const rows=await query('SELECT rules,participants,result FROM matches WHERE rules=$1 AND ranked=1 AND created_at>=$2 ORDER BY created_at DESC LIMIT 500',[RULES_VERSION,now()-30*86400000]);metaCache=aggregateMeta(rows.map(r=>({rules:r.rules,players:JSON.parse(r.participants),result:JSON.parse(r.result)})),RULES_VERSION);metaAt=now();return metaCache;}
+ return {meta,createIdentity,identity,rename,save,leaderboard,history,replay,durable:postgres||filename!==':memory:',kind:postgres?'postgres':'sqlite',ping:()=>query('SELECT 1 AS ok'),close:async()=>{await tail;await shutdown();}};
 }

@@ -1,6 +1,6 @@
 // Device-space gesture recognition; gameplay still enforces jump/dash limits and costs.
 export const STICK_GESTURES=Object.freeze({enter:.65,release:.25,doublePullMs:300});
-export function createStickGestures(){
+export function createStickGestures(options=()=>({})){
  let horizontal=0,lastPull=null,up=false,down=false;
  return {
   update({x,y},now){
@@ -15,7 +15,7 @@ export function createStickGestures(){
    if(direction&&direction!==horizontal){
     // Crossing to the opposite side is a new pull, never a same-side double pull.
     if(horizontal&&direction!==horizontal)lastPull=null;
-    if(lastPull?.direction===direction&&now-lastPull.time<=STICK_GESTURES.doublePullMs){dashDirection=direction;lastPull=null;}
+    if(lastPull?.direction===direction&&now-lastPull.time<=(options().doublePullMs??STICK_GESTURES.doublePullMs)){dashDirection=direction;lastPull=null;}
     else lastPull={direction,time:now};
     horizontal=direction;
    }

@@ -20,9 +20,9 @@ test('crouch by itself never grants a guard and defensive recovery never permits
  const bare=duel();bare.fighters[0].blocking=false;shot(bare);stepMatch(bare,[{crouch:true},{}]);assert.equal(bare.fighters[0].hp,945);
 });
 test('live body sizes and push collision scale together while older recordings retain original scale',()=>{
- const s=createMatch(),f=s.fighters[0];assert.equal(f.scale,.96);assert.equal(FIGHTER_SCALE,.96);assert.equal(fighterBody(f).width,52*.96);assert.equal(fighterBody(f).height,120*.96);f.crouching=true;assert.equal(fighterBody(f).height,76*.96);
+ const s=createMatch(),f=s.fighters[0];assert.equal(f.scale,.86);assert.equal(FIGHTER_SCALE,.86);assert.equal(fighterBody(f).width,52*.86);assert.equal(fighterBody(f).height,120*.86);f.crouching=true;assert.equal(fighterBody(f).height,76*.86);
  assert.equal(fighterBody({crouching:false}).width,52);assert.equal(fighterBody({crouching:false}).height,120);
- s.fighters[0].x=640;s.fighters[1].x=641;stepMatch(s);assert.ok(Math.abs(s.fighters[1].x-s.fighters[0].x-52*.96)<.001);
+ s.fighters[0].x=640;s.fighters[1].x=641;stepMatch(s);assert.ok(Math.abs(s.fighters[1].x-s.fighters[0].x-52*.86)<.001);
 });
 test('projectile body collision matches the reduced standing height rather than an old invisible hitbox',()=>{
  for(const [scale,hp]of [[.88,1000],[1,945]]){const s=duel();s.fighters[0].scale=scale;shot(s,110);stepMatch(s,[{},{}]);assert.equal(s.fighters[0].hp,hp);}

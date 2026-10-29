@@ -8,7 +8,7 @@ export function createArena({countdownTicks=180,roundBreakTicks=180,maxClients=2
  function removeQueued(c){const i=queue.indexOf(c);if(i>=0){queue.splice(i,1);queueStatus();}}
  function unwatch(c){if(c.spectating){c.spectating.spectators.delete(c);c.spectating=null;}}
  const publicPlayers=m=>m.players.map(p=>({...p.profile,playerId:p.playerId??null}));
- const snapshot=m=>({type:'snapshot',id:m.id,players:publicPlayers(m),state:m.state,phase:m.phase,mode:m.mode,countdown:Math.ceil(m.remaining/TICK_RATE)});
+ const snapshot=m=>({type:'snapshot',id:m.id,players:publicPlayers(m),state:m.state,phase:m.phase,mode:m.mode,acks:m.players.map(c=>c.appliedSeq??-1),countdown:Math.ceil(m.remaining/TICK_RATE)});
  function frame(m){const frames=m.replay.frames;if(frames.length>=4500){m.replay.truncated=true;return;}frames.push({at:tick-m.startedTick,phase:m.phase,state:structuredClone(m.state)});}
  function record(m,reason,winner){
   if(m.recorded)return;m.recorded=true;frame(m);
@@ -54,7 +54,7 @@ export function createArena({countdownTicks=180,roundBreakTicks=180,maxClients=2
     c.profile=playerProfile(msg.profile);c.lastSeq=-1;queue.push(c);pair();
    }else if(msg.type==='input'){
     if(!c.match||c.match.phase!=='playing'||c.match.state.status!=='playing')return;
-    if(!Number.isSafeInteger(msg.seq)||msg.seq<=c.lastSeq)return;c.lastSeq=msg.seq;c.lastInput=tick;const input=cleanInput(msg.input);c.pending.push(input);if(c.pending.length>8)c.pending.shift();
+    if(!Number.isSafeInteger(msg.seq)||msg.seq<=c.lastSeq)return;c.lastSeq=msg.seq;c.lastInput=tick;const input=cleanInput(msg.input);c.pending.push({...input,_seq:msg.seq});if(c.pending.length>8)c.pending.shift();
    }else if(msg.type==='ready'){
     const m=c.match;if(!m||m.phase!=='roundOver')return;c.ready=true;
     if(m.players.every(p=>p.ready)){nextRound(m.state);m.phase='countdown';m.remaining=countdownTicks;m.replay.rounds.push({at:tick-m.startedTick,state:structuredClone(m.state)});frame(m);for(const p of m.players){p.input={};p.pending=[];p.ready=false;}}
@@ -67,7 +67,7 @@ export function createArena({countdownTicks=180,roundBreakTicks=180,maxClients=2
   for(const m of matches){
    if(m.phase==='countdown'){if(--m.remaining<=0)m.phase='playing';}
    else if(m.phase==='playing'){
-    const inputs=m.players.map(c=>{if(tick-c.lastInput>30){c.input={};c.pending=[];}const latest=c.pending.at(-1);if(c.pending.length)c.input=c.pending.shift();const value=latest?{...c.input,moveX:latest.moveX,moveZ:latest.moveZ,left:latest.left,right:latest.right}:c.input;c.input={...value,pressedActions:[]};delete c.input.dashDirection;return value;});
+    const inputs=m.players.map(c=>{if(tick-c.lastInput>30){c.input={};c.pending=[];}const latest=c.pending.at(-1);if(c.pending.length)c.input=c.pending.shift();c.appliedSeq=c.input._seq??c.appliedSeq;const value=latest?{...c.input,moveX:latest.moveX,moveZ:latest.moveZ,left:latest.left,right:latest.right}:c.input;delete value._seq;c.input={...value,pressedActions:[]};delete c.input.dashDirection;return value;});
     if(m.replay.inputs.length<40000){const key=JSON.stringify(inputs),last=m.replay.inputs.at(-1);if(last&&m.lastInputKey===key)last.count++;else m.replay.inputs.push({tick:m.state.tick+1,count:1,inputs:structuredClone(inputs)});m.lastInputKey=key;}else m.replay.truncated=true;
     stepMatch(m.state,inputs);m.playedTicks++;
     if(m.state.status==='roundOver'){m.phase='roundOver';m.remaining=roundBreakTicks;frame(m);}

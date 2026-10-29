@@ -8,6 +8,8 @@ export function createTrainingUI({pause,clearInputs,getState,setState,getLoadout
  function options(){
   $('#training-drill').replaceChildren();for(const [id,drill]of Object.entries(DRILLS))$('#training-drill').add(new Option(`${drill.name}${completed.includes(id)?' ✓':''}`,id));
  }
+ for(const [id,label]of [['projectile','Projectile pressure'],['aerial','Jump attacks'],['counter','Guard then counter'],['recorded','Recorded sequence']])$('#training-dummy').add(new Option(label,id));
+ const record=document.createElement('button');record.id='training-record-sequence';record.textContent='Record my actions (max 10s)';record.type='button';record.onclick=()=>{const t=getState().training;if(!t||t.drill!=='free')return;if(t.recording){t.recording=false;record.textContent='Record my actions (max 10s)';}else{t.sequence=[];t.recording=true;record.textContent='Stop recording';}};dialog.append(record);const playback=document.createElement('button');playback.id='training-play-sequence';playback.textContent='Loop recorded opponent';playback.type='button';playback.onclick=()=>{const t=getState().training;if(!t?.sequence?.length)return;t.recording=false;t.dummy='recorded';t.playbackStart=getState().tick;$('#training-dummy').value='recorded';record.textContent='Record my actions (max 10s)';close();};dialog.append(playback);
  options();
  function describe(){
   const id=$('#training-drill').value;$('#training-dummy').disabled=id!=='free';
@@ -24,7 +26,7 @@ export function createTrainingUI({pause,clearInputs,getState,setState,getLoadout
  $('#training-settings').addEventListener('click',open);$('#training-close').addEventListener('click',close);
  dialog.addEventListener('cancel',event=>{event.preventDefault();close();});
  $('#training-drill').addEventListener('change',describe);
- $('#training-start').addEventListener('click',()=>{setState(createTraining(getLoadouts(),settings()));dialog.close();clearInputs();start();});
+ $('#training-start').addEventListener('click',()=>{const next=createTraining(getLoadouts(),settings());next.training.sequence=structuredClone(getState().training?.sequence??[]);setState(next);dialog.close();clearInputs();start();});
  $('#training-charge').addEventListener('click',()=>{if(chargeTrainingAwakening(getState()))$('#training-drill-help').textContent='Form charged. Close Practice, resume, then press Awaken.';});
  $('#training-reset').addEventListener('click',()=>{if(isTraining()){setState(resetTraining(getState()));clearInputs();$('#training-reset').blur();}});
  function draw(){
@@ -40,12 +42,13 @@ export function createTrainingUI({pause,clearInputs,getState,setState,getLoadout
   $('#training-reset').textContent=t.drill==='free'?'Reset':'Retry';
   $('#training-coach-title').textContent=t.drill==='free'?`FREE PRACTICE · ${t.dummy.toUpperCase()} DUMMY`:t.completed?`${drill.name} · COMPLETE`:`${drill.name} · ${t.step}/${drill.steps.length}`;
   $('#training-progress').hidden=t.drill==='free';$('#training-progress').max=drill.steps.length||1;$('#training-progress').value=t.step;
-  const keys=t.drill==='movement'&&matchMedia('(any-pointer: coarse)').matches?'Stick up → center → up → double-pull sideways':t.drill==='movement'?`Jump ${binding('jump')} → Jump → Dash ${binding('dashForward')}`:t.drill==='combo'?`Basic ${binding('attack')} ×3`:t.drill==='counter'?`Guard ${binding('block')} → Weapon ${binding('weapon')}`:t.drill==='awakening'?`Awaken ${binding('awakening')}`:'';
+  record.textContent=t.recording?`Stop recording · ${(t.sequence.length/60).toFixed(1)}s`:'Record my actions (max 10s)';record.disabled=t.drill!=='free';playback.disabled=!t.sequence?.length;
+  const keys=t.drill==='movement'&&matchMedia('(any-pointer: coarse)').matches?`Jump ${binding('jump')} twice → double-pull sideways`:t.drill==='movement'?`Jump ${binding('jump')} → Jump → Dash ${binding('dashForward')}`:t.drill==='combo'?`Basic ${binding('attack')} ×3`:t.drill==='counter'?`Guard ${binding('block')} → Weapon ${binding('weapon')}`:t.drill==='awakening'?`Awaken ${binding('awakening')}`:'';
   write('#training-instruction',t.completed?'Challenge complete · Retry or choose another drill in Practice':`${drill.steps[t.step]??'Explore your kit'}${keys?' · '+keys:''}`);
   const info=trainingReadout(state),phase=info.player.name==='Ready'?`${info.move}: ${info.stamina} stamina · ${info.chakra} chakra · ${info.range||'projectile'} range`:`${info.player.name.toUpperCase()} ${info.player.remaining}f`;
   $('#training-readout').textContent=`${phase} · Gap ${info.distance} · Dummy ${info.dummy.name.toLowerCase()}${info.dummy.remaining?' '+info.dummy.remaining+'f':''}`;
   write('#training-feedback',state.tick<=t.feedbackUntil?t.feedback:drill.hint);
   $('#training-record').textContent=`${completed.length}/4 challenges completed on this device. Starting a drill resets the arena.`;
  }
- return {draw,create:loadouts=>createTraining(loadouts,settings()),get open(){return dialog.open;}};
+ return {openSettings:open,draw,create:loadouts=>createTraining(loadouts,settings()),get open(){return dialog.open;}};
 }
