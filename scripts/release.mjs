@@ -1,7 +1,7 @@
 import {readFile} from 'node:fs/promises';
 const {version}=JSON.parse(await readFile('package.json','utf8'));
 const body=await readFile(`docs/releases/${version}.md`,'utf8');
-if(!/^\d+\.\d+\.\d+$/.test(version)||!body.startsWith(`# Shinobi Arena v${version}\n`))throw new Error('Invalid release metadata');
+if(!/^\d+\.\d+\.\d+$/.test(version)||!body.startsWith(`# Fabled Rivals v${version}\n`))throw new Error('Invalid release metadata');
 const {GITHUB_REPOSITORY:repo,RELEASE_COMMIT:sha,GH_TOKEN:token}=process.env;
 if(!repo||!/^\w[\w.-]*\/[\w.-]+$/.test(repo)||!/^([a-f0-9]{40})$/.test(sha??'')||!token)throw new Error('Release needs repository, verified commit and token');
 const request=async(path,options={})=>fetch(`https://api.github.com/repos/${repo}/${path}`,{...options,headers:{Accept:'application/vnd.github+json',Authorization:`Bearer ${token}`,'X-GitHub-Api-Version':'2022-11-28',...options.headers}});
@@ -17,6 +17,6 @@ for(const name of ['CI','Deploy Pages']){
  const run=runs.find(r=>r.name===name&&r.head_sha===sha&&allowedEvents.includes(r.event));
  if(!run||run.status!=='completed'||run.conclusion!=='success'){console.log(`Waiting for successful ${name}; its completion will trigger another release check.`);process.exit(0);}
 }
-const response=await request('releases',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tag_name:`v${version}`,target_commitish:sha,name:`Shinobi Arena v${version}`,body,draft:false,prerelease:false,make_latest:'true'})});
+const response=await request('releases',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tag_name:`v${version}`,target_commitish:sha,name:`Fabled Rivals v${version}`,body,draft:false,prerelease:false,make_latest:'true'})});
 if(response.status!==201)throw new Error(`Release publication failed: ${response.status}`);
 console.log(`Published ${(await response.json()).html_url}`);
