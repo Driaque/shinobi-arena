@@ -21,3 +21,12 @@ export function leagueStandings(t){
  return rows.map((r,i)=>({...r,rank:i+1,roundDifference:r.roundsFor-r.roundsAgainst}));
 }
 export function seededQuarterfinals(standings){return [[0,7],[3,4],[1,6],[2,5]].map(([a,b])=>pairing([standings[a].id,standings[b].id]));}
+// Preserve completed battles while balancing the remaining sides after legacy arrival-order seating.
+export function rebalanceLeagueSides(t){
+ const ids=t.participants.map(p=>p.id),index=new Map(ids.map((id,i)=>[id,i])),completed=t.rounds.flat().filter(p=>p.stage==='league'&&p.status==='completed'),done=new Set(completed.map(p=>p.id)),counts=ids.map(id=>completed.filter(p=>(p.actualOrder??p.players)[0]===id).length),pending=t.leagueSchedule.flat().filter(p=>!done.has(p.id));
+ const suffix=Array.from({length:pending.length+1},()=>Array(8).fill(0));for(let i=pending.length-1;i>=0;i--){suffix[i]=[...suffix[i+1]];for(const id of pending[i].players)suffix[i][index.get(id)]++;}
+ const failed=new Set(),chosen=[];
+ function visit(at){if(counts.some((n,i)=>n>4||n+suffix[at][i]<3))return false;if(at===pending.length)return true;const key=at+':'+counts.join(',');if(failed.has(key))return false;const players=pending[at].players,options=[...players].sort((a,b)=>counts[index.get(a)]-counts[index.get(b)]);for(const first of options){const i=index.get(first);counts[i]++;chosen[at]=[first,players.find(id=>id!==first)];if(visit(at+1))return true;counts[i]--;}failed.add(key);return false;}
+ if(!visit(0)){t.sideBalanceNote='Completed legacy battles exceed the balanced side budget.';return false;}
+ const replacements=new Map(pending.map((p,i)=>[p.id,chosen[i]]));for(const p of [...t.leagueSchedule.flat(),...t.rounds.flat()])if(replacements.has(p.id))p.players=[...replacements.get(p.id)];t.sideScheduleRebalanced=true;
+}

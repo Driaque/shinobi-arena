@@ -1,5 +1,5 @@
 import {CHARACTERS} from '../../packages/engine/catalog.js';
-import {leagueSchedule,leagueStandings,seededQuarterfinals} from './character-league.js';
+import {leagueSchedule,leagueStandings,seededQuarterfinals,rebalanceLeagueSides} from './character-league.js';
 import {randomUUID,randomInt} from 'node:crypto';
 import {TOURNAMENT_REWARDS,requiredUnlocks} from '../../packages/engine/rewards.js';
 export class TournamentError extends Error {constructor(message,status=409){super(message);this.status=status;}}
@@ -82,13 +82,17 @@ export async function createTournaments({query,transaction,now}){
   const p=t.rounds.flat().find(p=>p.id===record.tournament.pairId);if(!p||p.status==='completed'||p.matchId!==record.id||!record.players.every(v=>p.players.includes(v.playerId)))return;
   if(record.winner===null||record.reason==='server-shutdown'||record.reason==='cancelled'||t.benchmark&&record.reason!=='completed'){p.status='pending';p.matchId=null;await put(q,t);return;}
   const winner=record.players[record.winner]?.playerId;if(!p.players.includes(winner))return;
-  p.score=[...record.wins];p.damage=record.replay?.frames?.at(-1)?.state?.metrics?.map(m=>m.damage)??[0,0];
+  const order=p.players.map(id=>record.players.findIndex(v=>v.playerId===id)),damage=record.replay?.frames?.at(-1)?.state?.metrics?.map(m=>m.damage)??[0,0];
+  p.score=order.map(i=>record.wins[i]);p.damage=order.map(i=>damage[i]);p.orderNormalized=true;p.actualOrder=record.players.map(v=>v.playerId);
   for(const member of record.players)t.played[member.playerId]=(t.played[member.playerId]??0)+record.playedTicks;
   await finishPair(q,t,p,winner,record.reason);
   if(t.format==='league-knockout'&&t.phase==='league'){t.standings=leagueStandings(t);await put(q,t);}
  }
  async function withdraw(id,playerId){return transaction(async q=>{const t=check(await read(q,id));if(t.status!=='running')reject('Tournament is not running.');if(t.benchmark)reject('Benchmark pairings must be completed in battle.');const p=pairFor(t,playerId);if(!p)reject('No active pairing to withdraw from.');await finishPair(q,t,p,p.players.find(id=>id!==playerId),'withdrawal');return {tournament:t,pairId:p.id};});}
- async function recover(){return transaction(async q=>{for(const t of await activeRows(q)){let changed=false;for(const p of t.rounds.flat())if(p.status==='waiting'){p.status='pending';p.matchId=null;changed=true;}if(changed)await put(q,t);}});}
+ async function recover(){return transaction(async q=>{for(const t of await activeRows(q)){let changed=false;for(const p of t.rounds.flat()){
+   if(p.status==='waiting'){p.status='pending';p.matchId=null;changed=true;}
+   if(t.benchmark&&p.status==='completed'&&!p.orderNormalized&&p.matchId){const row=(await q('SELECT participants,result FROM matches WHERE id=$1',[p.matchId]))[0];if(row){const players=JSON.parse(row.participants),result=JSON.parse(row.result),order=p.players.map(id=>players.findIndex(v=>v.playerId===id));if(order.every(i=>i>=0)){p.score=order.map(i=>result.wins[i]);p.damage=order.map(i=>p.damage?.[i]??0);p.orderNormalized=true;p.actualOrder=players.map(v=>v.playerId);changed=true;}}}
+  }if(changed){if(t.format==='league-knockout'&&t.phase==='league'){if(t.benchmark)rebalanceLeagueSides(t);t.standings=leagueStandings(t);}await put(q,t);}}});}
  async function list(){return (await query("SELECT data FROM tournaments ORDER BY CASE WHEN status='running' OR (status='registration' AND created_at>=$1) THEN 0 ELSE 1 END,created_at DESC LIMIT 70",[now()-registrationLifetime])).map(decode).map(t=>({...t,status:t.status==='registration'&&!active(t)?'expired':t.status}));}
  return {create,update,prepare,complete,withdraw,recover,list,get:async id=>check(await read(query,id)),rewards,validateEquipment};
 }

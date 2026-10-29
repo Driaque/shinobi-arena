@@ -1,5 +1,9 @@
 # Release notes
 
+## 0.21.1
+
+- Normalize tournament round scores and damage by player identity, enforce benchmark starting sides and recover existing pilot scorelines from immutable match records.
+
 ## 0.21.0
 
 - Eight-entrant AI character benchmark: 28 round-robin matches, balanced sides, live league standings and seeded quarterfinals, semifinals and final. Benchmark outcomes are separate from player statistics, Elo and rewards.
