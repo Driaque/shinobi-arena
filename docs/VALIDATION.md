@@ -146,3 +146,8 @@ Placement tests cover two-player podiums, shared semifinalist third place, exclu
 ## v0.22.1 launch cleanup
 
 Startup/history desktop and landscape-mobile checks now assert that personal GitHub Pages launch links, the origin banner and the personal canonical address are absent. Direct Render visits retain their existing origin and saved browser state. Warmup retry, provider HTML isolation, offline play and release history checks remain in place.
+
+
+## v0.23 branding
+
+Startup/history and inventory browser checks verify Fabled Rivals splash/title/header/current notes, the FR monogram and favicon, preserved historical notes and the absence of personal launch promotions. Existing desktop/mobile gameplay, profiles, settings, tournament and replay suites remain required. The release publisher validates the new title prefix for current versions.

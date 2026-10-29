@@ -1,5 +1,10 @@
 # Release notes
 
+## 0.23.0
+
+- Rebrand the game as Fabled Rivals across the splash, header, online arena, browser metadata, FR monogram/favicon and current release publishing.
+- Keep existing profile/settings storage keys, service addresses, repository and historical notes compatible. The original-roster rollout and dedicated domain remain pending.
+
 ## 0.22.1
 
 - Remove the personal GitHub Pages launch banner, splash/footer links and canonical address. Preserve the branded splash, current browser profiles, tournament podiums and stable result polling.

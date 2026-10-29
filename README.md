@@ -1,6 +1,10 @@
-> **v0.22.1: Remove personal-address launch promotions.** [Release notes](docs/releases/0.22.1.md).
+> **v0.23: Fabled Rivals branding.** [Release notes](docs/releases/0.23.0.md).
 
-# Shinobi Arena
+# Fabled Rivals
+
+Master your style. Forge your legend.
+
+Formerly Shinobi Arena. The current roster is a development prototype; a fully original roster and setting are planned for public rollout. This branding update does not replace the prototype characters.
 
 A playable browser fighting prototype with a **28-character selectable roster spanning Naruto, Boruto and TNR originals**, desktop keyboard controls,
 a landscape analog stick and customizable touch controls, online matchmaking, local two-player and a computer opponent.
