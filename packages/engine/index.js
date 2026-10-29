@@ -368,7 +368,7 @@ export function computerInput(state, player=1, difficulty=state.difficulty??'eas
     const m=MOVES[self.action.move];
     return self.action.confirmed&&self.action.chain>0&&self.action.chain<policy.maxCombo&&self.stamina>=staminaCost('attack',self.action.chain+1)&&self.action.age>=m.startup?{attack:!self.previous.attack}:{};
   }
-  const available=key=>{const m=moveFor(self,key);return m&&!self.cooldowns[key]&&!self.previous[key]&&self.chakra>=MOVES[m].cost&&self.stamina>=staminaCost(key)&&(!['special1','special2','bloodline'].includes(key)||canSpecial);};
+  const available=key=>{const m=moveFor(self,key);return m&&!(moveEnvironment(MOVES[m])==='air'&&self.y===0&&self.vy<=0)&&!(moveEnvironment(MOVES[m])==='ground'&&(self.y>0||self.vy>0))&&!self.cooldowns[key]&&!self.previous[key]&&self.chakra>=MOVES[m].cost&&self.stamina>=staminaCost(key)&&(!['special1','special2','bloodline'].includes(key)||canSpecial);};
   const approach={left:opponent.x<self.x,right:opponent.x>self.x};
   const threat=opponent.action?MOVES[opponent.action.move]:null;
   if(canReact&&threat&&!threat.buff&&opponent.action.age<threat.startup+threat.active&&distance<(threat.projectile?230:threat.reach+35)){

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createMatch,stepMatch,MOVES,JUTSUS} from '../packages/engine/index.js';
+import {createMatch,stepMatch,computerInput,MOVES,JUTSUS} from '../packages/engine/index.js';
 import {fighterPose,interpolateFighter} from '../apps/web/motion.js';
 const duel=()=>{const s=createMatch([{character:'silent',weapon:'katana',jutsus:['risingGale','skyCleave','divingFlame','aerialSenbon','emberField']},{character:'sasuke',weapon:'kunai'}]);s.fighters[0].x=600;s.fighters[1].x=670;return s;};
 const advance=(s,n,inputs=[{},{}])=>{for(let t=0;t<n;t++)stepMatch(s,inputs);};
@@ -42,4 +42,10 @@ test('simultaneous projectiles cannot bypass the four-hit juggle limit',()=>{
  const s=duel(),target=s.fighters[1];target.y=300;target.juggleHits=3;
  for(let i=0;i<3;i++)s.projectiles.push({owner:0,id:i,x:target.x-10,y:target.y+65,direction:1,life:5,move:'aerialSenbon',pierce:0});
  stepMatch(s);assert.equal(target.hp,972);assert.equal(target.juggleHits,4);assert.equal(target.airTech,true);
+});
+
+
+test('a CPU skips incompatible aerial-only jutsus instead of stalling its ground approach',()=>{
+ const s=createMatch([{character:'naruto',weapon:'kunai'},{character:'sasuke',weapon:'katana',jutsus:['skyCleave','aerialSenbon','divingFlame']}],{difficulty:'xtreme'});s.tick=600;const f=s.fighters[1];f.x=750;s.fighters[0].x=600;f.actionsStarted=100;f.lastActionEnd=-1000;
+ for(let t=600;t<800;t++){s.tick=t;const input=computerInput(s,1,'xtreme');assert.ok(!input.special1&&!input.special2&&!input.bloodline);f.previous={};}
 });
