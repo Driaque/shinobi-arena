@@ -1,4 +1,4 @@
-import {EXTRA_MOVES,SHARED_TECHNIQUES,effectDescription} from './techniques.js';
+import {EXTRA_MOVES,SHARED_TECHNIQUES,effectDescription,moveEnvironment} from './techniques.js';
 import {ITEMS} from './items.js';
 export {ITEMS};
 // Gameplay adaptations. Costs, durations and damage are balance choices, not canon claims.
@@ -56,6 +56,9 @@ export const AWAKENINGS=Object.freeze({
 });
 export const MOVES = Object.freeze({
   ...EXTRA_MOVES,
+  airAttack1:strike('Aerial opening strike',{startup:5,active:4,recovery:16,damage:55,reach:115,cost:0,knockback:7,cooldown:0,hitstun:23,launch:4,aerial:'air',airCombo:true}),
+  airAttack2:strike('Aerial cross strike',{startup:5,active:4,recovery:18,damage:45,reach:125,cost:0,knockback:8,cooldown:0,hitstun:24,launch:4,aerial:'air',airCombo:true}),
+  airAttack3:strike('Aerial falling finisher',{startup:7,active:5,recovery:24,damage:75,reach:145,cost:0,knockback:35,cooldown:0,hitstun:18,spike:true,aerial:'air'}),
   doraFan1:strike('Dora · Rippling Fan',{startup:5,active:4,recovery:13,damage:65,reach:100,cost:0,knockback:24,cooldown:0,fanStrike:true,element:'metal',color:'#79dce0'}),
   doraFan2:strike('Dora · Crossing Breeze',{startup:5,active:4,recovery:15,damage:50,reach:115,cost:0,knockback:10,cooldown:0,hitstun:20,fanStrike:true,element:'wind',color:'#79dce0'}),
   doraFan3:strike('Dora · Royal Ascent',{startup:8,active:4,recovery:24,damage:90,reach:140,cost:0,knockback:60,cooldown:0,launch:10,hitstun:22,fanStrike:true,element:'wind',color:'#79dce0'}),
@@ -136,7 +139,7 @@ export const MOVES = Object.freeze({
 });
 const nativeIds=[...new Set(Object.values(CHARACTERS).flatMap(c=>[c.special1,c.special2,c.bloodline]).filter(Boolean))];
 const restricted=new Set(Object.values(CHARACTERS).map(c=>c.bloodline).filter(Boolean));
-export const JUTSUS=Object.freeze(Object.fromEntries([...nativeIds,...SHARED_TECHNIQUES].map(id=>[id,{id,name:MOVES[id].name,element:MOVES[id].element??MOVES[id].ground?.element??'chakra',description:effectDescription(MOVES[id]),owners:restricted.has(id)?Object.values(CHARACTERS).filter(c=>c.bloodline===id).map(c=>c.id):null}])));
+export const JUTSUS=Object.freeze(Object.fromEntries([...nativeIds,...SHARED_TECHNIQUES].map(id=>[id,{id,name:MOVES[id].name,aerial:moveEnvironment(MOVES[id]),tags:[moveEnvironment(MOVES[id])==='air'?'AERIAL ONLY':moveEnvironment(MOVES[id])==='both'?'GROUND / AIR':'GROUNDED',...(MOVES[id].airCombo?['AIR COMBO']:[]),...(MOVES[id].launch?['LAUNCHER']:[]),...(MOVES[id].spike?['AIR FINISHER']:[])],element:MOVES[id].element??MOVES[id].ground?.element??'chakra',description:effectDescription(MOVES[id]),owners:restricted.has(id)?Object.values(CHARACTERS).filter(c=>c.bloodline===id).map(c=>c.id):null}])));
 export const canEquipJutsu=(character,id)=>Object.hasOwn(JUTSUS,id)&&(!JUTSUS[id].owners||JUTSUS[id].owners.includes(character));
 export const defaultJutsus=character=>{const c=CHARACTERS[character];return [c.special1,c.special2,c.bloodline??null,null,null,null,null];};
 export function validateLoadout(l){

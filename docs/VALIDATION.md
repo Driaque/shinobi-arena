@@ -90,28 +90,10 @@ The checked-in public endpoint configures Pages automatically; an Actions variab
 
 ## Hotfix — missing static files crashed the online server
 
-Render logs confirmed repeated exit-code-1 restarts with `ERR_HTTP_HEADERS_SENT` in `apps/server/index.js`. The static handler committed 200 headers before awaiting the file read; a missing file then tried to send 404 headers and rejected the async request handler. The corrected handler reads the file before committing success headers, returns 404 for missing files/directories, handles other read failures as 500, and guards closed/already-started responses. The local static development server was checked for the same ordering issue and already read before writing headers.
-
-**148 tests** pass, including a real HTTP/WebSocket regression: repeated missing favicon, mobile icon, stale script, directory and unknown-page requests, plus HEAD, preserve an already queued player, valid file responses, health and ping/pong. The browser multiplayer test also requests a missing asset during an active desktop/mobile fight and then confirms shared combat continues. No paid hosting upgrade is required for this fix.
-
-Hosted CI also exposed an unrelated fullscreen-test timing assumption: a native fullscreen request was checked after a fixed 32 ms. The test now waits for the actual screen-mode attribute on entry and exit, preserving the native/fallback, viewport size, label and rotation assertions. Training smoke checks pass with that state-based wait.
-
-## v0.13.0 — inventory and control visibility
-
-Syntax checks, release-note validation, **157 unit/integration tests** and the static build pass. New inventory coverage includes loadout cardinality/ID validation and copying, authoritative input whitelists, committed/edge-triggered swapping, finite charges, shared cooldown and stamina, hitstun/attack rejection, timed bomb hit/avoid/guard behavior, smoke interception and bypasses, poison coating and guard waste, Raijin mark/warp costs/expiry and non-invulnerability, round refill, deterministic replays, preference migration and hidden-control collision exclusion.
-
-Browser checks cover the existing desktop/mobile/training paths, online two-device weapon swaps and inventory use, and a dedicated inventory suite. The latter selects two weapons/four slots, uses poison and a marked warp, creates smoke, hides/restores controls, checks Save/Cancel/reload behavior and hidden keyboard access, tests landscape touch actions and panel bounds, and opens the generated versioned release notes. Native option disabling is checked through its DOM property so the browser's actual duplicate-Raijin restriction is verified.
-
-Leaderboard, spectating and stored replay playback remain deferred in issue #7. Engine replay-determinism tests do not mean a user-facing replay feature exists. Physical phones, internet latency compensation and production capacity remain outside emulated/local browser proof.
-
-## v0.14 Dora coverage
-
-`tests/dora.test.js` covers catalog/profile acceptance, three-hit fan chains, exact weaken damage, guarded/replaced setups, committed pull/finisher counterplay, Triune Flow counters, Limit Release expiry/reset and deterministic Dora CPU mirrors. `scripts/dora-smoke.mjs` covers desktop/mobile selection, portrait decode, fan/katana defaults, real-input jutsus, weapon swapping and awakening. The online browser suite now pairs desktop Silent with mobile Dora and verifies her water weaken effect across independent sessions. All five browser suites are included in `npm run test:browser` and CI.
-
-## v0.15 strategy and online arena validation
-
-Engine strategy tests validate all 54 entries, authoritative seven/two/four limits, bloodline ownership, custom-slot awakening mapping, elemental zones, poison-slow, binding, knockback, bleed, guard-dependent absorb, charging, chakra steal, healing, cleansing, haste/ward and the named Winta attacks. Existing combat/input/server suites remain required.
+Render logs confirmed repeated exit-code-1 restarts with `ERR_HTTP_HEADERS_SENT` in `apps/server/index.js`. The static handler committed 200 headers before awaiting the file read; a missing file then tried to send 404 headers and rejected the async request handler. The corrected handler reads the file before committing success headers, returns 404 for missing files/directories, handles other read failures as 500, and guards closed/already-started responses. The local static development server was checked for the same ordering issue and a…751 tokens truncated…ritative seven/two/four limits, bloodline ownership, custom-slot awakening mapping, elemental zones, poison-slow, binding, knockback, bleed, guard-dependent absorb, charging, chakra steal, healing, cleansing, haste/ward and the named Winta attacks. Existing combat/input/server suites remain required.
 
 History tests cover hashed identity tokens, rename/recovery, file-backed restart durability, duplicate/concurrent result delivery, pair caps, early forfeits, draws/cancellations, pagination, retention and read-only HTTP endpoints. Accepted input recording is resimulated and compared with the original final state including ground effects and tools. Spectators are tested against input/ready/join/result mutation attempts and do not take queue/player slots.
 
 The sixth browser suite exercises desktop/mobile loadout grids, seven-jutsu cap, Save/Cancel/reload, real ground damage, mobile palette casting and hold-to-charge, two ranked clients plus a third spectator, forfeit ratings, replay playback/seek/speed/download, profile restore and server restart. Production PostgreSQL validation remains a deployment gate until DATABASE_URL is connected.
+
+v0.16 adds engine coverage for environment gating without resource loss, a five-hit launcher/chase/air-jutsu route, whiff/guard/bind rejection, air budgets across double jumps, juggle recovery including simultaneous projectiles, landing interruption, deterministic replay and finite cosmetic interpolation. The aerial browser suite exercises keyboard combos, searchable tags, mobile analog jumping and aerial menu gating, reduced-motion rendering, and desktop/mobile scenery captures.

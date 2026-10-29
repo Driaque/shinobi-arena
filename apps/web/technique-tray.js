@@ -1,4 +1,4 @@
-import {JUTSU_KEYS} from './packages/engine/techniques.js';
+import {JUTSU_KEYS,moveEnvironment} from './packages/engine/techniques.js';
 import {MOVES,moveFor} from './packages/engine/index.js';
 export function createTechniqueTray({input,getPlayer,isPlaying,binding}){
  const toggle=document.createElement('button');toggle.id='jutsu-toggle';toggle.textContent='Jutsus';toggle.type='button';document.querySelector('.tools').append(toggle);
@@ -9,5 +9,5 @@ export function createTechniqueTray({input,getPlayer,isPlaying,binding}){
  const charge=document.createElement('button');charge.id='charge-chakra';charge.type='button';charge.textContent='Hold to charge chakra';charge.addEventListener('pointerdown',e=>{if(!isPlaying())return;e.preventDefault();charge.setPointerCapture(e.pointerId);input.press('charge','chakra-charge');});for(const type of ['pointerup','pointercancel','lostpointercapture'])charge.addEventListener(type,()=>input.release('chakra-charge'));tray.append(charge);
  const help=document.createElement('small');help.textContent='Charging is stationary, costs stamina and can be punished. Release to stop.';tray.append(help);
  toggle.addEventListener('click',()=>{tray.hidden=!tray.hidden;if(tray.hidden)input.release('chakra-charge');});
- return {draw(){toggle.disabled=!isPlaying();if(!isPlaying()){tray.hidden=true;input.release('chakra-charge');}const f=getPlayer();for(const [key,b]of nodes){const id=moveFor(f,key),m=MOVES[id];b.disabled=!m||f.chakra<(m?.cost??0)||(f.cooldowns[key]??0)>0;b.textContent=m?`${m.name} · ${binding(key)} · ${f.cooldowns[key]>0?(f.cooldowns[key]/60).toFixed(1)+'s':m.cost+' chakra'}`:'Empty slot';}charge.textContent=`Hold to charge · ${binding('charge')} · ${Math.floor(f.chakra)}/100`;}};
+ return {draw(){toggle.disabled=!isPlaying();if(!isPlaying()){tray.hidden=true;input.release('chakra-charge');}const f=getPlayer();for(const [key,b]of nodes){const id=moveFor(f,key),m=MOVES[id];const air=f.y>0||f.vy>0,environment=m?moveEnvironment(m):'';b.disabled=!m||(environment==='air'&&!air)||(environment==='ground'&&air)||f.airTech||(air&&f.airAttacks>=4)||f.chakra<(m?.cost??0)||(f.cooldowns[key]??0)>0;b.textContent=m?`${m.name}${environment==='air'?' · AERIAL':m.airCombo?' · AIR COMBO':''} · ${binding(key)} · ${f.cooldowns[key]>0?(f.cooldowns[key]/60).toFixed(1)+'s':m.cost+' chakra'}`:'Empty slot';}charge.textContent=`Hold to charge · ${binding('charge')} · ${Math.floor(f.chakra)}/100`;}};
 }

@@ -1,5 +1,9 @@
 # Release notes
 
+## 0.16.0
+
+Launcher jump cancels, aerial basic strings, four aerial strategy techniques, bounded juggles, smoother air steering and visual interpolation. Detailed fighter poses and Moonlit Shrine scenery. [Release notes](docs/releases/0.16.0.md).
+
 ## 0.15.1
 
 Isolate test processes from hosted database credentials and store live arena data in a dedicated PostgreSQL schema. Includes all v0.15 strategy, ranking, spectator and replay features. [Release notes](docs/releases/0.15.1.md).

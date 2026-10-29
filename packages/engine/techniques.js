@@ -3,6 +3,10 @@ const strike=(name,o={})=>({name,startup:14,active:4,recovery:26,damage:80,reach
 const shot=(name,o={})=>strike(name,{projectile:true,startup:18,active:1,recovery:26,reach:0,speed:12,life:70,...o});
 const field=(name,element,effect,potency)=>strike(name,{startup:24,active:1,recovery:30,damage:0,reach:0,cost:30,cooldown:420,utility:true,ground:{element,effect,potency,radius:125,duration:240}});
 export const EXTRA_MOVES=Object.freeze({
+ risingGale:strike('Rising Gale',{startup:9,active:5,recovery:25,damage:85,reach:150,cost:25,cooldown:240,launch:14,hitstun:30,knockback:8,element:'wind',color:'#a5ecdc',aerial:'both',airCombo:true}),
+ skyCleave:strike('Sky Cleave',{startup:7,active:5,recovery:22,damage:75,reach:155,cost:20,cooldown:180,launch:6,hitstun:24,knockback:10,element:'metal',sword:true,color:'#d5efff',aerial:'air',airCombo:true}),
+ divingFlame:strike('Diving Flame',{startup:9,active:7,recovery:30,damage:110,reach:155,cost:30,cooldown:270,dash:4,dive:12,spike:true,hitstun:20,knockback:35,effect:'burn',duration:120,potency:6,element:'fire',color:'#ffb17d',aerial:'air'}),
+ aerialSenbon:shot('Aerial Water Senbon',{startup:10,damage:28,cost:25,cooldown:240,fan:true,effect:'slow',potency:.2,duration:90,element:'water',color:'#83dfef',aerial:'air'}),
  emberField:field('Ember Field','fire','burn',8),
  floodField:field('Flood Field','water','slow',.35),
  stoneSnare:field('Stone Snare','earth','bind',1),
@@ -20,6 +24,7 @@ export const EXTRA_MOVES=Object.freeze({
 });
 export const SHARED_TECHNIQUES=Object.keys(EXTRA_MOVES);
 export const JUTSU_KEYS=Object.freeze(['special1','special2','bloodline','jutsu4','jutsu5','jutsu6','jutsu7']);
+export const moveEnvironment=m=>m.aerial??(m.ground||m.buff||m.utility||m.inventoryEffect?'ground':'both');
 export function effectDescription(m){
  if(m.ground)return `${m.ground.element} ground field · ${m.ground.effect} · 4s · jump out or leave its radius`;
  if(m.energyDrain)return `Steal up to ${m.energyDrain} chakra on a clean hit${m.lifesteal?' + '+Math.round(m.lifesteal*100)+'% lifesteal':''}; guard prevents gains`;
