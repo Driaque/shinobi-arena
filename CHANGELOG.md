@@ -1,5 +1,11 @@
 # Release notes
 
+## 0.21.0
+
+- Eight-entrant AI character benchmark: 28 round-robin matches, balanced sides, live league standings and seeded quarterfinals, semifinals and final. Benchmark outcomes are separate from player statistics, Elo and rewards.
+- Persistent character assignments and server-derived standings; direct replay buttons on completed tournament pairings.
+
+
 ## 0.20.0
 
 Toggleable Practice hints, 64 shared jutsu pictograms and compact mobile icon controls. Persistent player-created tournaments with signups, bracket battles, automatic progression, points and exclusive balanced equipment variants. [Release notes](docs/releases/0.20.0.md).

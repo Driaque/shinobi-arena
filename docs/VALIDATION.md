@@ -133,3 +133,7 @@ Startup/history browser checks simulate repeated 503 health responses, automatic
 ## v0.20 validation
 
 230 unit/integration checks include tournament registration concurrency and owner/capacity rules, advancement, duplicate/stale/interrupted results, persisted rewards, daily opportunity caps, signup expiry, exact bracket matchmaking, unique vector jutsu art and stat-equivalent reward moves. Twelve browser programs include independent desktop/mobile tournament profiles, real HTTP/WebSocket signup/start/check-in, server-simulated battle time and forfeit progression, points/gear ownership, rejected unearned equipment, database restart, Practice hint visibility persistence and compact mobile icon bounds.
+
+## v0.21 character benchmark
+
+League tests cover all 28 unique opponent pairs, seven disjoint rounds, balanced sides, deterministic standings and knockout exclusion, complete 35-match progression, quarterfinal seed paths, duplicate result idempotency, interrupted-result retries, character locks, withdrawal rejection and zero changes to player Elo/statistics/rewards. Existing eight-player knockout/reward suites remain required. A browser fixture checks desktop/mobile standings and seeded round labels, plus opening a real archived replay directly from its pairing.
