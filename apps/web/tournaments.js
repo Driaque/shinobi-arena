@@ -4,6 +4,7 @@ import {REWARD_ITEMS} from './packages/engine/rewards.js';
 const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
 let draftName='',draftCapacity='4';
 export async function showTournaments(content,base,{onFight,onReplay,isBusy,refresh}){
+ const destination=content,data=await arenaRequest('/api/tournaments',{base}),setup=el('details'),summary=el('summary','Player signup & tournament rewards'),formContent=el('div');setup.open=!data.tournaments.some(t=>t.benchmark);setup.append(summary,formContent);destination.append(setup);content=formContent;
  let token=profileToken(base),me=null;const notice=el('p',undefined,'tournament-notice');notice.setAttribute('role','status');content.append(notice);
  const act=(label,fn)=>{const b=el('button',label);b.type='button';b.onclick=async()=>{b.disabled=true;try{await fn();}catch(e){notice.textContent=e.message;b.disabled=false;}};return b;};
  if(token){try{me=await arenaRequest('/api/me',{base,token});}catch(e){notice.textContent=e.message;}}
@@ -12,8 +13,8 @@ export async function showTournaments(content,base,{onFight,onReplay,isBusy,refr
  content.append(el('p','Single elimination · each pairing is a normal best-of-three match. Champion: 100 points + Champion’s Katana. Runner-up: 40 points + Victory Smoke. Other eligible players: 10 points. Reward gear has standard combat stats. At least 20 seconds of tournament battle time qualifies; maximum three completed tournament reward opportunities per UTC day.'));
  if(me){const form=el('div',undefined,'tournament-create'),name=el('input'),size=el('select');name.id='tournament-name';name.placeholder='Tournament name';name.maxLength=40;name.value=draftName;name.setAttribute('aria-label','Tournament name');name.oninput=()=>draftName=name.value;size.id='tournament-capacity';size.setAttribute('aria-label','Tournament size');for(const n of [2,4,8])size.add(new Option(n+' players',String(n)));size.value=draftCapacity;size.onchange=()=>draftCapacity=size.value;
  form.append(name,size,act('Create & join',async()=>{await arenaRequest('/api/tournaments',{base,token,method:'POST',body:{name:name.value,capacity:Number(size.value)}});draftName='';refresh();}));content.append(form);}
- content.append(act('Refresh brackets',refresh));
- const data=await arenaRequest('/api/tournaments',{base});if(!data.tournaments.length)content.append(el('p','No tournaments yet. Create one and invite players to sign up here.'));
+ content=destination;content.append(act('Refresh brackets',refresh));
+ if(!data.tournaments.length)content.append(el('p','No tournaments yet. Create one and invite players to sign up here.'));
  for(const t of data.tournaments){const card=el('article',undefined,'tournament-card');card.dataset.tournamentId=t.id;card.append(el('h3',t.name),el('p',`${t.status.toUpperCase()} · ${t.participants.length}/${t.capacity} players`),el('p',t.participants.map(p=>p.name).join(' · ')));if(t.benchmark){card.append(el('p','CHARACTER BENCHMARK · league then seeded knockouts · no player Elo, player statistics or equipment rewards. Results are provisional for the recorded loadouts.'));}
  const member=me&&t.participants.some(p=>p.id===me.player.id),owner=me?.player.id===t.ownerId;
  const post=action=>async()=>{await arenaRequest(`/api/tournaments/${t.id}/${action}`,{base,token,method:'POST',body:{}});refresh();};
