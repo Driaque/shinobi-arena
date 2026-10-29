@@ -4,7 +4,7 @@
 
 The left thumbstick is an analog horizontal input for the side-view fighter. Its radial dead zone is
 18% of stick travel. Outside that zone, horizontal deflection scales movement from zero to full speed.
-Vertical motion now supports jump and crouch gestures (v0.11; see below). Jump and dash
+Vertical motion now changes arena depth (v0.18). Older v0.11 jump/crouch gestures below are historical. Jump and dash
 are separate buttons. Keyboard movement takes priority if a direction key is held; devices never add
 movement above full speed. Pointer cancellation, loss of capture, blur, rotation and resize clear the stick.
 
@@ -84,3 +84,7 @@ Three new controls are Swap weapon (F / P2 7), Choose consumable (C / P2 8), and
 ## v0.15 additional jutsu inputs
 
 Seven equipped jutsus use U/I/O and 1/2/3/4 for P1; P2 uses comma/period/slash and Num 1–4. G (P1) / Num 0 (P2) charges chakra while held. All actions are rebindable. Settings version 6 adds unused default keys without stealing saved bindings. The existing 15 repositionable controls retain visibility, size, position and opacity. Extra technique slots and charge are available in the Jutsus palette; this transient menu closes after choosing a technique and does not permanently cover the arena.
+
+## v0.18 equipped deck and movement
+
+The analog now drives horizontal and shallow depth movement; it no longer casts Jump or Crouch. Dedicated Jump remains, with Crouch and Hold Charge visible in the equipped technique row. The row displays all equipped slots with names/cooldowns; extra slots, Charge and Crouch have visibility checkboxes. Keyboard depth is Z/L for P1 and Num 9/Num 6 for P2. Existing custom bindings and hidden-control choices migrate without being overwritten.

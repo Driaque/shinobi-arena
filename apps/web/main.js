@@ -1,3 +1,4 @@
+import {createAudio} from './audio.js';
 import {createArenaHub} from './arena-hub.js';
 import {createLoadouts} from './loadouts.js';
 import {createTechniqueTray} from './technique-tray.js';
@@ -11,6 +12,7 @@ import { createRoster } from './roster.js';
 import { createControls } from './controls.js';
 import { createRenderer } from './renderer.js';
 const $ = selector => document.querySelector(selector);
+const sound=createAudio({moves:MOVES,onOpen:()=>{clearInputs();pause();}});
 const inputs=[createInput(),createInput()];
 const buttons=[...document.querySelectorAll('[data-action]')];
 const render=createRenderer($('#canvas'));
@@ -39,7 +41,7 @@ function describeLoadouts(){
   if(!started&&mode!=='online')state=newMatch(readLoadouts());
 }
 for(const i of [0,1]){
-  createRoster($(`#character${i}`),i,i===0?'naruto':'sasuke',()=>{if($(`#character${i} input:checked`).value==='dora'){$(`#weapon${i}`).value='fans';$(`#weapon-secondary${i}`).value='katana';}loadoutUI?.resetCharacter(i);describeLoadouts();});
+  createRoster($(`#character${i}`),i,i===0?'naruto':'sasuke',()=>{if(CHARACTERS[$(`#character${i} input:checked`).value].defaultWeapon)$(`#weapon${i}`).value=CHARACTERS[$(`#character${i} input:checked`).value].defaultWeapon;if($(`#character${i} input:checked`).value==='dora'){$(`#weapon${i}`).value='fans';$(`#weapon-secondary${i}`).value='katana';}loadoutUI?.resetCharacter(i);describeLoadouts();});
   for(const weapon of Object.values(WEAPONS))$(`#weapon${i}`).add(new Option(weapon.name,weapon.id));
   $(`#weapon${i}`).value='kunai';
   $(`#weapon-secondary${i}`).add(new Option('None',''));
@@ -52,7 +54,7 @@ loadoutUI=createLoadouts({onChange:describeLoadouts});
 function filterRoster(){
   const query=$('#roster-search').value.trim().toLowerCase(),era=$('#roster-era').value;
   let count=0;for(const character of Object.values(CHARACTERS)){
-    const show=(!query||`${character.name} ${character.title}`.toLowerCase().includes(query))&&(era==='all'||character.era===era);
+    const show=(!query||`${character.name} ${character.title}`.toLowerCase().includes(query))&&(era==='all'||character.era===era||era==='Akatsuki'&&character.faction==='Akatsuki');
     for(const card of document.querySelectorAll(`.character-card[data-character="${character.id}"]`))card.hidden=!show;
     if(show)count++;
   }
@@ -149,7 +151,7 @@ online=createOnline({getProfile:()=>readLoadouts()[0],onStatus:()=>{
 }});
 
 createArenaHub({onOpen:()=>{clearInputs();pause();},isBusy:()=>mode==='online'&&['connecting','queued','playing','countdown','roundOver'].includes(online.phase)});
-techniqueTray=createTechniqueTray({input:inputs[0],getPlayer:()=>state.fighters[mode==='online'?online.slot:0],isPlaying:()=>started&&!paused&&!controls?.editing&&$('#rotate').hidden&&state.status==='playing'&&(mode!=='online'||online.phase==='playing'),binding:key=>controls.binding(0,key)});
+techniqueTray=createTechniqueTray({input:inputs[0],getPlayer:()=>state.fighters[mode==='online'?online.slot:0],isPlaying:()=>started&&!paused&&!controls?.editing&&$('#rotate').hidden&&state.status==='playing'&&(mode!=='online'||online.phase==='playing'),binding:key=>controls.binding(0,key),visible:key=>controls.visible(key)});
 window.addEventListener('blur',()=>{clearInputs();pause();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){clearInputs();pause();}});
 portrait.addEventListener('change',orientation);touch.addEventListener('change',orientation);
@@ -201,7 +203,7 @@ function paintHud(){
     $(`#hp${i}`).textContent=Math.ceil(f.hp);$(`#health${i}`).style.width=`${f.hp/10}%`;$(`#chakra${i}`).style.width=`${f.chakra}%`;
     $(`#wins${i}`).textContent=[0,1].map(n=>n<state.wins[i]?'●':'○').join(' ');
   });
-  $('#movement-state').textContent=player.charging?'CHARGING CHAKRA':player.effects.some(e=>e.type==='bind')?'BOUND':player.crouching?(player.blocking?'CROUCH GUARD':'CROUCH'):player.dash?(player.dash.air?'AIR DASH':'DASH'):player.y>0?`AIR · ${player.jumps}/2 JUMPS`:'';
+  $('#movement-state').textContent=player.charging?'CHARGING CHAKRA':player.effects.some(e=>e.type==='bind')?'BOUND':player.crouching?(player.blocking?'CROUCH GUARD':'CROUCH'):player.dash?(player.dash.air?'AIR DASH':'DASH'):player.y>0?`AIR · ${player.jumps}/2 JUMPS`:(player.depth??0)>1?'FRONT LANE':(player.depth??0)<-1?'REAR LANE':'';
   $('#canvas').setAttribute('aria-label',`${state.fighters[0].name} versus ${state.fighters[1].name}. ${$('#movement-state').textContent}`);
   $('#timer').textContent=mode==='training'?'∞':Math.ceil(state.remainingTicks/TICK_RATE).toString().padStart(2,'0');
   $('#round').textContent=mode==='training'?'PRACTICE':`ROUND ${state.round.toString().padStart(2,'0')}`;
@@ -241,9 +243,11 @@ function frame(now){
     }
     if(state.status!=='playing')finish();
   }else accumulator=0;
-  lastTime=now;if(now>feedbackUntil)$('#feedback').textContent='';render(state);paintHud();requestAnimationFrame(frame);
+  lastTime=now;if(now>feedbackUntil)$('#feedback').textContent='';render(state,{interpolate:mode==='online'});sound.update(state,started&&!paused&&$('#rotate').hidden);paintHud();requestAnimationFrame(frame);
 }
 $('#overlay-hint').textContent=`${difficultyFor(difficulty).name} · ${difficultyFor(difficulty).description}`;
 orientation();requestAnimationFrame(frame);
 
 
+
+document.documentElement.dataset.gameReady='true';document.dispatchEvent(new Event('arena:ready'));

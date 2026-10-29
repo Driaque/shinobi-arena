@@ -3,6 +3,7 @@ function portrait(canvas, character) {
   const c=canvas.getContext('2d');canvas.width=144;canvas.height=152;c.scale(2,2);
   const bg=c.createLinearGradient(0,0,72,76);bg.addColorStop(0,character.color+'80');bg.addColorStop(1,'#101e30');c.fillStyle=bg;c.fillRect(0,0,72,76);
   c.fillStyle=character.color;c.beginPath();c.moveTo(7,76);c.quadraticCurveTo(8,51,36,51);c.quadraticCurveTo(64,51,65,76);c.fill();
+  if(character.faction==='Akatsuki'){c.fillStyle='#192330';c.fillRect(8,55,56,21);c.fillStyle='#af4758';c.beginPath();c.arc(25,68,6,0,Math.PI*2);c.arc(32,67,7,0,Math.PI*2);c.fill();}
   const longHair=['dora','hinata','orochimaru','itachi','madara'].includes(character.id);c.fillStyle=character.hair;
   if(longHair){c.beginPath();c.ellipse(36,32,24,29,0,0,Math.PI*2);c.fill();c.fillRect(12,29,48,35);}
   c.fillStyle=character.skin??(character.id==='orochimaru'?'#e1d6bd':'#e7b58f');c.beginPath();c.ellipse(36,32,18,23,0,0,Math.PI*2);c.fill();
@@ -19,6 +20,10 @@ function portrait(canvas, character) {
   if(character.id==='gaara'){c.fillStyle='#8b483c';c.fillRect(22,17,3,7);c.fillRect(20,20,8,2);}
   if(character.id==='shikamaru'){c.fillStyle=character.hair;c.beginPath();c.ellipse(37,4,8,7,0,0,Math.PI*2);c.fill();}
 c.strokeStyle='#946957';c.lineWidth=1;c.beginPath();c.moveTo(32,46);c.lineTo(41,46);c.stroke();
+  if(character.id==='pain'){for(const x of [28,45]){c.strokeStyle='#43335a';c.lineWidth=1;c.fillStyle='#aa92bf';c.beginPath();c.arc(x,35,4,0,Math.PI*2);c.fill();for(const r of [2,4]){c.beginPath();c.arc(x,35,r,0,Math.PI*2);c.stroke();}}}
+  if(character.id==='zetsu'){c.fillStyle='#dbe1cf';c.fillRect(20,30,16,20);c.fillStyle='#142a23';c.fillRect(36,30,16,20);c.fillStyle='#547a43';c.beginPath();c.moveTo(16,53);c.lineTo(4,13);c.lineTo(20,36);c.lineTo(36,56);c.lineTo(54,36);c.lineTo(68,12);c.lineTo(56,55);c.fill();}
+  if(character.id==='obito'){c.fillStyle='#d79851';c.beginPath();c.ellipse(36,36,17,20,0,0,Math.PI*2);c.fill();c.strokeStyle='#514036';for(let r=4;r<19;r+=4){c.beginPath();c.arc(41,34,r,.1,Math.PI*1.8);c.stroke();}c.fillStyle='#171f2c';c.fillRect(39,32,4,4);}
+  if(character.id==='konan'){c.fillStyle='#e5dfd5';for(let i=0;i<5;i++){c.beginPath();c.ellipse(18+Math.cos(i)*4,17+Math.sin(i)*4,5,2,i,0,Math.PI*2);c.fill();}}
   if(character.id==='naruto'){c.strokeStyle='#986c52';for(const y of [37,41]){c.beginPath();c.moveTo(20,y);c.lineTo(27,y+1);c.moveTo(47,y+1);c.lineTo(53,y);c.stroke();}}
 }
 export function createRoster(container, player, initial, onChange) {

@@ -42,7 +42,7 @@ test('rebinding removes old key and rejects cross-player duplicates or reserved 
  assert.equal(keyForAction(rebind(keys,0,'jump',null),0,'jump'),null);
 });
 test('settings round trip preserves keys and layout profile edits',()=>{
- const s=freshSettings();s.layouts.medium=defaultLayout(804,302);s.layouts.medium.stick.size=120;s.keys=rebind(s.keys,0,'attack','KeyZ');
+ const s=freshSettings();s.layouts.medium=defaultLayout(804,302);s.layouts.medium.stick.size=120;s.keys=rebind(s.keys,0,'attack','Semicolon');
  assert.deepEqual(readSettings(JSON.stringify(s)),s);assert.equal(layoutProfile(667),'small');assert.equal(layoutProfile(844),'medium');
 });
 test('corrupt, incompatible and duplicate persisted settings fall back safely',()=>{

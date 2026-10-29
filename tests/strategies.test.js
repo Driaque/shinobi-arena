@@ -3,8 +3,8 @@ import {createMatch,stepMatch,nextRound,MOVES,JUTSUS,moveFor,validateLoadout,def
 import {cleanInput} from '../packages/network/protocol.js';
 const advance=(s,n,inputs=[{},{}])=>{for(let i=0;i<n;i++)stepMatch(s,inputs);};
 const duel=(jutsus=[],distance=180)=>{const s=createMatch([{character:'naruto',weapon:'kunai',jutsus},{character:'sasuke',weapon:'kunai'}]);s.fighters[0].x=600;s.fighters[1].x=600+distance;return s;};
-test('58 real techniques, seven unique slots, two weapons and four items are server validated',()=>{
- assert.equal(Object.keys(JUTSUS).length,58);for(const [id,j]of Object.entries(JUTSUS))assert.ok(MOVES[id]&&j.description);
+test('64 real techniques, seven unique slots, two weapons and four items are server validated',()=>{
+ assert.equal(Object.keys(JUTSUS).length,64);for(const [id,j]of Object.entries(JUTSUS))assert.ok(MOVES[id]&&j.description);
  const l=validateLoadout({character:'naruto',weapons:['kunai'],items:['paperBomb'],jutsus:['emberField']});assert.equal(l.jutsus.length,7);assert.equal(l.items.length,4);assert.deepEqual(l.weapons,['kunai',null]);
  for(const bad of [{jutsus:Array(8).fill('emberField')},{jutsus:['emberField','emberField']},{jutsus:['tetsugan']},{jutsus:['constructor']},{weapons:['kunai','katana','tachi']},{items:Array(5).fill('paperBomb')}])assert.throws(()=>validateLoadout({character:'naruto',weapon:'kunai',...bad}));
  const s=duel(['fireball','chakraSiphon','stoneWard','emberField','bindingThreads','innerPeace','purifyingCurrent']);for(const [key,id]of Object.entries({special1:'fireball',special2:'chakraSiphon',bloodline:'stoneWard',jutsu4:'emberField',jutsu5:'bindingThreads',jutsu6:'innerPeace',jutsu7:'purifyingCurrent'}))assert.equal(moveFor(s.fighters[0],key),id);

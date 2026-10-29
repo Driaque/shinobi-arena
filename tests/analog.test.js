@@ -5,10 +5,8 @@ import {createInput} from '../packages/input/index.js';
 import {createMatch,stepMatch} from '../packages/engine/index.js';
 import {freshSettings,readSettings,rebind} from '../packages/input/preferences.js';
 const neutral={x:0,y:0};
-function adapter(){const g=createStickGestures(),i=createInput(),s=createMatch();return {g,i,s,update(x,y,time){const intent=g.update({x,y},time);i.setAxis('stick',intent.moveX);if(intent.jump){i.press('jump','stick-jump');i.release('stick-jump');}if(intent.crouch)i.press('crouch','stick-crouch');else i.release('stick-crouch');if(intent.dashDirection)i.dash(intent.dashDirection);stepMatch(s,[i.consume(),{}]);return intent;}};}
-test('up pulls jump and double jump, holding never repeats and a third jump is rejected',()=>{
- const a=adapter();a.update(0,-1,0);assert.equal(a.s.fighters[0].jumps,1);a.update(0,-1,20);assert.equal(a.s.fighters[0].jumps,1);a.update(0,0,40);a.update(0,-1,60);assert.equal(a.s.fighters[0].jumps,2);a.update(0,0,80);a.update(0,-1,100);assert.equal(a.s.fighters[0].jumps,2);
-});
+function adapter(){const g=createStickGestures(),i=createInput(),s=createMatch();return {g,i,s,update(x,y,time){const intent=g.update({x,y},time);i.setAxis('stick',intent.moveX);i.setDepth('stick',intent.moveZ);if(intent.jump){i.press('jump','stick-jump');i.release('stick-jump');}if(intent.crouch)i.press('crouch','stick-crouch');else i.release('stick-crouch');if(intent.dashDirection)i.dash(intent.dashDirection);stepMatch(s,[i.consume(),{}]);return intent;}};}
+test('up/down pulls change lane without jumping or crouching',()=>{const a=adapter();a.update(0,-1,0);assert.equal(a.s.fighters[0].y,0);assert.ok(a.s.fighters[0].depth<0);a.update(0,1,20);assert.equal(a.s.fighters[0].crouching,false);assert.equal(a.s.fighters[0].depth,0);});
 test('two centered horizontal pulls emit an absolute dash in either screen direction',()=>{
  for(const d of [-1,1]){const a=adapter();a.s.fighters[1].x=a.s.fighters[0].x-d*200;a.s.fighters[0].facing=-d;a.update(d,0,0);assert.equal(a.s.fighters[0].dash,null);a.update(0,0,50);a.update(d,0,150);assert.equal(a.s.fighters[0].dash.direction,d);}
 });
@@ -20,12 +18,8 @@ test('holding, jitter, slow pulls and opposite directions do not create repeat d
  g.update(neutral,350);assert.equal(g.update({x:1,y:0},400).dashDirection,0);g.update({x:-1,y:0},420);assert.equal(g.update({x:1,y:0},450).dashDirection,0);
  const jitter=createStickGestures();assert.equal(jitter.update({x:.2,y:-.2},0).jump,false);assert.equal(jitter.update({x:.2,y:.2},10).crouch,false);
 });
-test('up diagonals jump while preserving analog movement; horizontal drift does not jump',()=>{
- const g=createStickGestures();const diagonal=g.update({x:.7,y:-.7},0);assert.equal(diagonal.jump,true);assert.equal(diagonal.moveX,.7);g.reset();assert.equal(g.update({x:.99,y:-.4},20).jump,false);
-});
-test('holding down crouches and stops ground movement; neutral stands, up jumps out',()=>{
- const a=adapter(),x=a.s.fighters[0].x;a.update(.2,1,0);assert.equal(a.s.fighters[0].crouching,true);assert.equal(a.s.fighters[0].x,x);a.update(0,0,20);assert.equal(a.s.fighters[0].crouching,false);a.update(0,1,40);a.update(0,-1,60);assert.ok(a.s.fighters[0].y>0);assert.equal(a.s.fighters[0].crouching,false);
-});
+test('diagonal pulls retain independent horizontal and depth axes',()=>{const g=createStickGestures(),v=g.update({x:.7,y:-.7},0);assert.equal(v.jump,false);assert.equal(v.moveX,.7);assert.equal(v.moveZ,-.7);});
+test('neutral stops depth movement without resetting held attacks',()=>{const a=adapter();a.i.press('block','guard');a.update(0,1,0);a.update(0,0,20);assert.equal(a.i.snapshot().moveZ,0);assert.equal(a.i.snapshot().block,true);});
 test('crouching cannot block automatically, dodge melee or exceed air jump/dash rules',()=>{
  const s=createMatch();s.fighters[0].x=600;s.fighters[1].x=670;for(let t=0;t<6;t++)stepMatch(s,[{crouch:true},{attack:true}]);assert.equal(s.fighters[0].hp,935);assert.equal(s.fighters[0].crouching,false);
  const air=adapter();air.update(0,-1,0);air.update(0,1,20);assert.equal(air.s.fighters[0].crouching,false);

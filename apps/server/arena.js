@@ -67,7 +67,7 @@ export function createArena({countdownTicks=180,roundBreakTicks=180,maxClients=2
   for(const m of matches){
    if(m.phase==='countdown'){if(--m.remaining<=0)m.phase='playing';}
    else if(m.phase==='playing'){
-    const inputs=m.players.map(c=>{if(tick-c.lastInput>30){c.input={};c.pending=[];}if(c.pending.length)c.input=c.pending.shift();const value=c.input;c.input={...value,pressedActions:[]};delete c.input.dashDirection;return value;});
+    const inputs=m.players.map(c=>{if(tick-c.lastInput>30){c.input={};c.pending=[];}const latest=c.pending.at(-1);if(c.pending.length)c.input=c.pending.shift();const value=latest?{...c.input,moveX:latest.moveX,moveZ:latest.moveZ,left:latest.left,right:latest.right}:c.input;c.input={...value,pressedActions:[]};delete c.input.dashDirection;return value;});
     if(m.replay.inputs.length<40000){const key=JSON.stringify(inputs),last=m.replay.inputs.at(-1);if(last&&m.lastInputKey===key)last.count++;else m.replay.inputs.push({tick:m.state.tick+1,count:1,inputs:structuredClone(inputs)});m.lastInputKey=key;}else m.replay.truncated=true;
     stepMatch(m.state,inputs);m.playedTicks++;
     if(m.state.status==='roundOver'){m.phase='roundOver';m.remaining=roundBreakTicks;frame(m);}

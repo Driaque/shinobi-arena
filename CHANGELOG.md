@@ -1,5 +1,9 @@
 # Release notes
 
+## 0.18.0
+
+Fix movement blend lag; add depth movement, visible equipped jutsus/Charge/Crouch, larger detailed fighters, Akatsuki roster additions original music/layered combat audio, startup readiness splash and browsable release history. [Release notes](docs/releases/0.18.0.md).
+
 ## 0.17.0
 
 Held crouch guards survive blocked-hit recovery; explicit low-guard HUD and mobile two-finger support. Fighters and corresponding body collisions are 12% smaller, preserving old replay scale. [Release notes](docs/releases/0.17.0.md).

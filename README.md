@@ -1,9 +1,10 @@
-> **v0.17: Crouch guard, aerial combat and Moonlit Shrine.** 58-jutsu library, launcher jump chases, air strings, fluid poses and richer procedural art. [Release notes](docs/releases/0.17.0.md).
+> **v0.18: Responsive arena movement, visible loadouts, Akatsuki and audio.** [Release notes](docs/releases/0.18.0.md).
+
 
 
 # Shinobi Arena
 
-A playable browser fighting prototype with a **19-character selectable roster spanning Naruto, Boruto and TNR originals**, desktop keyboard controls,
+A playable browser fighting prototype with a **28-character selectable roster spanning Naruto, Boruto and TNR originals**, desktop keyboard controls,
 a landscape analog stick and customizable touch controls, online matchmaking, local two-player and a computer opponent.
 
 ## Play
@@ -13,7 +14,7 @@ https://driaque.github.io/shinobi-arena/
 For online play, choose ONLINE MATCHMAKING, enter your name, choose your own fighter/weapon, and Find opponent. The shared internet server is configured automatically. Both players choose Find opponent; the first available pair enters a match. For solo/shared-keyboard play choose VS COMPUTER or LOCAL TWO PLAYER, select both characters, equip each fighter with a weapon, and enter the arena. First to two round wins.
 Both sides have independent visual character grids with portraits and selection badges. Tap a card, or use the keyboard to navigate the radio group. The opponent grid is labelled Computer or Player Two to match the mode.
 
-Available fighters: Naruto, Sasuke, Hinata, Orochimaru, Kakashi, Sakura, Gaara, Itachi, Rock Lee, Shikamaru, Minato, Madara, Boruto, Sarada, Mitsuki and Kawaki. Search by name or filter by era; each player’s grid scrolls independently. Weapons: kunai, shuriken, katana, tachi and kaiken. Select a primary and optional secondary, plus four consumable slots.
+Available fighters include ten Akatsuki members (Pain, Konan, Kisame, Deidara, Sasori, Hidan, Kakuzu, Zetsu, Obito and Itachi), the Naruto/Boruto cast, and Dora, Silent and Winta. Search by name or filter Akatsuki/era; both grids scroll independently. Select up to seven jutsus, two weapons and four consumables from their grids.
 
 Rounds last 90 seconds. Knockout wins; at timeout, higher remaining HP wins; equal HP or a double
 knockout draws. Tap an attack again to use it again after recovery. Specials spend chakra.
@@ -36,7 +37,7 @@ Default keyboard bindings (customizable in Controls → Keyboard):
 | Choose / use consumable | C / X | 8 / 9 |
 | Pause (offline) | P or Escape | P or Escape |
 
-Phone: hold sideways. Use the left analog stick to move, the separate jump/dash buttons to maneuver, and the right action cluster to fight. Push the stick farther to move faster. Pull up, center, then up again to double jump; double-pull sideways to dash; hold down to crouch. Open **Controls** to adjust opacity, switch below-arena/overlay placement, drag and resize controls, or edit keyboard bindings. Save keeps the settings on this device; Cancel discards the draft. One phone controls your own fighter in online mode;
+Phone: hold sideways. Use the left analog stick to move, the separate jump/dash buttons to maneuver, and the right action cluster to fight. Push the stick farther to move faster. Up/down changes arena depth; double-pull sideways to dash. Use the dedicated Jump/Crouch actions. Open **Controls** to adjust opacity, switch below-arena/overlay placement, drag and resize controls, or edit keyboard bindings. Save keeps the settings on this device; Cancel discards the draft. One phone controls your own fighter in online mode;
 use the computer opponent for solo play. Local two-player uses a shared desktop keyboard. Switching apps, losing
 focus or rotating into portrait pauses the local match; resume explicitly.
 
@@ -100,7 +101,7 @@ CI and deployment run unit checks, build and browser checks before publishing.
 `packages/engine` owns combat; `packages/input` owns independent input sources and quick-tap capture;
 `apps/web` owns browser events and procedural rendering. Neither engine nor input library imports the DOM.
 `apps/server` owns the online queue and authoritative matches; `packages/network` validates the wire protocol.
-Simulation rules version: `duel-0.17.0`.
+Simulation rules version: `duel-0.18.0`.
 
 See [project plan](docs/PROJECT_PLAN.md), [combat rules](docs/COMBAT_RULES.md), [character kits](docs/CHARACTER_KITS.md),
 [mobile design](docs/MOBILE_DESIGN.md), [control settings](docs/CONTROL_SETTINGS.md), [architecture](docs/ARCHITECTURE.md),
@@ -113,7 +114,7 @@ No third-party character assets are bundled. Asset provenance is recorded in
 
 ### v0.7.0: The Northern Calamity
 
-19 selectable fighters now include **Silent — Cold Metal** and **Winta — Frozen Sun**, and **Dora — AquaPrincess**, under **Originals / TNR**, with user-supplied concept portraits. Silent has sword counters, Tetsugan guard reflect/absorption and a pulling metal-vulnerability strike. Winta has lightning pressure and a lifestealing strike. Their proposed awakenings change signatures and speed up sword chains. Tachi and Kaiken are selectable equipment. [Character kits and adaptation notes](docs/ORIGINAL_CHARACTERS.md).
+28 selectable fighters now include **Silent — Cold Metal** and **Winta — Frozen Sun**, and **Dora — AquaPrincess**, under **Originals / TNR**, with user-supplied concept portraits. Silent has sword counters, Tetsugan guard reflect/absorption and a pulling metal-vulnerability strike. Winta has lightning pressure and a lifestealing strike. Their proposed awakenings change signatures and speed up sword chains. Tachi and Kaiken are selectable equipment. [Character kits and adaptation notes](docs/ORIGINAL_CHARACTERS.md).
 
 ### v0.8.0: movement, counterplay and clear mobile controls
 
@@ -131,7 +132,7 @@ Choose **Training** in Mode. **Practice** configures idle/guarding/attacking dum
 
 ### v0.11.0: movement gestures and fullscreen
 
-The stick now controls the whole movement flow: **up → center → up** double jumps; **right → center → right** (or left twice) within 300 ms dashes in that screen direction; hold down to crouch. Buttons/keys still work. Full screen fills the viewport and toggles Exit view; when native fullscreen is unavailable, a clearly labeled Play view fills the available space while browser bars may remain. [Controls and browser behavior](docs/CONTROL_SETTINGS.md).
+The analog controls horizontal and shallow arena-depth movement. Double-pull left/right within 300 ms to dash. Dedicated actions perform Jump and Crouch, and the equipped row exposes Hold Charge. Keyboard Z/L changes depth; W/S remains Jump/Crouch. Full screen uses native fullscreen where available, otherwise an expanded play view. [Controls and browser behavior](docs/CONTROL_SETTINGS.md).
 
 ### v0.12.0: online matchmaking
 
@@ -141,7 +142,7 @@ Enter a display name, select your fighter/weapon, and wait in the shared queue. 
 
 Choose two weapons and four one-use consumables per round before a match or joining matchmaking. **F** swaps weapons; **C** selects an item and **X** uses it. Items include delayed paper bombs, throwing kunai, shuriken fans, poison coating, defensive smoke and a two-stage Flying Raijin marking kunai/warp. These actions respect startup, recovery, stamina, shared cooldowns and hitstun; the online server owns their state. The HUD displays active weapons and remaining inventory.
 
-**Controls → Visible controls** offers a checkbox for every touch control. Save persists the choice; Cancel discards it. Hidden buttons keep their keyboard bindings and no longer reserve collision space. The analog stick can replace the hidden jump/dash buttons. Existing preferences migrate without overwriting custom keys.
+**Controls → Visible controls** offers a checkbox for every touch control. Save persists the choice; Cancel discards it. Hidden buttons keep their keyboard bindings and no longer reserve collision space. The analog stick can replace horizontal dash buttons; keep Jump available for aerial movement. Existing preferences migrate without overwriting custom keys.
 
 [Full v0.13.0 release notes](docs/releases/0.13.0.md) · [Release history](CHANGELOG.md). Version updates require notes, and verified deployments publish a matching GitHub Release automatically.
 
