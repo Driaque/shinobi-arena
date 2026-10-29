@@ -1,5 +1,9 @@
 # Release notes
 
+## 0.22.1
+
+- Remove the personal GitHub Pages launch banner, splash/footer links and canonical address. Preserve the branded splash, current browser profiles, tournament podiums and stable result polling.
+
 ## 0.22.0
 
 - Completed tournaments show a champion, first runner-up and shared second runners-up when no bronze match was played.
