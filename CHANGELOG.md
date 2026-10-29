@@ -2,6 +2,8 @@
 
 ## 0.21.1
 
+- Publish the exact successful main CI artifact to Pages, with trusted-event and current-commit checks, instead of repeating browser tests during publishing.
+
 - Normalize tournament round scores and damage by player identity, enforce benchmark starting sides and recover existing pilot scorelines from immutable match records.
 
 ## 0.21.0
