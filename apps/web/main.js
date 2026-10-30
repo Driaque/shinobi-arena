@@ -1,4 +1,5 @@
 import {mountIcon} from './packages/ui/jutsu-icons.js';
+import {installMobileUI} from './mobile-ui.js';
 import {createGamepads} from './packages/input/gamepad.js';
 import {createExperience,experience,padBindings} from './experience.js';
 import {createPrediction} from './packages/network/prediction.js';
@@ -17,6 +18,7 @@ import { createRoster } from './roster.js';
 import { createControls } from './controls.js';
 import {createPracticeRenderer} from './practice-renderer.js';
 const $ = selector => document.querySelector(selector);
+installMobileUI();
 const sound=createAudio({moves:MOVES,onOpen:()=>{clearInputs();pause();}});
 const prediction=createPrediction();const frameTimes=[];
 const inputs=[createInput(),createInput()];
@@ -85,9 +87,9 @@ function pause(){
   dialog('TAKE A BREATH','Match paused','Your match will wait. Resume when you are ready.','Resume match');
 }
 function orientation(){
-  clearInputs();const gated=(touch.matches||navigator.maxTouchPoints>0)&&window.innerHeight>window.innerWidth;
-  $('#rotate p').textContent=mode==='online'?'Online matches keep running. Turn sideways to regain your controls.':'Your match is paused. Landscape gives your thumbs room to fight.';
-  if(gated)pause();$('#rotate').hidden=!gated;$('#game').inert=gated;
+  const mobilePortrait=(touch.matches||navigator.maxTouchPoints>0)&&window.innerHeight>window.innerWidth;
+  $('#rotate').hidden=true;$('#game').inert=false;
+  $('#landscape-tip').hidden=!mobilePortrait;
 }
 const coach=document.createElement('section');coach.id='match-coach';coach.className='match-coach';coach.hidden=true;document.querySelector('#overlay-description').after(coach);
 function showCoach(slot=0){const report=summarizeFight(state,slot);coach.replaceChildren();const p=document.createElement('p');p.textContent=`Direct damage dealt ${report.mine.damage??0} · Taken ${state.fighters[slot].damageTaken??0} (${report.other.fieldDamage??0} from fields) · Parries ${report.mine.parries??0} · Recovery punishes ${report.mine.punishes??0} · Jutsu links ${report.mine.links??0}`;const tip=document.createElement('p');tip.textContent=report.tip;coach.append(p,tip);const practice=document.createElement('button');practice.type='button';practice.textContent='Practice this matchup';practice.onclick=()=>{if(mode==='online')online.reset();$('#mode').value='training';$('#mode').dispatchEvent(new Event('change'));trainingUI.openSettings();};coach.append(practice);coach.hidden=false;}

@@ -1,4 +1,5 @@
 import { sceneFor } from "./visual-lab.js";
+import { MOVES } from '../engine/index.js';
 
 // Presentation only: the selected character IDs, loadouts, physics and results stay intact.
 export function practiceSceneFor(state, viewport, settings = {}) {
@@ -10,9 +11,8 @@ export function practiceSceneFor(state, viewport, settings = {}) {
     actor.scale = (120 / 302) * (fighter.scale ?? 1);
     actor.alpha = fighter.invulnerable > 0 ? 0.45 : 1;
   }
-  // These remain in the existing Canvas combat-cue layer for this integration.
-  scene.zones = [];
+  // Native elemental fields; smoke, item cues and all text stay in the overlay.
+  scene.zones = (state.zones ?? []).filter(z => z.kind === 'elemental').map(z => ({...z, element: MOVES[z.move]?.ground?.element ?? 'water'}));
   scene.projectiles = [];
-  scene.bursts = [];
   return scene;
 }

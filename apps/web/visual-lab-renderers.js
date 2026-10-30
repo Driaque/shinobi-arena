@@ -13,6 +13,8 @@ import { cameraForScene as camera } from "./packages/presentation/camera.js";
 
 const teal = 0x8eead7,
   gold = 0xffcb88;
+const fieldColors = {fire:0xf28c52,water:0x69c6e2,earth:0xd2b77f,poison:0xb2d36d};
+const fieldColor = z => fieldColors[z.element] ?? 0x69c6e2;
 async function loadImage(url) {
   const image = new Image();
   image.src = url;
@@ -42,7 +44,8 @@ export function createCanvasLab(canvas, art, resolution) {
     const a = f.frame;
     ctx.save();
     ctx.globalAlpha = alpha * (f.alpha ?? 1);
-    ctx.translate(f.x + offset, f.y + f.bob);
+    ctx.translate(f.x + offset + (f.motion?.x ?? 0), f.y + f.bob + (f.motion?.y ?? 0));
+    ctx.rotate(f.motion?.rotation ?? 0);
     ctx.scale(f.facing * f.scale, f.scale);
     ctx.drawImage(
       art.fighter,
@@ -78,7 +81,7 @@ export function createCanvasLab(canvas, art, resolution) {
           WORLD.floor + (z.depth ?? 0) * 0.65,
           z.radius,
           25,
-          "#68c9ed44",
+          "#" + fieldColor(z).toString(16).padStart(6,"0") + "44",
         );
     for (const f of scene.fighters) {
       ellipse(
@@ -99,12 +102,15 @@ export function createCanvasLab(canvas, art, resolution) {
           );
     }
     for (const f of [...scene.fighters].sort((a, b) => a.depth - b.depth)) {
-      if (f.pose === "Dash")
+      if (!scene.reduced && (f.pose === "Dash" || f.motion?.trail))
         for (let i = 3; i > 0; i--)
           fighter(f, 0.09 * (4 - i), -f.facing * i * 22);
-      fighter(f);
-      if (f.blocking)
-        ellipse(f.x + f.facing * 18, f.y - 55, 25, 46, "#88ead72a");
+      if (f.blend < 1) fighter({...f, frame:f.blendFrame}, 1-f.blend);
+      fighter(f, f.blend ?? 1);
+      if (f.blocking) {
+        const height=(f.crouching?68:110)*(f.bodyScale??1);
+        ellipse(f.x + f.facing * 18, f.y - height/2, 25, height/2, "#88ead74a");
+      }
     }
     for (const p of scene.projectiles ?? [])
       ellipse(p.x, WORLD.floor + (p.depth ?? 0) * 0.65 - p.y, 9, 5, "#ffcb88");
@@ -169,8 +175,9 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
       return s;
     });
     const sprite = new Sprite(textures[0]);
-    container.addChild(sprite);
-    return { container, ghosts, sprite };
+    const transition = new Sprite(textures[0]);
+    container.addChild(transition, sprite);
+    return { container, ghosts, sprite, transition };
   });
   let lost = false;
   const contextLost = (e) => {
@@ -186,7 +193,8 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
       index = FRAMES.indexOf(frame);
     sprite.texture = textures[index];
     sprite.pivot.set(frame.rootX, frame.rootY);
-    sprite.position.set(offset, f.bob);
+    sprite.position.set(offset + (f.motion?.x ?? 0), f.bob + (f.motion?.y ?? 0));
+    sprite.rotation = f.motion?.rotation ?? 0;
     sprite.scale.set(f.facing * f.scale, f.scale);
   }
   function resize(w, h) {
@@ -207,7 +215,8 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
       if (z.kind === "elemental")
         ground
           .ellipse(z.x, WORLD.floor + (z.depth ?? 0) * 0.65, z.radius, 25)
-          .fill({ color: 0x68c9ed, alpha: 0.267 });
+          .fill({ color: fieldColor(z), alpha: Math.min(0.3, (z.remaining ?? 60)/200) })
+          .stroke({ color:fieldColor(z), width:2, alpha:0.7 });
     for (const f of scene.fighters) {
       ground
         .ellipse(
@@ -227,16 +236,20 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
       a.container.alpha = f.alpha ?? 1;
       a.container.zIndex = f.depth;
       paintSprite(a.sprite, f);
+      a.sprite.alpha = f.blend ?? 1;
+      a.transition.visible = f.blend < 1;
+      if(a.transition.visible){paintSprite(a.transition,{...f,frame:f.blendFrame});a.transition.alpha=1-f.blend;}
       for (let i = 0; i < 3; i++) {
         const g = a.ghosts[i];
-        g.visible = f.pose === "Dash";
+        g.visible = !scene.reduced && (f.pose === "Dash" || Boolean(f.motion?.trail));
         g.alpha = 0.09 * (i + 1);
         paintSprite(g, f, -f.facing * (3 - i) * 22);
       }
-      if (f.blocking)
-        effects
-          .ellipse(f.x + f.facing * 18, f.y - 55, 25, 46)
-          .fill({ color: teal, alpha: 0.165 });
+      if (f.blocking) {
+        const height=(f.crouching?68:110)*(f.bodyScale??1);
+        effects.ellipse(f.x + f.facing*18, f.y-height/2, 25, height/2)
+          .fill({color:teal,alpha:0.18}).stroke({color:teal,width:2,alpha:0.65});
+      }
     }
     fighters.sortableChildren = true;
     for (const p of scene.projectiles ?? [])

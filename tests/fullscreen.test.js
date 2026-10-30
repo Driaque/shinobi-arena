@@ -18,6 +18,6 @@ test('prefixed fullscreen and external fullscreen exit are recognized',async()=>
 test('Escape exits fallback and visual viewport height sizes the play area',async()=>{
  const f=fixture();f.win.visualViewport=Object.assign(new EventTarget(),{height:320});const c=f.start();await c.toggle();assert.equal(f.element.style.values['--play-height'],'320px');const event=new Event('keydown');event.code='Escape';f.doc.dispatchEvent(event);assert.equal(f.element.dataset.screenMode,'window');
 });
-test('orientation lock failure keeps native fullscreen active without an unhandled rejection',async()=>{
- const f=fixture();f.win.matchMedia=()=>({matches:true});f.win.screen.orientation.lock=()=>Promise.reject(new Error('unsupported'));f.element.requestFullscreen=async()=>{f.doc.fullscreenElement=f.element;};const c=f.start();await c.toggle();assert.equal(f.element.dataset.screenMode,'native');assert.match(f.notices[0],/Rotate/);assert.equal(f.button.disabled,false);
+test('native fullscreen respects portrait and never requests an orientation lock',async()=>{
+ const f=fixture();f.win.matchMedia=()=>({matches:true});let lockCalls=0;f.win.screen.orientation.lock=()=>{lockCalls++;return Promise.resolve();};f.element.requestFullscreen=async()=>{f.doc.fullscreenElement=f.element;};const c=f.start();await c.toggle();assert.equal(f.element.dataset.screenMode,'native');assert.equal(lockCalls,0);assert.deepEqual(f.notices,[]);assert.equal(f.button.disabled,false);
 });

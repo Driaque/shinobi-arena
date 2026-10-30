@@ -16,7 +16,12 @@ export function stickVector(dx,dy,radius,deadZone=.18) {
   return {x:dx/distance*strength,y:dy/distance*strength};
 }
 export function layoutProfile(width) {return width<720?'small':width<1000?'medium':'large';}
+export function defaultPortraitLayout(width,height){
+ const ids=CONTROL_IDS.filter(id=>id!=='stick');
+ return Object.fromEntries(CONTROL_IDS.map(id=>{const i=ids.indexOf(id);return [id,id==='stick'?{x:54/width,y:(height-74)/height,size:88}:{x:(width-190+(i%4)*52)/width,y:(height-228+Math.floor(i/4)*54)/height,size:48}];}));
+}
 export function defaultLayout(width,height) {
+  if(width<620&&height>width)return defaultPortraitLayout(width,height);
   const left=Math.min(105,width*.14),bottom=height-68;
   const px={
     swapWeapon:[width*.43,height-165,48],cycleItem:[width*.43,height-95,48],useItem:[width*.53,height-95,48],
@@ -28,13 +33,14 @@ export function defaultLayout(width,height) {
 }
 export const CONTROL_DECK_HEIGHT=180;
 export function defaultDockLayout(width,height){
+  if(width<620&&height>width)return defaultPortraitLayout(width,height);
   const px={swapWeapon:[258,height-103,48],cycleItem:[316,height-103,48],useItem:[313,height-39,48],stick:[65,height-67,96],dashBack:[145,height-103,48],dashForward:[201,height-103,48],jump:[165,height-39,52],awakening:[245,height-39,52],attack:[width-39,height-39,56],weapon:[width-105,height-39,48],block:[width-165,height-39,48],special1:[width-225,height-39,48],replacement:[width-39,height-103,48],bloodline:[width-105,height-103,48],special2:[width-165,height-103,48]};
   return Object.fromEntries(CONTROL_IDS.map(id=>[id,{x:px[id][0]/width,y:px[id][1]/height,size:px[id][2]}]));
 }
 export function projectControl(control,width,height,id,placement='overlay') {
   const maxSize=Math.max(id==='stick'?88:48,Math.min(id==='stick'?(placement==='dock'?120:160):90,height-108));
   const size=clamp(control.size,id==='stick'?88:48,maxSize),r=size/2;
-  return {x:clamp(control.x*width,8+r,Math.max(8+r,width-8-r)),y:clamp(control.y*height,placement==='dock'?height-(CONTROL_DECK_HEIGHT-44)+4+r:82+r,Math.max(82+r,height-8-r)),size};
+  return {x:clamp(control.x*width,8+r,Math.max(8+r,width-8-r)),y:clamp(control.y*height,placement==='dock'?height-((width<620&&height>width?300:CONTROL_DECK_HEIGHT)-44)+4+r:82+r,Math.max(82+r,height-8-r)),size};
 }
 export function layoutOverlaps(layout,width,height,placement='overlay',visibility={}) {
   const projected=CONTROL_IDS.filter(id=>visibility[id]!==false).map(id=>({id,...projectControl(layout[id],width,height,id,placement)}));
@@ -90,17 +96,17 @@ export function readSettings(raw) {
     for(const i of [0,1])for(const [code,action]of Object.entries(DEFAULT_KEYS[i]))if(['depthUp','depthDown'].includes(action)&&!used.has(code)&&!Object.values(keys[i]).includes(action)){keys[i][code]=action;used.add(code);}
     const visibility=Object.fromEntries(VISIBILITY_IDS.map(id=>[id,value.visibility?.[id]!==false]));
     const layouts={};
-    for(const profile of ['small','medium','large']){
+    for(const profile of ['small','medium','large','portrait']){
       const candidate=value.layouts?.[profile];if(!candidate)continue;
       const layout={};
       for(const id of CONTROL_IDS){
-        const size=profile==='small'?[627,287]:profile==='medium'?[804,302]:[1238,684];
+        const size=profile==='portrait'?[390,680]:profile==='small'?[627,287]:profile==='medium'?[804,302]:[1238,684];
         const c=candidate[id]??((value.version===1&&id==='awakening')||(value.version<5&&['swapWeapon','cycleItem','useItem'].includes(id))?defaultLayout(...size)[id]:null);
         if(!c||![c.x,c.y,c.size].every(Number.isFinite))throw new Error('Invalid layout');
         layout[id]={x:clamp(c.x,0,1),y:clamp(c.y,0,1),size:clamp(c.size,id==='stick'?88:48,id==='stick'?160:90)};
       }
       if(value.version===1&&!candidate.awakening){
-        const [width,height]=profile==='small'?[627,287]:profile==='medium'?[804,302]:[1238,684];
+        const [width,height]=profile==='portrait'?[390,680]:profile==='small'?[627,287]:profile==='medium'?[804,302]:[1238,684];
         if(layoutOverlaps(layout,width,height).some(pair=>pair.includes('awakening'))){
           const desired=projectControl(layout.awakening,width,height,'awakening'),points=[];
           for(let y=height-35;y>=110;y-=24)for(let x=35;x<width-35;x+=24)points.push({x,y});
@@ -111,13 +117,13 @@ export function readSettings(raw) {
           }
         }
       }
-      if(value.version<5){const size=profile==='small'?[627,287]:profile==='medium'?[804,302]:[1238,684];fitInventoryControls(layout,...size,'overlay',visibility);}
+      if(value.version<5){const size=profile==='portrait'?[390,680]:profile==='small'?[627,287]:profile==='medium'?[804,302]:[1238,684];fitInventoryControls(layout,...size,'overlay',visibility);}
       layouts[profile]=layout;
     }
     const dockLayouts={};
-    for(const profile of ['small','medium','large']){
+    for(const profile of ['small','medium','large','portrait']){
       const candidate=value.dockLayouts?.[profile];if(!candidate)continue;
-      const result={};for(const id of CONTROL_IDS){const size=profile==='small'?[627,287]:profile==='medium'?[804,344]:[1238,684];const c=candidate[id]??(value.version<5?defaultDockLayout(...size)[id]:null);if(!c||![c.x,c.y,c.size].every(Number.isFinite))throw new Error('Invalid dock layout');result[id]={x:clamp(c.x,0,1),y:clamp(c.y,0,1),size:clamp(c.size,id==='stick'?88:48,id==='stick'?120:90)};}if(value.version<5){const size=profile==='small'?[627,287]:profile==='medium'?[804,344]:[1238,684];fitInventoryControls(result,...size,'dock',visibility);}dockLayouts[profile]=result;
+      const result={};for(const id of CONTROL_IDS){const size=profile==='portrait'?[390,680]:profile==='small'?[627,287]:profile==='medium'?[804,344]:[1238,684];const c=candidate[id]??(value.version<5?defaultDockLayout(...size)[id]:null);if(!c||![c.x,c.y,c.size].every(Number.isFinite))throw new Error('Invalid dock layout');result[id]={x:clamp(c.x,0,1),y:clamp(c.y,0,1),size:clamp(c.size,id==='stick'?88:48,id==='stick'?120:90)};}if(value.version<5){const size=profile==='portrait'?[390,680]:profile==='small'?[627,287]:profile==='medium'?[804,344]:[1238,684];fitInventoryControls(result,...size,'dock',visibility);}dockLayouts[profile]=result;
     }
     return {version:SETTINGS_VERSION,keys,layouts,dockLayouts,visibility,opacity:Number.isFinite(value.opacity)?clamp(value.opacity,.25,1):.65,placement:value.placement==='overlay'?'overlay':'dock'};
   }catch{return fallback;}

@@ -29,9 +29,7 @@ export function createFullscreen({element,target=element,button,onTransition,not
    }catch{/* The visible play-view fallback remains usable if fullscreen is denied. */}
    if(native()){
     apply('native');
-    if(win.matchMedia('(any-pointer: coarse)').matches&&typeof win.screen.orientation?.lock==='function'){
-     try{await win.screen.orientation.lock('landscape');locked=true;}catch{if(win.matchMedia('(orientation: portrait)').matches)notice('Rotate your phone sideways to play.');}
-    }
+    // Respect the player's chosen orientation, including portrait fullscreen.
    }else{apply('expanded');notice('Play view is active. Native fullscreen is unavailable here; the address bar may remain.');}
   }catch{notice('Unable to exit fullscreen. Use your browser’s fullscreen exit and try again.');}finally{busy=false;button.disabled=false;}
  }

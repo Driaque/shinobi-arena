@@ -158,3 +158,34 @@ html.play-view-open,html.play-view-open body{overflow:hidden;overscroll-behavior
 @media(max-height:520px){.tools button{font-size:9px;padding:6px}.tools select{max-width:132px}.difficulty-label select{max-width:78px}}@media(max-width:720px) and (orientation:landscape){.topbar>.brand{display:none}.tools{width:100%;justify-content:space-between}}
 
 .practice-art-canvas{position:absolute;inset:0;z-index:-1;pointer-events:none;width:100%!important;height:100%!important;object-fit:contain}.practice-art-canvas[hidden]{display:none}#practice-graphics{border:1px solid #4a6d7a;border-radius:9px;padding:12px;margin:12px 0}#practice-graphics legend{color:#edc18a;font-size:12px}#practice-graphics select{width:100%;min-height:44px;margin-top:6px}#practice-graphics p{font-size:11px}#practice-graphics-retry[hidden]{display:none}
+
+/* A stable, orientation-independent touch viewport during active fights. */
+select{appearance:auto;-webkit-appearance:menulist;cursor:pointer;pointer-events:auto;min-height:36px}
+label:has(select){cursor:pointer}label:has(select)>select{flex:1;min-width:0}
+#landscape-tip{font-size:11px;line-height:1.4;color:#b4cadc;margin:4px 0 8px}#landscape-tip[hidden]{display:none}
+@media(any-pointer:coarse){
+ html.in-match,html.in-match body{overflow:hidden;overscroll-behavior:none}
+ html.in-match #game{height:100svh;max-height:100svh;display:flex;flex-direction:column;padding-top:max(4px,env(safe-area-inset-top));padding-bottom:env(safe-area-inset-bottom)}
+ html.in-match .topbar{flex:none;flex-wrap:wrap;margin-bottom:4px;gap:4px}
+ html.in-match .tools{flex-wrap:wrap;gap:4px}
+ html.in-match .arena{flex:1;min-height:0;height:auto;touch-action:none}
+ html.in-match footer,html.in-match #help,html.in-match #status,html.in-match .release-link{display:none}
+ html.in-match #landscape-tip{flex:none;font-size:10px;margin:0 0 4px}
+ html.in-match #screen-notice{flex:none;margin:0 0 4px}
+}
+@media(max-width:620px) and (orientation:portrait){
+ main{padding-left:max(6px,env(safe-area-inset-left));padding-right:max(6px,env(safe-area-inset-right))}
+ .tools{flex-wrap:wrap;gap:4px}.tools select{max-width:150px}
+ .arena{height:calc(100svh - 140px);min-height:420px}
+ .hud{gap:6px;inset:8px 6px auto}.fighter-label{letter-spacing:0;font-size:8px}.timer{min-width:40px}.timer strong{font-size:23px}
+ .fighter-hud{max-width:42%}.tactics-meters{font-size:5px;gap:2px}.effects{font-size:6px}
+ .combat-techniques{left:4px;right:4px;gap:2px}.combat-techniques button{font-size:7px;padding:2px}
+}
+
+@media(max-width:620px) and (orientation:portrait){
+ .arena[data-control-placement=dock] .battle-view{bottom:300px}
+ .arena[data-control-placement=dock] .control-deck{height:300px}
+ .arena[data-control-placement=dock] #combat-techniques{bottom:252px;height:48px}
+ .arena[data-control-placement=dock] #jutsu-tray{bottom:300px;max-height:calc(100% - 305px)}
+ .layout-editor{max-height:calc(100% - 300px);overflow:auto}
+}

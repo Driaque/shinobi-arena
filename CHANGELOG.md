@@ -1,5 +1,12 @@
 # Release notes
 
+## 0.26.0
+
+- Support portrait without pausing, an orientation gate or forced landscape fullscreen; recommend landscape and keep active touch fights in a stable viewport.
+- Add a separate saved portrait control layout, full-field native selects and label activation. Suppress rapid-tap zoom on the fight surface while preserving menu scrolling and browser zoom elsewhere.
+- Smooth Aren pose transitions and root motion without stretching artwork or changing rules. Render elemental fields, guard shields and hit rings in the Practice backend; retain weapon/projectile/text compatibility cues.
+- [Release notes](docs/releases/0.26.0.md).
+
 ## 0.25.0
 
 - Integrate the Aren appearance and Skyglass Terrace into main-game Practice with persisted Canvas/PixiJS settings and state-preserving switching.

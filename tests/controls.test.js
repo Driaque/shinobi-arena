@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createInput} from '../packages/input/index.js';
 import {createMatch,stepMatch} from '../packages/engine/index.js';
-import {stickVector,defaultLayout,layoutOverlaps,projectControl,readSettings,freshSettings,rebind,keyForAction,layoutProfile} from '../packages/input/preferences.js';
+import {stickVector,defaultLayout,defaultDockLayout,layoutOverlaps,projectControl,readSettings,freshSettings,rebind,keyForAction,layoutProfile} from '../packages/input/preferences.js';
 test('analog dead zone prevents drift; deflection scales and clamps movement',()=>{
  assert.deepEqual(stickVector(2,1,40),{x:0,y:0});
  const half=stickVector(23.6,0,40);assert.ok(Math.abs(half.x-.5)<.001);
@@ -49,3 +49,14 @@ test('corrupt, incompatible and duplicate persisted settings fall back safely',(
  for(const value of ['not json','null','{"version":999}',JSON.stringify({version:1,keys:[{KeyA:'left'},{KeyA:'right'}],layouts:{}})])assert.deepEqual(readSettings(value),freshSettings());
 });
 
+
+test('portrait deck fits narrow phones and its saved edits do not overwrite landscape',()=>{
+ for(const width of [320,375,390,430]){
+  const height=680, layout=defaultDockLayout(width,height);
+  assert.deepEqual(layoutOverlaps(layout,width,height,'dock'),[],String(width));
+  for(const [id,c]of Object.entries(layout)){const p=projectControl(c,width,height,id,'dock');assert.ok(p.x-p.size/2>=0&&p.x+p.size/2<=width);assert.ok(p.y-p.size/2>=height-300);}
+ }
+ const settings=freshSettings();settings.dockLayouts.small=defaultDockLayout(667,375);settings.dockLayouts.portrait=defaultDockLayout(390,680);
+ settings.dockLayouts.portrait.attack.x=.7;const restored=readSettings(JSON.stringify(settings));
+ assert.equal(restored.dockLayouts.portrait.attack.x,.7);assert.deepEqual(restored.dockLayouts.small,settings.dockLayouts.small);
+});
