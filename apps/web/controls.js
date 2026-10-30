@@ -152,7 +152,7 @@ export function createControls({inputs,onPause,isPlaying}) {
   });
   window.addEventListener('arena:experience',()=>{reset();applyLayout();});
   window.addEventListener('keyup',event=>inputs.forEach(i=>i.release(event.code)));
-  new ResizeObserver(()=>{reset();applyLayout();}).observe(arena);
+  new ResizeObserver(()=>{resetStick();drag=null;inputs.forEach(i=>i.releaseHeld());applyLayout();}).observe(arena);
   applyLayout();
   return {reset,get editing(){return editing;},visible:action=>current().visibility[action]!==false,binding:(player,action)=>keyLabel(keyForAction(current().keys,player,action))};
 }
