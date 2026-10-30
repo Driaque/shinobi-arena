@@ -161,3 +161,5 @@ Startup/history and inventory browser checks verify Fabled Rivals splash/title/h
 ## v0.25 main Practice presentation
 
 244 unit/integration checks cover non-mutating Practice scene projection, selected loadout preservation, engine-scaled body anchors and camera agreement with the main floor/depth/shake and letterboxing. Fifteen browser programs include lazy loading, a real seven-jutsu loadout, A/B switching at the same paused tick, the five-hit aerial route, a field and awakening, main mobile analog/jump/crouch guard, context loss/retry, CPU isolation/persistence, absent-WebGL fallback and failed-module retry. Existing online, replay, inventory, controls and Visual Lab suites remain required.
+
+The browser runner reports each suite and bounds individual programs to three minutes. The tournament persistence fixture closes browser contexts before restarting its server and validates persistence with a separate API request context; shutdown waits have explicit deadlines. All fifteen programs remain required.
