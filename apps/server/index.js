@@ -14,7 +14,7 @@ export function createOnlineServer({origins=[],port=Number(process.env.PORT||417
  function persist(record){if(pending.size>=100){storageHealthy=false;console.error('Result persistence backlog is full');return;}pending.set(record.id,{record,running:false});flush();}
  async function flush(){for(const [id,job]of pending){if(job.running)continue;job.running=true;try{const store=await storeReady;await store.save(job.record);pending.delete(id);storageHealthy=pending.size===0;}catch(e){job.running=false;storageHealthy=false;console.error('Result persistence failed:',e.code??e.name);}}}
  const retry=setInterval(flush,5000);retry.unref();
- const root=resolve(staticDirectory),arena=createArena({...arenaOptions,onResult:record=>{arenaOptions.onResult?.(record);persist(record);}}),types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.jpg':'image/jpeg'};
+ const root=resolve(staticDirectory),arena=createArena({...arenaOptions,onResult:record=>{arenaOptions.onResult?.(record);persist(record);}}),types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.jpg':'image/jpeg','.webp':'image/webp','.png':'image/png'};
  const allowed=new Set(origins),budgets=new Map();
  const trusted=req=>!req.headers.origin||req.headers.origin===`https://${req.headers.host}`||req.headers.origin===`http://${req.headers.host}`||allowed.has(req.headers.origin);
  const reply=(res,status,value)=>{if(!res.destroyed)res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'}).end(JSON.stringify(value));};

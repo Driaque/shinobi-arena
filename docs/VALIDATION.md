@@ -151,3 +151,8 @@ Startup/history desktop and landscape-mobile checks now assert that personal Git
 ## v0.23 branding
 
 Startup/history and inventory browser checks verify Fabled Rivals splash/title/header/current notes, the FR monogram and favicon, preserved historical notes and the absence of personal launch promotions. Existing desktop/mobile gameplay, profiles, settings, tournament and replay suites remain required. The release publisher validates the new title prefix for current versions.
+
+
+## v0.24 Visual Lab
+
+242 engine/server checks include the real showcase aerial chain, awakening, double jump/air dash, deterministic non-mutating scene projection and valid atlas rectangles. Fourteen browser programs include desktop/mobile WebGL and Canvas switching without a simulation reset, keyboard/touch movement, crouch guard, resolution rebuilds, context loss and missing-WebGL fallback, reduced motion, missing-asset recovery and a real-time fixed-300-tick comparison with JSON export. Automated WebGL uses software rendering; physical iPhone/Safari timings are not established by this suite.

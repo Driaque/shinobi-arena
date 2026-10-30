@@ -1,4 +1,4 @@
-> **v0.23: Fabled Rivals branding.** [Release notes](docs/releases/0.23.0.md).
+> **v0.24: PixiJS Visual Lab with original artwork and a playable aerial showcase.** [Release notes](docs/releases/0.24.0.md).
 
 # Fabled Rivals
 
@@ -8,6 +8,10 @@ Formerly Shinobi Arena. The current roster is a development prototype; a fully o
 
 A playable browser fighting prototype with a **28-character selectable roster spanning Naruto, Boruto and TNR originals**, desktop keyboard controls,
 a landscape analog stick and customizable touch controls, online matchmaking, local two-player and a computer opponent.
+
+## Visual Lab
+
+Open the Visual Lab link below the game, or visit `/visual-lab.html` on the existing host. Compare PixiJS/WebGL and Canvas 2D using identical original artwork, local practice state and camera. The guided demo earns a five-hit aerial combo; switch to free practice for keyboard/touch controls. This is an optional rendering prototype, separate from online fights. See [Visual Lab design and measurement limits](docs/VISUAL_LAB.md).
 
 ## Play
 

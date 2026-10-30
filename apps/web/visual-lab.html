@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#0a1520" />
+    <title>Visual Lab · Fabled Rivals</title>
+    <link rel="stylesheet" href="./visual-lab.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <a href="./">← Back to game</a>
+        <div class="wordmark">
+          FABLED <b>RIVALS</b
+          ><small>VISUAL LAB · ORIGINAL FIGHTER PROTOTYPE</small>
+        </div>
+        <button id="lab-fullscreen">Full screen</button>
+      </header>
+      <section class="lab-toolbar" aria-label="Visual lab settings">
+        <label
+          >Renderer
+          <select id="lab-renderer">
+            <option value="pixi">PixiJS · WebGL</option>
+            <option value="canvas">Canvas 2D</option>
+          </select></label
+        ><label
+          >Play
+          <select id="lab-mode">
+            <option value="showcase">Guided showcase</option>
+            <option value="manual">Free practice</option>
+          </select></label
+        ><button id="lab-pause">Pause</button
+        ><button id="lab-reset">Reset</button
+        ><button id="lab-compare">Compare · 5s each</button>
+      </section>
+      <section
+        id="lab-stage"
+        aria-label="Skyglass Terrace fighting arena"
+        tabindex="0"
+      >
+        <canvas id="lab-canvas" aria-label="Canvas comparison" hidden></canvas
+        ><canvas id="lab-pixi" aria-label="PixiJS prototype"></canvas>
+        <div class="lab-hud">
+          <div>
+            <strong>AREN <small>GALE VANGUARD</small></strong
+            ><meter
+              id="lab-hp0"
+              min="0"
+              max="1000"
+              value="1000"
+              aria-label="Aren health"
+            ></meter>
+          </div>
+          <span id="lab-combo" aria-live="polite">SKYGLASS TERRACE</span>
+          <div>
+            <strong>SPARRING ECHO <small>MIRROR OPPONENT</small></strong
+            ><meter
+              id="lab-hp1"
+              min="0"
+              max="1000"
+              value="1000"
+              aria-label="Echo health"
+            ></meter>
+          </div>
+        </div>
+        <p id="lab-loading" role="status">
+          Preparing original artwork and WebGL…
+        </p>
+        <p id="lab-portrait">Turn your phone sideways for room to fight.</p>
+      </section>
+      <section class="lab-dock" aria-label="Practice controls">
+        <div id="lab-stick" aria-label="Movement analog stick" role="group">
+          <span>MOVE</span><i></i>
+        </div>
+        <div class="lab-actions">
+          <button data-lab-action="jump">Jump ×2<small>W</small></button
+          ><button data-lab-action="attack">
+            Basic<small>J · combo</small></button
+          ><button data-lab-action="weapon">Sword<small>K</small></button
+          ><button data-lab-action="special1">
+            Gale Rise<small>U · launcher</small></button
+          ><button data-lab-action="special2">
+            Sky Cleave<small>I · aerial</small></button
+          ><button data-lab-action="bloodline">
+            Flame Dive<small>O · aerial</small></button
+          ><button data-lab-action="block">Guard<small>H · hold</small></button
+          ><button data-lab-action="awakening">Awaken<small>T</small></button
+          ><button data-lab-action="dashBack">Dash back<small>Q</small></button
+          ><button data-lab-action="dashForward">
+            Dash forward<small>E</small></button
+          ><button data-lab-action="crouch">
+            Crouch<small>S · hold + Guard</small></button
+          ><button data-lab-action="charge">
+            Charge<small>G · hold</small>
+          </button>
+        </div>
+      </section>
+      <p id="lab-status" role="status" aria-live="polite">Loading the lab…</p>
+      <details id="lab-details">
+        <summary>Comparison results &amp; practice options</summary>
+        <section class="lab-options">
+          <label
+            >Dummy
+            <select id="lab-dummy">
+              <option value="idle">Stand</option>
+              <option value="guard">Guard</option>
+              <option value="attack">Attack</option>
+              <option value="aerial">Aerial attacks</option>
+            </select></label
+          ><label
+            ><input type="checkbox" id="lab-effects" checked /> Ambient
+            effects</label
+          ><label><input type="checkbox" id="lab-sound" /> Sound effects</label
+          ><label
+            >Resolution
+            <select id="lab-resolution">
+              <option value="1">Low · 1×</option>
+              <option value="1.5" selected>Balanced · up to 1.5×</option>
+              <option value="2">High · up to 2×</option>
+            </select></label
+          ><button id="lab-awakening-ready">Prepare awakening</button
+          ><button id="lab-export">Download measurements</button>
+        </section>
+        <p>
+          Free practice has refillable HP/chakra/stamina. Awakening starts ready
+          for inspection. Controls switch the showcase to free practice. A/D or
+          the analog move; Z/L change depth. Pull sideways twice to dash. Both
+          renderers use the same artwork, state and camera.
+        </p>
+        <div class="lab-stats">
+          <span>Frame p95 <b id="lab-frame">—</b></span
+          ><span>CPU render p95 <b id="lab-render">—</b></span
+          ><span>Input → render submission <b id="lab-input">—</b></span
+          ><span
+            >JS heap (when available) <b id="lab-memory">Unavailable</b></span
+          >
+        </div>
+        <table>
+          <caption>
+            Guided comparison · fixed 300 simulation ticks per renderer
+          </caption>
+          <thead>
+            <tr>
+              <th>Renderer</th>
+              <th>Frame p95</th>
+              <th>CPU render p95</th>
+              <th>Samples</th>
+            </tr>
+          </thead>
+          <tbody id="lab-results"></tbody>
+        </table>
+        <p>
+          CPU render measures JavaScript submission time, not completed GPU
+          work. Frame times include simulation and browser scheduling. These
+          measurements are local to this device; automated browser results do
+          not establish iPhone performance.
+        </p>
+        <p>
+          Original concept assets: Aren and Skyglass Terrace. Aren currently
+          uses the existing sword training rules as a visual stand-in; this is
+          not a new ranked character. Main-game matchmaking, profiles and
+          replays are unchanged.
+        </p>
+      </details>
+      <footer>
+        Fabled Rivals · Visual Lab ·
+        <a href="./release-notes.html">Release notes</a> ·
+        <a href="./third-party/visual-lab-NOTICES.txt">Third-party notices</a>
+      </footer>
+    </main>
+    <script type="module" src="./visual-lab.js"></script>
+  </body>
+</html>
