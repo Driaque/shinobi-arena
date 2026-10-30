@@ -38,6 +38,7 @@ export function createRoster(container, player, initial, onChange) {
     let visual=canvas;
     if(character.portrait){const img=document.createElement('img');img.className='character-portrait concept-portrait';img.src=character.portrait;img.alt='';img.width=144;img.height=152;img.addEventListener('error',()=>img.replaceWith(canvas),{once:true});visual=img;}
     card.append(input,visual,copy,selected);input.addEventListener('change',onChange);container.append(card);
+    import('./roster-pixi.js').then(({animatePortrait})=>animatePortrait(card,visual,character)).catch(()=>{/* Keep the static portrait when graphics or art loading is unavailable. */});
   }
   const empty=document.createElement('p');empty.className='roster-empty';empty.textContent='No matching fighters.';empty.hidden=true;container.after(empty);
 }

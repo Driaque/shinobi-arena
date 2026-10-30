@@ -6,6 +6,15 @@ try{
  for(const mobile of [false,true]){
   const context=await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1440,height:960},isMobile:mobile,hasTouch:mobile}),p=await context.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));
   await p.goto('http://127.0.0.1:4202');await p.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-pixi');
+  await p.waitForSelector('#character0 canvas[data-animated-portrait=aren]');
+  const portrait=p.locator('#character0 canvas[data-animated-portrait=aren]');
+  const before=await portrait.evaluate(c=>c.toDataURL());
+  await p.waitForTimeout(180);
+  assert.notEqual(await portrait.evaluate(c=>c.toDataURL()),before,'Pixi portrait advances while visible');
+  await p.emulateMedia({reducedMotion:'reduce'});await p.waitForTimeout(150);
+  const still=await portrait.evaluate(c=>c.toDataURL());await p.waitForTimeout(150);
+  assert.equal(await portrait.evaluate(c=>c.toDataURL()),still,'reduced motion freezes the portrait');
+  await p.emulateMedia({reducedMotion:'no-preference'});
   assert.equal(await p.locator('#include-anime').isChecked(),false);assert.equal(await p.locator('#character0 .character-card:visible').count(),10);assert.ok(await p.locator('#character0').evaluate(el=>el.clientHeight>=260),'original grid exposes more rows');assert.equal(await p.locator('#character0 input:checked').inputValue(),'aren');assert.equal(await p.locator('#character1 input:checked').inputValue(),'winta');
   for(const c of ['silent','winta','dora','aren','eira','kael','nyra','rook','veyra','oryn']){await p.locator(`#character0 input[value=${c}]`).check();assert.match(await p.locator('#kit0').innerText(),/Story & connections/);}
   await p.locator('#include-anime').check();assert.equal(await p.locator('#character0 .character-card:visible').count(),35);await p.locator('#character0 input[value=naruto]').check();await p.locator('#include-anime').uncheck();assert.equal(await p.locator('#character0 input:checked').inputValue(),'aren');assert.equal(await p.locator('#character0 .character-card:visible').count(),10);
@@ -17,7 +26,13 @@ try{
   assert.equal(await p.evaluate(async()=>{
    const {createRenderer}=await import('./renderer.js'),{createMatch}=await import('./packages/engine/index.js');const host=document.createElement('div');host.style.cssText='position:fixed;width:800px;height:400px;left:-1000px';const canvas=document.createElement('canvas');host.append(canvas);document.body.append(host);const render=createRenderer(canvas),state=createMatch();render(state,{sampled:true});state.fighters[0].x=777;render(state,{sampled:true});const x=render.frame.state.fighters[0].x;render.dispose();host.remove();return x;
   }),777,'replay samples at the same tick use the actual interpolated position');
-  await p.reload();assert.equal(await p.locator('#include-anime').isChecked(),false);assert.equal(await p.locator('#character0 .character-card:visible').count(),10);assert.deepEqual(errors,[]);await context.close();
+  await p.reload();assert.equal(await p.locator('#include-anime').isChecked(),false);assert.equal(await p.locator('#character0 .character-card:visible').count(),10);assert.deepEqual(errors,[]);
+  await p.route('**/roster-pixi.js*',route=>route.abort());await p.reload();
+  await p.waitForSelector('#character0 .character-portrait');
+  assert.equal(await p.locator('#character0 [data-animated-portrait]').count(),0,'failed Pixi module retains static portraits');
+  await p.locator('#character0 input[value=silent]').check();
+  assert.equal(await p.locator('#character0 input:checked').inputValue(),'silent','static fallback keeps selection usable');
+  assert.deepEqual(errors,[]);await context.close();
  }
  console.log('Global Pixi/original roster passed: 10 originals and stories, explicit anime opt-in/reset, CPU/local/Training/online presentation, selected fighter identity, native WebGL, global Canvas choice, context loss/retry, portrait and desktop.');
 }finally{await browser?.close();server.kill();}

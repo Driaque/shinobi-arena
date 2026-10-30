@@ -1,5 +1,10 @@
 # Release notes
 
+## 0.27.1
+
+- Animate character-selection thumbnails with shared PixiJS rendering, breathing, gentle sway, colored motes and lightning accents for Winta and Kael. Hover, focus and selection strengthen the effects.
+- Pause hidden portraits, honor reduced motion and decorative-effects settings, and retain static portraits if graphics are unavailable. [Release notes](docs/releases/0.27.1.md).
+
 ## 0.27.0
 
 - Enable PixiJS scenery, fields and projectiles in every battle mode, live spectating and archived replay playback; preserve selected fighter identities and add a global Canvas choice/fallback/retry.

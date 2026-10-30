@@ -30,7 +30,7 @@ try {
  assert.equal(await page.locator('#character1 input[type=radio]').count(),35);
  await page.selectOption('#roster-era','Original');assert.equal(await page.locator('.character-card:not([hidden])').count(),20);
  await page.locator('#character0 input[value="silent"]').check();await page.locator('#character1 input[value="winta"]').check();
- for(const img of await page.locator('.concept-portrait').all())assert.ok(await img.evaluate(el=>el.complete&&el.naturalWidth>0),'concept image loaded');
+ for(const portrait of await page.locator('.concept-portrait').all())assert.ok(await portrait.evaluate(async el=>{if(el instanceof HTMLImageElement){await el.decode();return el.naturalWidth>0;}return Boolean(el.dataset.animatedPortrait)&&el.getContext('2d').getImageData(0,0,el.width,el.height).data.some((n,i)=>i%4===3&&n>0);}),'concept portrait rendered');
  assert.match(await page.locator('#kit0').innerText(),/Cold Metal Ascendant.*proposed/);
  await page.screenshot({path:'test-results/originals-roster.png'});
  await page.selectOption('#roster-era','all');
