@@ -6,6 +6,15 @@ try{
  for(const mobile of [false,true]){
   const context=await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1440,height:960},isMobile:mobile,hasTouch:mobile}),p=await context.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));
   await p.goto('http://127.0.0.1:4202');await p.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-pixi');
+  await p.waitForSelector('#character0 canvas[data-animated-portrait=aren]');
+  const portrait=p.locator('#character0 canvas[data-animated-portrait=aren]');
+  const before=await portrait.evaluate(c=>c.toDataURL());
+  await p.waitForTimeout(180);
+  assert.notEqual(await portrait.evaluate(c=>c.toDataURL()),before,'Pixi portrait advances while visible');
+  await p.emulateMedia({reducedMotion:'reduce'});await p.waitForTimeout(150);
+  const still=await portrait.evaluate(c=>c.toDataURL());await p.waitForTimeout(150);
+  assert.equal(await portrait.evaluate(c=>c.toDataURL()),still,'reduced motion freezes the portrait');
+  await p.emulateMedia({reducedMotion:'no-preference'});
   assert.equal(await p.locator('#include-anime').isChecked(),false);assert.equal(await p.locator('#character0 .character-card:visible').count(),10);assert.ok(await p.locator('#character0').evaluate(el=>el.clientHeight>=260),'original grid exposes more rows');assert.equal(await p.locator('#character0 input:checked').inputValue(),'aren');assert.equal(await p.locator('#character1 input:checked').inputValue(),'winta');
   for(const c of ['silent','winta','dora','aren','eira','kael','nyra','rook','veyra','oryn']){await p.locator(`#character0 input[value=${c}]`).check();assert.match(await p.locator('#kit0').innerText(),/Story & connections/);}
   await p.locator('#include-anime').check();assert.equal(await p.locator('#character0 .character-card:visible').count(),35);await p.locator('#character0 input[value=naruto]').check();await p.locator('#include-anime').uncheck();assert.equal(await p.locator('#character0 input:checked').inputValue(),'aren');assert.equal(await p.locator('#character0 .character-card:visible').count(),10);
