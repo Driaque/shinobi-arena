@@ -10,10 +10,10 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  verify:
-    name: Verify
+  build:
+    name: Build and unit checks
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -26,23 +26,56 @@ jobs:
       - run: npm run verify
         env:
           ONLINE_SERVER_URL: ${{ vars.ONLINE_SERVER_URL }}
-      - name: Install browser for smoke tests
-        run: npx playwright install --with-deps chromium --only-shell
-      - name: Exercise desktop and mobile gameplay
-        run: npm run test:browser
-      - name: Save browser evidence
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: browser-evidence-${{ github.sha }}
-          path: test-results/
-          retention-days: 7
-          if-no-files-found: ignore
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: web-${{ github.sha }}
           path: dist/
           retention-days: 7
           if-no-files-found: error
-
-
+  browser:
+    name: Browser / ${{ matrix.group }}
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [graphics, combat, network, arena, experience]
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+        env:
+          ONLINE_SERVER_URL: ${{ vars.ONLINE_SERVER_URL }}
+      - name: Install browser for smoke tests
+        run: npx playwright install --with-deps chromium --only-shell
+      - name: Exercise desktop and mobile gameplay
+        run: npm run test:browser
+        env:
+          BROWSER_GROUP: ${{ matrix.group }}
+      - name: Save browser evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: browser-evidence-${{ github.sha }}-${{ matrix.group }}
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+  verify:
+    name: Verify
+    if: always()
+    needs: [build, browser]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every verification job
+        env:
+          BUILD_RESULT: ${{ needs.build.result }}
+          BROWSER_RESULT: ${{ needs.browser.result }}
+        run: test "$BUILD_RESULT" = success && test "$BROWSER_RESULT" = success

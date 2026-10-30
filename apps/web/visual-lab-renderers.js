@@ -9,6 +9,7 @@ import {
   RendererType,
 } from "pixi.js";
 import { WORLD, FRAMES, ASSETS } from "./packages/presentation/visual-lab.js";
+import { FIGHTER_FRAMES } from './packages/presentation/fighter-atlases.js';
 
 import { cameraForScene as camera } from "./packages/presentation/camera.js";
 
@@ -49,7 +50,7 @@ export function createCanvasLab(canvas, art, resolution) {
     ctx.rotate(f.motion?.rotation ?? 0);
     ctx.scale(f.facing * f.scale, f.scale);
     ctx.drawImage(
-      art.fighter,
+      f.atlasId ? art.sheets.get(f.atlasId) : art.fighter,
       a.x,
       a.y,
       a.w,
@@ -168,6 +169,16 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
           frame: new Rectangle(f.x, f.y, f.w, f.h),
         }),
     );
+  const sheetTextures=new Map();
+  function texturesFor(id){
+    if(!id)return textures;
+    if(!sheetTextures.has(id)){
+      const source=Texture.from(art.sheets.get(id));
+      const views=FIGHTER_FRAMES.map(f=>new Texture({source:source.source,frame:new Rectangle(f.x,f.y,f.w,f.h)}));
+      sheetTextures.set(id,{source,views});
+    }
+    return sheetTextures.get(id).views;
+  }
   const actors = Array.from({ length: 2 }, () => {
     const container = new Container();
     fighters.addChild(container);
@@ -193,7 +204,7 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
   function paintSprite(sprite, f, offset = 0) {
     const frame = f.frame,
       index = FRAMES.indexOf(frame);
-    sprite.texture = textures[index];
+    sprite.texture = texturesFor(f.atlasId)[f.atlasId?f.frameIndex:index];
     sprite.pivot.set(frame.rootX, frame.rootY);
     sprite.position.set(offset + (f.motion?.x ?? 0), f.bob + (f.motion?.y ?? 0));
     sprite.rotation = f.motion?.rotation ?? 0;
@@ -244,7 +255,7 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
       paintSprite(a.sprite, f);
       a.sprite.alpha = f.blend ?? 1;
       a.transition.visible = f.blend < 1;
-      if(a.transition.visible){paintSprite(a.transition,{...f,frame:f.blendFrame});a.transition.alpha=1-f.blend;}
+      if(a.transition.visible){paintSprite(a.transition,{...f,frame:f.blendFrame,frameIndex:f.blendIndex});a.transition.alpha=1-f.blend;}
       for (let i = 0; i < 3; i++) {
         const g = a.ghosts[i];
         g.visible = !scene.reduced && (f.pose === "Dash" || Boolean(f.motion?.trail));
@@ -279,6 +290,7 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
         textureSource: false,
       });
       for (const t of textures) t.destroy();
+      for(const {source,views} of sheetTextures.values()){for(const view of views)view.destroy();source.destroy(true);}
       atlas.destroy(true);
       bgTexture.destroy(true);
     },

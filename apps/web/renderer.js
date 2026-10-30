@@ -10,7 +10,7 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
   const c=canvas.getContext('2d');
   let worldWidth=ARENA.width,viewHeight=ARENA.height,zoom=1,frameTick=-1,frameRound=-1,blendStart=0,blendDuration=16,previous=[],targets=[],shown=[],visualTick=0,projectilePrevious=[],projectileTargets=[],projectileShown=[];
   const trails=[[],[]];
-  let externalActors=false,nativeEffects=false,nativeAren=false;
+  let externalActors=false,nativeEffects=false,nativeAren=false,nativeFighters=[];
   function resize(){
     const rect=canvas.parentElement.getBoundingClientRect();
     viewHeight=Math.min(720,Math.max(300,worldWidth*rect.height/Math.max(1,rect.width)));
@@ -52,7 +52,7 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
     for(let i=0;i<(document.documentElement.dataset.effects==='off'?0:30);i++){const x=(i*137+tick*.3)%1320;const y=250+(i*89)%280;circle(x,y,1.5,'#d3e4c547');}
   }
   function ninja(f, state, ghost=false) {
-    if(externalActors||nativeAren&&f.character==='aren'){if(!ghost)paintPracticeEffects(c,f,state,MOVES);return;}
+    if(externalActors||nativeAren&&f.character==='aren'||nativeFighters.includes(f.character)){if(!ghost)paintPracticeEffects(c,f,state,MOVES);return;}
     const x=f.x, ground=ARENA.floor+(f.depth??0)*.65-f.y;
     c.save();c.translate(x,ground);c.scale(f.facing,1);
     if(ghost)c.globalAlpha*=.3;
@@ -191,8 +191,9 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
   }
   const render=function render(authoritative,{interpolate=false,predicted=null,localSlot=0,layers=null,sampled=false}={}) {
     externalActors=layers?.actors===false;nativeEffects=layers?.nativeEffects===true;nativeAren=layers?.nativeAren===true;
+    nativeFighters=layers?.nativeFighters??[];
     const now=performance.now();const nextWidth=authoritative.arena?.width??1280;if(nextWidth!==worldWidth){worldWidth=nextWidth;resize();}
-    if(frameTick!==authoritative.tick||frameRound!==authoritative.round||targets[0]?.character!==authoritative.fighters[0].character){
+    if(frameTick!==authoritative.tick||frameRound!==authoritative.round||authoritative.fighters.some((f,i)=>targets[i]?.character!==f.character)){
       const reset=frameTick<0||authoritative.tick<frameTick||frameRound!==authoritative.round;
       projectilePrevious=reset?[]:projectileShown;projectileTargets=authoritative.projectiles.map(p=>({...p}));
       previous=reset?authoritative.fighters.map(f=>({...f})):targets;
