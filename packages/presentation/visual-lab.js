@@ -144,7 +144,9 @@ export function sceneFor(state, { reduced = false, effects = true } = {}) {
     return {
       id: f.id,
       frame,
+      frameIndex:pose.frame,
       blendFrame: FRAMES[from],
+      blendIndex:from,
       blend: Math.max(0, Math.min(1, phase / 4)),
       pose: pose.name,
       x: f.x,

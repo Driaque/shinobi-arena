@@ -1,5 +1,11 @@
 # Release notes
 
+## 0.28.0
+
+- Add detailed painted 16-pose combat sheets for all ten original fighters, including refreshed Aren artwork, across the main Pixi/Canvas presentation.
+- Load selected artwork independently, preserve existing bodies on image failure, and support retry and texture cleanup without resetting fights.
+- Correct same-tick Player 2 model refreshes; preserve animated character-selection thumbnails. [Release notes](docs/releases/0.28.0.md).
+
 ## 0.27.1
 
 - Animate character-selection thumbnails with shared PixiJS rendering, breathing, gentle sway, colored motes and lightning accents for Winta and Kael. Hover, focus and selection strengthen the effects.

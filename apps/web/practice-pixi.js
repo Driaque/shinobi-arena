@@ -4,8 +4,9 @@ import {
   createPixiLab,
 } from "./visual-lab-renderers.js";
 import { practiceSceneFor } from "./packages/presentation/practice-scene.js";
+import { createFighterAtlasStore } from './packages/presentation/fighter-atlases.js';
 
-export async function createPracticeBackends(parent, onLost) {
+export async function createPracticeBackends(parent, onLost, onArtChange=()=>{}) {
   const art = await loadLabArt(),
     resolution = Math.min(devicePixelRatio || 1, 1.5),
     canvases = {},
@@ -13,6 +14,13 @@ export async function createPracticeBackends(parent, onLost) {
   let disposed = false,
     pixiAvailable = false;
   const sizes = {};
+  let selectedFighters=[];
+  const sheets=createFighterAtlasStore(async id=>{
+    const url=new URL('./assets/originals/'+id+'.webp',import.meta.url);
+    url.search=new URL(import.meta.url).search;
+    const image=new Image();image.src=url.href;await image.decode();return image;
+  },onArtChange);
+  art.sheets=sheets;
   function add(name) {
     const c = document.createElement("canvas");
     c.className = "practice-art-canvas";
@@ -28,7 +36,7 @@ export async function createPracticeBackends(parent, onLost) {
     try {
       renderers.pixi = await createPixiLab(add("pixi"), art, resolution, () => {
         pixiAvailable = false;
-        onLost("Graphics context lost. Aren is using Canvas.");
+        onLost("Graphics context lost. Selected fighters are using Canvas.");
       });
       pixiAvailable = true;
     } catch {
@@ -49,14 +57,19 @@ export async function createPracticeBackends(parent, onLost) {
       }
     }
     for (const c of Object.values(canvases)) c.remove();
+    sheets.destroy();
   }
   function hide() {
     for (const c of Object.values(canvases)) c.hidden = true;
   }
   return {
     hasPixi: () => pixiAvailable,
+    fighterIds:()=>sheets.readyIds(),
+    failedFighters:()=>sheets.failedIds().filter(id=>selectedFighters.includes(id)),
     draw(state, viewport, requested, {preview=true,catalog={}}={}) {
       if (disposed) return;
+      selectedFighters=preview?[]:state.fighters.map(f=>f.character);
+      if(!preview)sheets.request(state.fighters.map(f=>f.character));
       const selected =
         requested === "pixi" && pixiAvailable ? "pixi" : "canvas";
       hide();
@@ -73,9 +86,10 @@ export async function createPracticeBackends(parent, onLost) {
       const scene = practiceSceneFor(state, viewport, {
         reduced,
         effects: document.documentElement.dataset.effects !== "off",
-        selected:!preview,catalog,
+        selected:!preview,catalog,atlasFighters:sheets.readyIds(),
       });
       renderers[selected].draw(scene);
+      canvases[selected].dataset.fighterModels=scene.fighters.map(f=>f.atlasId??'aren-preview').join(',');
       return selected;
     },
     hide,
