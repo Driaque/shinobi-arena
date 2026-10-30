@@ -15,13 +15,13 @@ import { createInput } from './packages/input/index.js';
 import { createMatch, stepMatch, nextRound, computerInput, difficultyFor, TICK_RATE, CHARACTERS, WEAPONS, ITEMS, MOVES, moveFor, staminaCost, awakeningFor, activeAwakening, awakeningReady } from './packages/engine/index.js';
 import { createRoster } from './roster.js';
 import { createControls } from './controls.js';
-import { createRenderer } from './renderer.js';
+import {createPracticeRenderer} from './practice-renderer.js';
 const $ = selector => document.querySelector(selector);
 const sound=createAudio({moves:MOVES,onOpen:()=>{clearInputs();pause();}});
 const prediction=createPrediction();const frameTimes=[];
 const inputs=[createInput(),createInput()];
 const buttons=[...document.querySelectorAll('[data-action]')];
-const render=createRenderer($('#canvas'));
+const render=createPracticeRenderer($('#canvas'),{getMode:()=>mode});
 const portrait=matchMedia('(orientation: portrait)'), touch=matchMedia('(any-pointer: coarse)');
 let controls,trainingUI,online,loadoutUI,techniqueTray;
 let onlinePlayers=[],onlineScreen='',activeTournament=null;
@@ -207,7 +207,7 @@ function paintHud(){
     meter.style.background=form?.color??'#627386';
     $(`#awakening-label${i}`).textContent=active?`${active.name.toUpperCase()} · ${(f.awakeningTicks/60).toFixed(1)}s`:!form?'NO AWAKENING':f.awakeningUsed?'AWAKENING USED':awakeningReady(f)?`${form.name.toUpperCase()} · READY`:`${form.name.toUpperCase()} · ${Math.floor(Math.min(100,f.damageTaken/form.threshold*100))}%`;
     $(`#combo${i}`).textContent=f.combo.hits>1&&state.tick-f.combo.lastTick<60?`${f.y>0?'AIR · ':''}${f.combo.hits} HITS · ${f.combo.damage} DAMAGE`:'';
-    $(`#name${i}`).textContent=mode==='online'&&onlinePlayers[i]?`${onlinePlayers[i].name} · ${f.name}`:f.name.toUpperCase();
+    $(`#name${i}`).textContent=render.preview()?`${i===0?'AREN':'SPARRING ECHO'} · ${f.name.toUpperCase()} KIT`:mode==='online'&&onlinePlayers[i]?`${onlinePlayers[i].name} · ${f.name}`:f.name.toUpperCase();
     const labels=[...f.effects.map(e=>`${e.type==='metalVulnerable'?'METAL EXPOSED':e.type==='poisonslow'?'POISON-SLOW':e.type.toUpperCase()} ${(e.remaining/60).toFixed(1)}s`),...f.buffs.map(b=>`${({aquaGuard:'TRIUNE FLOW',tetsugan:'TETSUGAN GUARD',counter:'COUNTER READY',shinrai:'SHINRAI ŌU',poisonCoating:'POISON COATED'})[b.type]??b.type.toUpperCase()} ${(b.remaining/60).toFixed(1)}s`)];
     if(f.crouching&&f.blocking)labels.push('CROUCH GUARD');
     if(f.invulnerable>0)labels.push('SUBSTITUTION');
@@ -216,7 +216,7 @@ function paintHud(){
     $(`#wins${i}`).textContent=[0,1].map(n=>n<state.wins[i]?'●':'○').join(' ');
   });
   $('#movement-state').textContent=player.charging?'CHARGING CHAKRA':player.effects.some(e=>e.type==='bind')?'BOUND':player.crouching?(player.blocking?'CROUCH GUARD':'CROUCH'):player.dash?(player.dash.air?'AIR DASH':'DASH'):player.y>0?`AIR · ${player.jumps}/2 JUMPS`:(player.depth??0)>1?'FRONT LANE':(player.depth??0)<-1?'REAR LANE':'';
-  $('#canvas').setAttribute('aria-label',`${state.fighters[0].name} versus ${state.fighters[1].name}. ${$('#movement-state').textContent}`);
+  $('#canvas').setAttribute('aria-label',`${render.preview()?'Aren appearance and sparring echo. ':''}${state.fighters[0].name} versus ${state.fighters[1].name}. ${$('#movement-state').textContent}`);
   $('#timer').textContent=mode==='training'?'∞':Math.ceil(state.remainingTicks/TICK_RATE).toString().padStart(2,'0');
   $('#round').textContent=mode==='training'?'PRACTICE':`ROUND ${state.round.toString().padStart(2,'0')}`;
   const binding=(player,action)=>controls?.binding(player,action)??'Unbound';
@@ -259,7 +259,7 @@ function frame(now){
     }
     if(state.status!=='playing')finish();
   }else accumulator=0;
-  if(lastTime&&now-lastTime<250){frameTimes.push(now-lastTime);if(frameTimes.length>120)frameTimes.shift();}const q=online?.quality;netLabel.textContent=mode==='online'?`${q?.label??'Measuring'} · RTT ${q?.rtt??'—'}ms · jitter ${q?.jitter??0}ms · ${experience().prediction?'movement prediction':'authoritative movement'}`:mode==='training'?`Practice ${experience().speed}× · frame p95 ${Math.round([...frameTimes].sort((a,b)=>a-b)[Math.floor(frameTimes.length*.95)]??0)}ms`:'';
+  if(lastTime&&now-lastTime<250){frameTimes.push(now-lastTime);if(frameTimes.length>120)frameTimes.shift();}const q=online?.quality;netLabel.textContent=mode==='online'?`${q?.label??'Measuring'} · RTT ${q?.rtt??'—'}ms · jitter ${q?.jitter??0}ms · ${experience().prediction?'movement prediction':'authoritative movement'}`:mode==='training'?`Practice ${experience().speed}× · frame p95 ${Math.round([...frameTimes].sort((a,b)=>a-b)[Math.floor(frameTimes.length*.95)]??0)}ms · ${render.status().label}`:'';
   lastTime=now;if(now>feedbackUntil)$('#feedback').textContent='';render(state,{interpolate:mode==='online',predicted:mode==='online'&&experience().prediction?prediction.sample(state):null,localSlot:online?.slot??0});sound.update(state,started&&!paused&&$('#rotate').hidden);paintHud();requestAnimationFrame(frame);
 }
 $('#overlay-hint').textContent=`${difficultyFor(difficulty).name} · ${difficultyFor(difficulty).description}`;

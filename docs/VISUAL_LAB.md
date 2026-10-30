@@ -31,3 +31,8 @@ PixiJS and bundled dependencies retain their upstream license notices. The build
 ## Initial automated timing observation
 
 The local Chromium software-WebGL run recorded about 16.7 ms frame p95 for Canvas and 33.4 ms for PixiJS on this scene, with CPU submission p95 around 0.3 ms and 1.0 ms respectively. This run does not demonstrate a PixiJS speedup. It is not a hardware GPU or iPhone benchmark; both rendering modes remain available pending physical-device evaluation.
+
+
+## Main Practice integration (v0.25)
+
+The main Practice dialog now offers the original Canvas view, Aren Canvas and Aren PixiJS. `practice-renderer.js` owns lazy loading, preference storage, fallback, retry and lifecycle. `practice-pixi.js` creates native sprite/scenery backends. The main Canvas renderer retains combat cues via `practice-effects.js` and shares its sampled state and exact viewport with the native scene. This transitional effects layer preserves current equipped moves and debug ranges; it is not a claim that every combat effect has moved to GPU rendering. Aren/echo HUD names retain the selected kit name and no simulation/roster identity changes. CPU, local, online and archived viewing retain the original renderer.
