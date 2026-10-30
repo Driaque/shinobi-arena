@@ -4,7 +4,7 @@ import {recommendations,roles,routesFor,buildWarnings,starterBuild} from './pack
 import {JUTSUS,WEAPONS,ITEMS,MOVES,CHARACTERS,defaultJutsus,canEquipJutsu,validateLoadout} from './packages/engine/index.js';
 const make=(tag,text,className)=>{const e=document.createElement(tag);if(text)e.textContent=text;if(className)e.className=className;return e;};
 export function createLoadouts({onChange}){
- const $=s=>document.querySelector(s),sets=[defaultJutsus('naruto'),defaultJutsus('sasuke')];
+ const $=s=>document.querySelector(s),sets=[defaultJutsus('aren'),defaultJutsus('winta')];
  const dialog=make('dialog',null,'loadout-book');dialog.id='loadout-book';dialog.innerHTML='<header><div><small>BUILD YOUR STRATEGY</small><h2 id="loadout-title"></h2></div><button id="loadout-cancel">Cancel</button></header><nav aria-label="Loadout category"><button data-loadout-tab="jutsu">Jutsus</button><button data-loadout-tab="weapon">Weapons</button><button data-loadout-tab="item">Consumables</button></nav><p id="loadout-counts"></p><div id="loadout-slots" class="equipment-slots"></div><label class="loadout-search-label">Search techniques and effects<input id="loadout-search" type="search" placeholder="Try aerial, launcher, bind, fire…"></label><section id="loadout-advisor" aria-label="Strategy advisor"></section><div id="loadout-grid" class="equipment-grid"></div><p id="loadout-message" role="status"></p><footer><span>Choose a slot, then a card. Empty is allowed.</span><button id="loadout-save" class="primary">Save loadout</button></footer>';document.body.append(dialog);
  let owned=new Set();let meta=null;let player=0,kind='jutsu',active=0,draft;
  const character=i=>$(`#character${i} input:checked`).value;

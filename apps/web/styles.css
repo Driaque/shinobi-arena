@@ -189,3 +189,7 @@ label:has(select){cursor:pointer}label:has(select)>select{flex:1;min-width:0}
  .arena[data-control-placement=dock] #jutsu-tray{bottom:300px;max-height:calc(100% - 305px)}
  .layout-editor{max-height:calc(100% - 300px);overflow:auto}
 }
+
+.replay-stage{position:relative;isolation:isolate;overflow:hidden}.replay-stage #replay-canvas{position:relative;z-index:0}.anime-opt-in{display:flex;align-items:center;gap:6px;font-size:11px;color:#d1bb91}.anime-opt-in input{width:18px;height:18px}.fighter-story{font-size:10px;line-height:1.5}.fighter-story p{margin:6px 0}.roster-toolbar{flex-wrap:wrap}#graphics-dialog select{width:100%;min-height:44px}#graphics-dialog label{display:block}#graphics-dialog button{margin:4px}
+
+@media(max-width:900px){.topbar .tools{flex-wrap:wrap;min-width:0;max-width:100%}}

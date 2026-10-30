@@ -1,3 +1,4 @@
+import {legacyRoster} from './loadout-helper.mjs';
 import {equip} from './loadout-helper.mjs';
 import { chromium } from 'playwright';
 import { spawn } from 'node:child_process';
@@ -7,13 +8,15 @@ const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,P
 let browser;
 try {
  await new Promise((resolve,reject)=>{server.stdout.once('data',resolve);server.once('error',reject);server.once('exit',code=>reject(new Error(`Server exited: ${code}`)));});
- browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH,args:['--no-sandbox','--disable-dev-shm-usage']}: {})});
+ browser=await chromium.launch({args:['--enable-unsafe-swiftshader'],headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH,args:['--no-sandbox','--disable-dev-shm-usage','--enable-unsafe-swiftshader']}: {})});
  await mkdir('test-results',{recursive:true});
  const page=await browser.newPage({viewport:{width:1280,height:900}});
  const errors=[];page.on('pageerror',e=>{errors.push(e.message);console.error(e.stack);});
  await page.clock.install({time:new Date('2030-01-01T00:00:00Z')});
  await page.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));
- await page.goto('http://127.0.0.1:4183');
+ await page.goto('http://127.0.0.1:4183');await legacyRoster(page);
+ // Long fake-clock full-match/CPU assertions exercise Canvas compatibility; dedicated suites require real WebGL.
+ await page.click('#graphics-settings');await page.selectOption('#battle-renderer','canvas');await page.click('#graphics-close');
  console.log('Browser stage: native picker and desktop');
  assert.equal(await page.locator('#difficulty').inputValue(),'easy','new players start on Easy');
  await page.evaluate(()=>{window.pickerCalls=0;HTMLSelectElement.prototype.showPicker=function(){window.pickerCalls++;};});
@@ -22,10 +25,10 @@ try {
  await page.keyboard.press('Escape');
  assert.equal(await page.locator('#difficulty option').count(),4);
  for(const level of ['medium','difficult','xtreme','easy']){await page.selectOption('#difficulty',level);await page.clock.runFor(32);assert.match(await page.locator('#mode-name').innerText(),new RegExp(level.toUpperCase()));}
- await page.reload();assert.equal(await page.locator('#difficulty').inputValue(),'easy','difficulty persists on reload');
- assert.equal(await page.locator('#character0 input[type=radio]').count(),28);
- assert.equal(await page.locator('#character1 input[type=radio]').count(),28);
- await page.selectOption('#roster-era','TNR');assert.equal(await page.locator('.character-card:not([hidden])').count(),6);
+ await page.reload();await legacyRoster(page);assert.equal(await page.locator('#difficulty').inputValue(),'easy','difficulty persists on reload');
+ assert.equal(await page.locator('#character0 input[type=radio]').count(),35);
+ assert.equal(await page.locator('#character1 input[type=radio]').count(),35);
+ await page.selectOption('#roster-era','Original');assert.equal(await page.locator('.character-card:not([hidden])').count(),20);
  await page.locator('#character0 input[value="silent"]').check();await page.locator('#character1 input[value="winta"]').check();
  for(const img of await page.locator('.concept-portrait').all())assert.ok(await img.evaluate(el=>el.complete&&el.naturalWidth>0),'concept image loaded');
  assert.match(await page.locator('#kit0').innerText(),/Cold Metal Ascendant.*proposed/);
@@ -109,7 +112,7 @@ try {
  assert.equal(await page.locator('#awakening-label0').innerText(),'AWAKENING USED');assert.equal(await page.locator('#s1-name').innerText(),'RASENGAN');
  // Original fighters use their selected weapons, signatures and bloodlines in live gameplay.
  await page.selectOption('#mode','cpu');await page.selectOption('#mode','local');
- await page.selectOption('#roster-era','TNR');await page.locator('#character0 input[value="silent"]').check();await page.locator('#character1 input[value="winta"]').check();
+ await page.selectOption('#roster-era','Original');await page.locator('#character0 input[value="silent"]').check();await page.locator('#character1 input[value="winta"]').check();
  await equip(page,'#weapon0','tachi');await equip(page,'#weapon1','kaiken');await page.click('#play');await page.clock.runFor(32);
  assert.equal(await page.locator('#name0').innerText(),'SILENT');assert.equal(await page.locator('#name1').innerText(),'WINTA');
  assert.equal(await page.locator('#bl-name').innerText(),'TETSUGAN');assert.match(await page.locator('#weapon-label').innerText(),/TACHI/);
@@ -121,8 +124,8 @@ try {
  assert.deepEqual(errors,[],'no desktop page errors');await page.close();
  const context=await browser.newContext({viewport:{width:844,height:390},isMobile:true,hasTouch:true});
  const mobile=await context.newPage();const mobileErrors=[];mobile.on('pageerror',e=>mobileErrors.push(e.message));
- await mobile.clock.install({time:new Date('2030-01-01T00:00:00Z')});await mobile.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));await mobile.goto('http://127.0.0.1:4183');await mobile.screenshot({path:'test-results/mobile-loadouts.png'});
- await mobile.selectOption('#roster-era','TNR');await mobile.locator('#character0 input[value="silent"]').check();await mobile.locator('#character1 input[value="winta"]').check();
+ await mobile.clock.install({time:new Date('2030-01-01T00:00:00Z')});await mobile.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));await mobile.goto('http://127.0.0.1:4183');await legacyRoster(mobile);await mobile.screenshot({path:'test-results/mobile-loadouts.png'});
+ await mobile.selectOption('#roster-era','Original');await mobile.locator('#character0 input[value="silent"]').check();await mobile.locator('#character1 input[value="winta"]').check();
  await mobile.screenshot({path:'test-results/mobile-originals.png'});await mobile.selectOption('#roster-era','all');
  await mobile.setViewportSize({width:667,height:375});await mobile.clock.runFor(32);
  await mobile.screenshot({path:'test-results/small-mobile-roster.png'});

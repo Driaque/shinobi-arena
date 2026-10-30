@@ -13,7 +13,7 @@ export function createTraining(loadouts,options={}){
  config.drill=validDrill(options.drill);config.dummy=['idle','guard','attack','projectile','aerial','counter','recorded'].includes(options.dummy)?options.dummy:'idle';
  let selected=loadouts?loadouts.map(l=>({...l})):undefined;
  let note='';
- if(config.drill==='awakening'&&selected&&!CHARACTERS[selected[0]?.character]?.awakening){selected[0]={...selected[0],character:'naruto',jutsus:undefined};note='This drill uses Naruto because the selected fighter has no awakening.';}
+ if(config.drill==='awakening'&&selected&&!CHARACTERS[selected[0]?.character]?.awakening){selected[0]={...selected[0],character:'winta',jutsus:undefined};note='This drill uses Winta because the selected fighter has no awakening.';}
  if(config.drill==='counter'){selected??=[{character:'naruto',weapon:'kunai'},{character:'sasuke',weapon:'katana'}];selected[1].weapon='katana';if(selected[1].weapons)selected[1].weapons=['katana',selected[1].weapons[1]];}
  const state=createMatch(selected);
  state.fighters[0].x=600;state.fighters[1].x=670;

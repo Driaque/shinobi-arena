@@ -1,4 +1,4 @@
-> **v0.26: Portrait play, full-field native dropdowns and smoother Aren motion.** [Release notes](docs/releases/0.26.0.md).
+> **v0.27: Ten original rivals, connected stories and Pixi battlefields in every mode.** [Release notes](docs/releases/0.27.0.md).
 
 # Fabled Rivals
 
@@ -11,7 +11,9 @@ a landscape analog stick and customizable touch controls, online matchmaking, lo
 
 ## Practice graphics
 
-Choose Training, open Practice, then select Graphics → PixiJS · Aren preview. Aren and a sparring echo use the selected fighter kits, all seven equipped jutsus, weapons, items and existing controls. Canvas · Aren preview gives the same appearance for comparison; Canvas · selected fighters restores the original view. This setting applies only to Practice and saves on this device. The native sprite/scenery layer now includes elemental fields, shields and hit rings, with eased pose transitions and attack follow-through. Weapons, projectiles, status cues and text remain in the Canvas compatibility layer. Portrait play is supported with a separate saved touch layout; landscape is recommended.
+PixiJS scenery and combat effects are enabled by default in CPU, local, Training, online, live spectating and replay playback. Graphics → Renderer selects PixiJS or Canvas compatibility for all views. Missing WebGL falls back to Canvas. Selected fighters keep their own appearance; Aren uses his existing sprite atlas. The separate Training → Practice appearance preview remains optional. Weapons, status cues and text retain a Canvas compatibility layer.
+
+The default roster is Silent, Winta, Dora, Aren, Eira, Kael, Nyra, Rook, Veyra and Oryn. Each fighter has a connected backstory under Story & connections. Check Include Naruto / Boruto fighters to reveal the 25 prototype anime fighters; the checkbox starts off each visit. [Roster lore](docs/ORIGINAL_ROSTER.md).
 
 ## Visual Lab
 

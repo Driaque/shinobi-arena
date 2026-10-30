@@ -1,8 +1,9 @@
 import {EXTRA_MOVES,SHARED_TECHNIQUES,effectDescription,moveEnvironment} from './techniques.js';
 import {ITEMS} from './items.js';
+import {ORIGINAL_FIGHTERS} from './originals.js';
 export {ITEMS};
 // Gameplay adaptations. Costs, durations and damage are balance choices, not canon claims.
-export const CHARACTERS = Object.freeze({
+const PROTOTYPE_CHARACTERS = {
   pain:{id:'pain',name:'Pain',title:'Rinnegan pressure',color:'#69546c',hair:'#d58b48',era:'Naruto',faction:'Akatsuki',awakening:null,special1:'shinraTensei',special2:'banshoTenin',bloodline:null,description:'Akatsuki · Rinnegan pressure. A playable adaptation with customizable training techniques and normal stamina/chakra rules.'},
   konan:{id:'konan',name:'Konan',title:'Paper control',color:'#657b9d',hair:'#8498c2',era:'Naruto',faction:'Akatsuki',awakening:null,special1:'paperStorm',special2:'paperBind',bloodline:null,description:'Akatsuki · Paper control. A playable adaptation with customizable training techniques and normal stamina/chakra rules.'},
   kisame:{id:'kisame',name:'Kisame',title:'Chakra-hunting swordsman',color:'#587a8d',hair:'#243849',era:'Naruto',faction:'Akatsuki',awakening:null,special1:'mizukumi',special2:'eclipseDrain',bloodline:null,defaultWeapon:'tachi',skin:'#83a0ac',description:'Akatsuki · Chakra-hunting swordsman. A playable adaptation with customizable training techniques and normal stamina/chakra rules.'},
@@ -42,7 +43,8 @@ export const CHARACTERS = Object.freeze({
   winta:{id:'winta',name:'Winta',title:'Frozen Sun',color:'#983d54',hair:'#171e29',era:'TNR',portrait:'assets/winta-concept.jpg',awakening:'frozenSun',basicChain:['wintaSlash1','wintaSlash2','wintaSlash3'],description:'Elemental pressure fighter. Mizukumi dashes through openings; Eclipse Drain restores HP on a clean hit. Shinrai Ōu strengthens lightning attacks. Awakening is a proposed adaptation.',special1:'mizukumi',special2:'eclipseDrain',bloodline:'shinraiOu'},
   kawaki:{id:'kawaki',name:'Kawaki',title:'Karma-powered pressure',color:'#879c88',hair:'#202c39',era:'Boruto',awakening:'karmaRed',description:'Body Blade pierces guard; Energy Blast pressures at range. Damage unlocks Karma Overdrive.',special1:'bodyBlade',special2:'energyBlast',bloodline:null}
 
-});
+};
+export const CHARACTERS=Object.freeze({...PROTOTYPE_CHARACTERS,...ORIGINAL_FIGHTERS});
 export const WEAPONS = Object.freeze({
   championKatana:{id:'championKatana',name:'Champion’s Katana',move:'katana',unlock:'championKatana',description:'Tournament champion reward · gold finish · same stats as Katana'},
   fans:{id:'fans',name:'Bladed Fans',move:'fanStrike',description:'Sweeping metal fans · 85 damage · 145 reach'},

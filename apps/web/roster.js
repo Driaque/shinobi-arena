@@ -4,7 +4,7 @@ function portrait(canvas, character) {
   const bg=c.createLinearGradient(0,0,72,76);bg.addColorStop(0,character.color+'80');bg.addColorStop(1,'#101e30');c.fillStyle=bg;c.fillRect(0,0,72,76);
   c.fillStyle=character.color;c.beginPath();c.moveTo(7,76);c.quadraticCurveTo(8,51,36,51);c.quadraticCurveTo(64,51,65,76);c.fill();
   if(character.faction==='Akatsuki'){c.fillStyle='#192330';c.fillRect(8,55,56,21);c.fillStyle='#af4758';c.beginPath();c.arc(25,68,6,0,Math.PI*2);c.arc(32,67,7,0,Math.PI*2);c.fill();}
-  const longHair=['dora','hinata','orochimaru','itachi','madara'].includes(character.id);c.fillStyle=character.hair;
+  const longHair=['eira','veyra','nyra','dora','hinata','orochimaru','itachi','madara'].includes(character.id);c.fillStyle=character.hair;
   if(longHair){c.beginPath();c.ellipse(36,32,24,29,0,0,Math.PI*2);c.fill();c.fillRect(12,29,48,35);}
   c.fillStyle=character.skin??(character.id==='orochimaru'?'#e1d6bd':'#e7b58f');c.beginPath();c.ellipse(36,32,18,23,0,0,Math.PI*2);c.fill();
   c.fillStyle=character.hair;c.beginPath();c.moveTo(14,23);
@@ -27,7 +27,7 @@ c.strokeStyle='#946957';c.lineWidth=1;c.beginPath();c.moveTo(32,46);c.lineTo(41,
   if(character.id==='naruto'){c.strokeStyle='#986c52';for(const y of [37,41]){c.beginPath();c.moveTo(20,y);c.lineTo(27,y+1);c.moveTo(47,y+1);c.lineTo(53,y);c.stroke();}}
 }
 export function createRoster(container, player, initial, onChange) {
-  for(const character of Object.values(CHARACTERS)){
+  for(const character of Object.values(CHARACTERS).sort((a,b)=>(a.classification==='original'?0:1)-(b.classification==='original'?0:1))){
     const card=document.createElement('label');card.className='character-card';card.dataset.character=character.id;card.style.setProperty('--character-color',character.color);
     const input=document.createElement('input');input.type='radio';input.name=`character${player}`;input.value=character.id;input.checked=character.id===initial;input.className='roster-input';input.setAttribute('aria-label',`${player===0?'Player one':'Opponent'} ${character.name}`);
     const canvas=document.createElement('canvas');canvas.className='character-portrait';canvas.setAttribute('aria-hidden','true');portrait(canvas,character);

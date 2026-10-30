@@ -1,3 +1,4 @@
+import {legacyRoster} from './loadout-helper.mjs';
 import {chromium} from 'playwright';
 import {spawn} from 'node:child_process';
 import assert from 'node:assert/strict';
@@ -5,12 +6,12 @@ import {mkdir} from 'node:fs/promises';
 const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'4187'},stdio:['ignore','pipe','inherit']});let browser;
 try{
  await new Promise((resolve,reject)=>{server.stdout.once('data',resolve);server.once('error',reject);server.once('exit',c=>reject(new Error(`Server exited ${c}`)));});
- browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH,args:['--no-sandbox','--disable-dev-shm-usage']}: {})});
+ browser=await chromium.launch({args:['--enable-unsafe-swiftshader'],headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH,args:['--no-sandbox','--disable-dev-shm-usage','--enable-unsafe-swiftshader']}: {})});
  await mkdir('test-results',{recursive:true});const errors=[];
  for(const mobile of [false,true]){
   const context=await browser.newContext(mobile?{viewport:{width:844,height:390},isMobile:true,hasTouch:true}:{viewport:{width:1280,height:900}}),page=await context.newPage();page.on('pageerror',e=>errors.push(e.stack));
-  await page.clock.install({time:new Date('2030-01-01T00:00:00Z')});await page.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));await page.goto('http://127.0.0.1:4187');
-  await page.selectOption('#roster-era','TNR');await page.locator('#character0 input[value=dora]').check();assert.equal(await page.locator('#selected0').innerText(),'Dora');assert.equal(await page.locator('#weapon0').inputValue(),'fans');assert.equal(await page.locator('#weapon-secondary0').inputValue(),'katana');assert.match(await page.locator('#kit0').innerText(),/Limit Release/);
+  await page.clock.install({time:new Date('2030-01-01T00:00:00Z')});await page.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));await page.goto('http://127.0.0.1:4187');await legacyRoster(page);
+  await page.selectOption('#roster-era','Original');await page.locator('#character0 input[value=dora]').check();assert.equal(await page.locator('#selected0').innerText(),'Dora');assert.equal(await page.locator('#weapon0').inputValue(),'fans');assert.equal(await page.locator('#weapon-secondary0').inputValue(),'katana');assert.match(await page.locator('#kit0').innerText(),/Limit Release/);
   const img=page.locator('#character0 [data-character=dora] img');await img.evaluate(el=>el.decode());assert.ok(await img.evaluate(el=>el.naturalWidth>0));await page.screenshot({path:`test-results/dora-${mobile?'mobile':'desktop'}-select.png`});
   await page.selectOption('#mode','training');await page.click('#play');await page.clock.runFor(32);assert.equal(await page.locator('#name0').innerText(),'DORA');assert.equal(await page.locator('#s1-name').innerText(),'TIDAL EDICT');
   const tap=async(key,action,ms=500)=>{if(mobile)await page.locator(`[data-action=${action}]`).tap();else {await page.keyboard.down(key);await page.clock.runFor(40);await page.keyboard.up(key);}await page.clock.runFor(ms);};

@@ -5,6 +5,7 @@ import { MOVES } from '../engine/index.js';
 export function practiceSceneFor(state, viewport, settings = {}) {
   const scene = sceneFor(state, settings);
   scene.viewport = { ...viewport };
+  scene.decorative=settings.effects!==false;
   for (const actor of scene.fighters) {
     const fighter = state.fighters[actor.id];
     // The standing atlas pose is 302px tall; match the engine's 120*scale body height.
@@ -13,6 +14,7 @@ export function practiceSceneFor(state, viewport, settings = {}) {
   }
   // Native elemental fields; smoke, item cues and all text stay in the overlay.
   scene.zones = (state.zones ?? []).filter(z => z.kind === 'elemental').map(z => ({...z, element: MOVES[z.move]?.ground?.element ?? 'water'}));
-  scene.projectiles = [];
+  scene.projectiles = (state.projectiles??[]).map(p=>({...p,color:settings.catalog?.moves?.[p.move]?.color??MOVES[p.move]?.color??'#ffcb88',element:settings.catalog?.moves?.[p.move]?.element??MOVES[p.move]?.element??(MOVES[p.move]?.effect==='burn'?'fire':undefined)}));
+  if(settings.selected)scene.fighters=scene.fighters.filter(f=>state.fighters[f.id].character==='aren');
   return scene;
 }

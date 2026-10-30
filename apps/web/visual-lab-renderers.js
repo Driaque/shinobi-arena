@@ -1,3 +1,4 @@
+import {sceneryFor,projectileShapes} from './packages/presentation/battlefield.js';
 import {
   Application,
   Container,
@@ -60,6 +61,7 @@ export function createCanvasLab(canvas, art, resolution) {
     );
     ctx.restore();
   }
+  function shapes(items){for(const s of items){ctx.save();ctx.globalAlpha=s.alpha??1;ctx.fillStyle=ctx.strokeStyle='#'+s.color.toString(16).padStart(6,'0');ctx.lineWidth=s.width??1;ctx.beginPath();if(s.kind==='ellipse')ctx.ellipse(s.x,s.y,s.rx,s.ry,0,0,Math.PI*2);else if(s.kind==='line'){ctx.moveTo(s.x,s.y);ctx.lineTo(s.x2,s.y2);}else{s.points.forEach((n,i)=>{if(i%2===0)(i?ctx.lineTo:ctx.moveTo).call(ctx,n,s.points[i+1]);});ctx.closePath();}if(s.kind==='line')ctx.stroke();else ctx.fill();ctx.restore();}}
   function draw(scene) {
     ctx.resetTransform();
     ctx.fillStyle = "#0c1825";
@@ -68,6 +70,7 @@ export function createCanvasLab(canvas, art, resolution) {
     ctx.setTransform(view.scale, 0, 0, view.scale, view.x, view.y);
     const bg = backgroundRect(art.arena, scene);
     ctx.drawImage(art.arena, bg.x, bg.y, bg.w, bg.h);
+    shapes(sceneryFor(scene));
     const ellipse = (x, y, rx, ry, color) => {
       ctx.fillStyle = color;
       ctx.beginPath();
@@ -112,8 +115,7 @@ export function createCanvasLab(canvas, art, resolution) {
         ellipse(f.x + f.facing * 18, f.y - height/2, 25, height/2, "#88ead74a");
       }
     }
-    for (const p of scene.projectiles ?? [])
-      ellipse(p.x, WORLD.floor + (p.depth ?? 0) * 0.65 - p.y, 9, 5, "#ffcb88");
+    shapes(projectileShapes(scene));
     for (const p of scene.motes)
       ellipse(p.x, p.y, p.r, p.r, `rgba(172,237,227,${p.alpha})`);
     for (const p of scene.bursts) {
@@ -200,6 +202,7 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
   function resize(w, h) {
     app.renderer.resize(w, h);
   }
+  function shapes(graphics,items){for(const s of items){if(s.kind==='ellipse')graphics.ellipse(s.x,s.y,s.rx,s.ry).fill({color:s.color,alpha:s.alpha??1});else if(s.kind==='line')graphics.moveTo(s.x,s.y).lineTo(s.x2,s.y2).stroke({color:s.color,alpha:s.alpha??1,width:s.width??1});else graphics.poly(s.points).fill({color:s.color,alpha:s.alpha??1});}}
   function draw(scene) {
     if (lost) return;
     const view = camera(scene, app.screen.width, app.screen.height);
@@ -211,6 +214,8 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
     bg.height = rect.h;
     ground.clear();
     effects.clear();
+    shapes(ground,sceneryFor(scene));
+    for(const a of actors)a.container.visible=false;
     for (const z of scene.zones ?? [])
       if (z.kind === "elemental")
         ground
@@ -232,6 +237,7 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
             .ellipse(f.x, f.y - 66, 30 + i * 12, 65 + i * 9)
             .fill({ color: 0x5dedd3, alpha: 0.025 * i });
       const a = actors[f.id];
+      a.container.visible=true;
       a.container.position.set(f.x, f.y);
       a.container.alpha = f.alpha ?? 1;
       a.container.zIndex = f.depth;
@@ -252,10 +258,7 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
       }
     }
     fighters.sortableChildren = true;
-    for (const p of scene.projectiles ?? [])
-      effects
-        .ellipse(p.x, WORLD.floor + (p.depth ?? 0) * 0.65 - p.y, 9, 5)
-        .fill(gold);
+    shapes(effects,projectileShapes(scene));
     for (const p of scene.motes)
       effects.circle(p.x, p.y, p.r).fill({ color: 0xacede3, alpha: p.alpha });
     for (const p of scene.bursts)

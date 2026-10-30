@@ -1,5 +1,12 @@
 # Release notes
 
+## 0.27.0
+
+- Enable PixiJS scenery, fields and projectiles in every battle mode, live spectating and archived replay playback; preserve selected fighter identities and add a global Canvas choice/fallback/retry.
+- Add ten original rivals with distinct kits, silhouettes and connected Skyglass lore. Aren is playable; Silent, Winta and Dora retain their established mechanics. Default selection is Aren vs Winta.
+- Hide the 25 anime prototype fighters unless Include Naruto / Boruto fighters is checked. Stories are available in the character kit panel.
+- Protocol 7 requires old clients to refresh; existing combat rules, replay schema, results and rewards remain unchanged. [Release notes](docs/releases/0.27.0.md).
+
 ## 0.26.0
 
 - Support portrait without pausing, an orientation gate or forced landscape fullscreen; recommend landscape and keep active touch fights in a stable viewport.
