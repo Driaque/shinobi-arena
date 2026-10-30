@@ -14,7 +14,12 @@ try {
  await page.clock.install({time:new Date('2030-01-01T00:00:00Z')});
  await page.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));
  await page.goto('http://127.0.0.1:4183');
+ console.log('Browser stage: native picker and desktop');
  assert.equal(await page.locator('#difficulty').inputValue(),'easy','new players start on Easy');
+ await page.evaluate(()=>{window.pickerCalls=0;HTMLSelectElement.prototype.showPicker=function(){window.pickerCalls++;};});
+ await page.locator('.mode-label').click({position:{x:4,y:8}});
+ assert.equal(await page.evaluate(()=>window.pickerCalls),1,'label text opens the native select picker');
+ await page.keyboard.press('Escape');
  assert.equal(await page.locator('#difficulty option').count(),4);
  for(const level of ['medium','difficult','xtreme','easy']){await page.selectOption('#difficulty',level);await page.clock.runFor(32);assert.match(await page.locator('#mode-name').innerText(),new RegExp(level.toUpperCase()));}
  await page.reload();assert.equal(await page.locator('#difficulty').inputValue(),'easy','difficulty persists on reload');
@@ -147,16 +152,27 @@ try {
  assert.ok(!(await mobile.locator('[data-action=attack]').getAttribute('class')).includes('active'));
  await cdp.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});await mobile.clock.runFor(32);
  assert.ok(!(await mobile.locator('#joystick').getAttribute('class')??'').includes('active'),'cancel clears held analog pointer');
+ console.log('Browser stage: portrait continuity');
  await mobile.setViewportSize({width:390,height:844});await mobile.clock.runFor(100);
- assert.equal(await mobile.locator('#rotate').isVisible(),true);
- assert.equal(await mobile.locator('#game').evaluate(el=>el.inert),true);
+ assert.equal(await mobile.locator('#rotate').isVisible(),false);
+ assert.equal(await mobile.locator('#landscape-tip').isVisible(),true);
+ assert.equal(await mobile.locator('#game').evaluate(el=>el.inert),false);
+ const scaleBefore=await mobile.evaluate(()=>visualViewport.scale);
+ await mobile.locator('[data-action=attack]').tap();await mobile.locator('[data-action=attack]').tap();
+ assert.equal(await mobile.evaluate(()=>visualViewport.scale),scaleBefore,'rapid combat taps do not zoom');
+ assert.ok(await mobile.locator('.arena').evaluate(el=>{const b=el.getBoundingClientRect();return b.top>=0&&b.bottom<=innerHeight+1;}),'portrait arena fits the viewport');
+ assert.equal(await mobile.locator('#overlay').isVisible(),false);
+ const strip=await mobile.locator('#combat-techniques').boundingBox();
+ for(const b of await mobile.locator('[data-control]:visible').all()){const r=await b.boundingBox();assert.ok(r.y>=strip.y+strip.height,'portrait controls do not overlap equipped jutsus');}
+ await mobile.screenshot({path:'test-results/mobile-portrait.png'});
+ const portraitTick=Number(await mobile.locator('#canvas').getAttribute('data-render-tick'));await mobile.clock.runFor(120);assert.ok(Number(await mobile.locator('#canvas').getAttribute('data-render-tick'))>portraitTick);
  await mobile.setViewportSize({width:844,height:390});await mobile.clock.runFor(100);
  assert.equal(await mobile.locator('#rotate').isVisible(),false);
- assert.equal(await mobile.locator('#play').innerText(),'Resume match');
- await mobile.click('#play');await mobile.clock.runFor(100);
+ assert.equal(await mobile.locator('#overlay').isVisible(),false);await mobile.clock.runFor(100);
  await mobile.screenshot({path:'test-results/mobile-landscape.png'});
  // Edit the touch layout, rebind a key, and persist both on this device.
  // Dock targets never cover the actual battle viewport, even at the arena edges.
+ console.log('Browser stage: control editor');
  const fight=await mobile.locator('.battle-view').boundingBox();
  for(const control of await mobile.locator('[data-control]:visible').all()){const rect=await control.boundingBox();assert.ok(rect.y>=fight.y+fight.height,'control stays below fighting viewport');}
  assert.equal(await mobile.locator('.arena').getAttribute('data-control-placement'),'dock');
@@ -221,7 +237,7 @@ try {
    const b=await button.boundingBox();assert.ok(b.width>=48&&b.height>=48&&b.x>=0&&b.x+b.width<=667&&b.y>=0&&b.y+b.height<=375,'controls fit smaller landscape phone: '+JSON.stringify({action:await button.getAttribute('data-action'),box:b}));
  }
  assert.deepEqual(mobileErrors,[],'no mobile page errors');await context.close();
- console.log('Browser checks passed: local match, rematch, pause, multi-touch, cancellation, portrait gate, landscape resume and control bounds.');
+ console.log('Browser checks passed: local match, rematch, pause, multi-touch, cancellation, uninterrupted portrait/landscape play and control bounds.');
 } finally {if(browser)await browser.close();server.kill();}
 
 

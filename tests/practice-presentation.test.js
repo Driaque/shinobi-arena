@@ -55,3 +55,11 @@ test("Practice sprite camera aligns with the main engine floor, depth and shake 
   assert.equal(tall.x, camera.x);
   assert.equal(tall.y - camera.y, 100); // Symmetric letterboxing, no vertical stretch.
 });
+
+test('native fields retain element, depth and expiry while smoke stays in the compatibility overlay',()=>{
+ const state=createTraining([{character:'silent',weapon:'tachi'},{character:'sasuke',weapon:'katana'}]);
+ state.zones=[{kind:'elemental',move:'floodField',x:500,depth:18,radius:140,remaining:24},{kind:'smoke',x:600,remaining:30}];
+ const before=structuredClone(state), scene=practiceSceneFor(state,{});
+ assert.deepEqual(state,before);assert.equal(scene.zones.length,1);
+ assert.equal(scene.zones[0].element,'water');assert.equal(scene.zones[0].depth,18);assert.equal(scene.zones[0].remaining,24);
+});

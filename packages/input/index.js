@@ -15,6 +15,9 @@ export function createInput() {
     setAxis(source,value) { if(!Number.isFinite(value))throw new Error('Invalid movement axis');axes.set(source,Math.max(-1,Math.min(1,value))); },
     setDepth(source,value){if(!Number.isFinite(value))throw new Error('Invalid depth axis');vertical.set(source,Math.max(-1,Math.min(1,value)));},
     dash(direction){if(direction!==-1&&direction!==1)throw new Error('Invalid dash direction');pendingDash=direction;},
+    // Resizing can occur between pointerup and the next simulation tick. Clear
+    // holds to prevent stuck movement without dropping an already accepted tap.
+    releaseHeld() { held.clear();axes.clear();vertical.clear(); },
     reset() { pendingAim=null;pendingDash=0;held.clear(); pressed.clear(); axes.clear();vertical.clear(); },
     snapshot,
     consume() {

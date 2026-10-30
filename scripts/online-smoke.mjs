@@ -47,7 +47,7 @@ try{
  assert.equal(await p.locator('#hp1').innerText(),await q.locator('#hp1').innerText());
  await q.waitForTimeout(500);await q.locator('[data-action=special1]').tap();await p.waitForFunction(()=>document.querySelector('#effects0').textContent.includes('WEAKEN'));
  await mkdir('test-results',{recursive:true});await p.screenshot({path:'test-results/online-desktop.png'});await q.screenshot({path:'test-results/online-mobile.png'});
- await q.setViewportSize({width:390,height:844});await q.locator('#rotate').waitFor({state:'visible'});assert.match(await q.locator('#rotate p').innerText(),/Online matches keep running/);await q.setViewportSize({width:844,height:390});await q.locator('#rotate').waitFor({state:'hidden'});assert.equal(await q.locator('#overlay').isVisible(),false);
+ await q.setViewportSize({width:390,height:844});await q.locator('#landscape-tip').waitFor({state:'visible'});assert.equal(await q.locator('#rotate').isVisible(),false);assert.equal(await q.locator('#game').evaluate(el=>el.inert),false);assert.equal(await q.locator('#overlay').isVisible(),false);await q.setViewportSize({width:844,height:390});await q.locator('#rotate').waitFor({state:'hidden'});assert.equal(await q.locator('#overlay').isVisible(),false);
  await q.close();await p.waitForFunction(()=>document.querySelector('#overlay-description').textContent.includes('win by forfeit'));assert.equal(await p.locator('#play').innerText(),'Find opponent');
  await p.click('#play');await p.waitForFunction(()=>document.querySelector('#online-status').textContent.includes('Waiting for an opponent'));await p.click('#online-cancel');
  await p.selectOption('#mode','cpu');await p.click('#play');assert.equal(await p.locator('#overlay').isVisible(),false);assert.deepEqual(errors,[]);

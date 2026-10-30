@@ -1,4 +1,5 @@
 import { MOVES } from "../engine/index.js";
+import { motionFor } from './motion.js';
 import { createTraining, chargeTrainingAwakening } from "../engine/training.js";
 
 export const WORLD = { width: 1600, height: 900, floor: 650 };
@@ -120,16 +121,31 @@ export function poseFor(f, tick, reduced = false) {
     f.previous?.left ||
     f.previous?.right
   )
-    return { frame: 2 + (Math.floor((f.travel ?? 0) / 30) % 2), name: "Run" };
+    return { frame: 2 + (Math.floor((f.travel ?? tick * Math.abs(f.vx ?? 3)) / 30) % 2), name: "Run" };
   return { frame: reduced ? 0 : Math.floor(tick / 35) % 2, name: "Idle" };
 }
 export function sceneFor(state, { reduced = false, effects = true } = {}) {
   const fighters = state.fighters.map((f) => {
     const pose = poseFor(f, state.tick, reduced),
       frame = FRAMES[pose.frame];
+    let from = pose.frame, phase = 5;
+    if (!reduced) {
+      const move = MOVES[f.action?.move];
+      if (pose.name === 'Run') {
+        phase = (f.travel ?? state.tick * Math.abs(f.vx ?? 3)) % 30;
+        from = pose.frame === 2 ? 3 : 2;
+      } else if (move && ['Anticipation','Strike','Follow-through'].includes(pose.name)) {
+        phase = f.action.age - (pose.name === 'Strike' ? move.startup : pose.name === 'Follow-through' ? move.startup + move.active : 0);
+        from = pose.name === 'Strike' ? 8 : pose.name === 'Follow-through' ? 9 : 0;
+      } else if (pose.name === 'Landing') {
+        phase = state.tick - f.landedAt; from = 5;
+      }
+    }
     return {
       id: f.id,
       frame,
+      blendFrame: FRAMES[from],
+      blend: Math.max(0, Math.min(1, phase / 4)),
       pose: pose.name,
       x: f.x,
       y: WORLD.floor + (f.depth ?? 0) * 0.65 - f.y,
@@ -137,10 +153,13 @@ export function sceneFor(state, { reduced = false, effects = true } = {}) {
       scale: (0.48 * (f.scale ?? 0.86)) / 0.86,
       bob:
         reduced || f.y > 0 || f.action ? 0 : Math.sin(state.tick * 0.065) * 0.7,
-      awake: f.awakeningTicks > 0,
+      awake: effects && !reduced && f.awakeningTicks > 0,
       hit: state.tick - f.lastHit < 5,
       blocking: f.blocking,
       action: f.action,
+      motion: motionFor(f, state.tick, reduced),
+      crouching: f.crouching,
+      bodyScale: f.scale ?? 1,
       depth: f.depth ?? 0,
       air: f.y,
     };
@@ -154,7 +173,7 @@ export function sceneFor(state, { reduced = false, effects = true } = {}) {
           alpha: 0.12 + (i % 4) * 0.08,
         }))
       : [];
-  const bursts = effects
+  const bursts = effects && !reduced
     ? state.fighters
         .filter((f) => state.tick - f.lastHit < 9)
         .map((f) => ({
@@ -165,6 +184,7 @@ export function sceneFor(state, { reduced = false, effects = true } = {}) {
     : [];
   return {
     tick: state.tick,
+    reduced,
     fighters,
     motes,
     bursts,

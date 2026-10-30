@@ -12,7 +12,7 @@ export function createControls({inputs,onPause,isPlaying}) {
   let draft=null,editing=false,selected='stick',drag=null,stickPointer=null,listening=null,previousOverlay=false;
   const current=()=>draft??settings;
   const dimensions=()=>({width:arena.clientWidth,height:arena.clientHeight});
-  const profile=()=>layoutProfile(arena.clientWidth);
+  const profile=()=>arena.clientWidth<620&&arena.clientHeight>arena.clientWidth?'portrait':layoutProfile(arena.clientWidth);
   const layoutKey=()=>current().placement==='dock'?'dockLayouts':'layouts';
   const layout=()=>current()[layoutKey()][profile()]??(current().placement==='dock'?defaultDockLayout:defaultLayout)(arena.clientWidth,arena.clientHeight);
   function editableLayout(){draft[layoutKey()][profile()]??=structuredClone(layout());return draft[layoutKey()][profile()];}
@@ -152,7 +152,7 @@ export function createControls({inputs,onPause,isPlaying}) {
   });
   window.addEventListener('arena:experience',()=>{reset();applyLayout();});
   window.addEventListener('keyup',event=>inputs.forEach(i=>i.release(event.code)));
-  new ResizeObserver(()=>{reset();applyLayout();}).observe(arena);
+  new ResizeObserver(()=>{resetStick();drag=null;inputs.forEach(i=>i.releaseHeld());applyLayout();}).observe(arena);
   applyLayout();
   return {reset,get editing(){return editing;},visible:action=>current().visibility[action]!==false,binding:(player,action)=>keyLabel(keyForAction(current().keys,player,action))};
 }

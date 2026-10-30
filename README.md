@@ -1,4 +1,4 @@
-> **v0.25: Main-game Practice graphics with Aren, Canvas/PixiJS switching and existing loadouts.** [Release notes](docs/releases/0.25.0.md).
+> **v0.26: Portrait play, full-field native dropdowns and smoother Aren motion.** [Release notes](docs/releases/0.26.0.md).
 
 # Fabled Rivals
 
@@ -11,7 +11,7 @@ a landscape analog stick and customizable touch controls, online matchmaking, lo
 
 ## Practice graphics
 
-Choose Training, open Practice, then select Graphics → PixiJS · Aren preview. Aren and a sparring echo use the selected fighter kits, all seven equipped jutsus, weapons, items and existing controls. Canvas · Aren preview gives the same appearance for comparison; Canvas · selected fighters restores the original view. This setting applies only to Practice and saves on this device. The native sprite/scenery layer uses PixiJS; existing Canvas combat cues remain as a compatibility layer.
+Choose Training, open Practice, then select Graphics → PixiJS · Aren preview. Aren and a sparring echo use the selected fighter kits, all seven equipped jutsus, weapons, items and existing controls. Canvas · Aren preview gives the same appearance for comparison; Canvas · selected fighters restores the original view. This setting applies only to Practice and saves on this device. The native sprite/scenery layer now includes elemental fields, shields and hit rings, with eased pose transitions and attack follow-through. Weapons, projectiles, status cues and text remain in the Canvas compatibility layer. Portrait play is supported with a separate saved touch layout; landscape is recommended.
 
 ## Visual Lab
 
