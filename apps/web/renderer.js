@@ -1,3 +1,4 @@
+import {paintPracticeEffects} from './practice-effects.js';
 import {fighterPose,sampleFighters} from './motion.js';
 import {actionPhase} from './packages/engine/training.js';
 import { ARENA, fighterBody, MOVES as LIVE_MOVES, CHARACTERS as LIVE_CHARACTERS, AWAKENINGS as LIVE_AWAKENINGS } from './packages/engine/index.js';
@@ -9,6 +10,7 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
   const c=canvas.getContext('2d');
   let worldWidth=ARENA.width,viewHeight=ARENA.height,zoom=1,frameTick=-1,frameRound=-1,blendStart=0,blendDuration=16,previous=[],targets=[],shown=[],visualTick=0,projectilePrevious=[],projectileTargets=[],projectileShown=[];
   const trails=[[],[]];
+  let externalActors=false;
   function resize(){
     const rect=canvas.parentElement.getBoundingClientRect();
     viewHeight=Math.min(720,Math.max(300,worldWidth*rect.height/Math.max(1,rect.width)));
@@ -50,6 +52,7 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
     for(let i=0;i<(document.documentElement.dataset.effects==='off'?0:30);i++){const x=(i*137+tick*.3)%1320;const y=250+(i*89)%280;circle(x,y,1.5,'#d3e4c547');}
   }
   function ninja(f, state, ghost=false) {
+    if(externalActors){if(!ghost)paintPracticeEffects(c,f,state,MOVES);return;}
     const x=f.x, ground=ARENA.floor+(f.depth??0)*.65-f.y;
     c.save();c.translate(x,ground);c.scale(f.facing,1);
     if(ghost)c.globalAlpha*=.3;
@@ -180,7 +183,8 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
     if(!ghost&&state.tick-f.lastHit<25&&f.lastDamage){c.save();c.font='bold 18px system-ui';c.textAlign='center';c.fillStyle=f.blockedHit?'#98d4e7':'#ffe0ac';c.globalAlpha=1-(state.tick-f.lastHit)/25;c.fillText(`−${f.lastDamage}`,x,ground-160-(state.tick-f.lastHit)*1.2);c.restore();}
     if(!ghost&&state.tick-f.lastHit<8){c.save();c.translate(x,ground-70);for(let i=0;i<7;i++){const a=i*.9;line(Math.cos(a)*15,Math.sin(a)*15,Math.cos(a)*40,Math.sin(a)*40,f.blockedHit?'#89dbea':'#ffd8a0',3);}c.restore();}
   }
-  const render=function render(authoritative,{interpolate=false,predicted=null,localSlot=0}={}) {
+  const render=function render(authoritative,{interpolate=false,predicted=null,localSlot=0,layers=null}={}) {
+    externalActors=layers?.actors===false;
     const now=performance.now();const nextWidth=authoritative.arena?.width??1280;if(nextWidth!==worldWidth){worldWidth=nextWidth;resize();}
     if(frameTick!==authoritative.tick||frameRound!==authoritative.round||targets[0]?.character!==authoritative.fighters[0].character){
       const reset=frameTick<0||authoritative.tick<frameTick||frameRound!==authoritative.round;
@@ -197,12 +201,15 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
 
     const width=worldWidth*dpr,height=Math.round(viewHeight*dpr);
     if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height;}
+    if(layers?.background===false){c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,canvas.width,canvas.height);}
     const needed=Math.min(1,viewHeight*.68/(Math.max(...state.fighters.map(f=>f.y))+150));
     zoom+=(needed-zoom)*.3;
     c.setTransform(dpr*zoom,0,0,dpr*zoom,worldWidth*dpr*.5*(1-zoom),(viewHeight*.9-ARENA.floor*zoom)*dpr);
     c.save();
-    if(!reducedMotion.matches&&document.documentElement.dataset.shake!=='off'){const recent=state.fighters.find(f=>state.tick-f.lastHit<4);if(recent){const strength=recent.blockedHit?1:4;c.translate(Math.sin(state.tick*13)*strength,Math.cos(state.tick*9)*strength*.5);}}
-    background(state.tick,(state.fighters[0].x+state.fighters[1].x)/2);
+    let shakeX=0,shakeY=0;
+    if(!reducedMotion.matches&&document.documentElement.dataset.shake!=='off'){const recent=state.fighters.find(f=>state.tick-f.lastHit<4);if(recent){const strength=recent.blockedHit?1:4;shakeX=Math.sin(state.tick*13)*strength;shakeY=Math.cos(state.tick*9)*strength*.5;c.translate(shakeX,shakeY);}}
+    render.frame={state,viewport:{worldWidth,viewHeight,zoom,shakeX,shakeY}};
+    if(layers?.background!==false)background(state.tick,(state.fighters[0].x+state.fighters[1].x)/2);
     // Ground lanes and narrow/sweeping windups make depth separation readable.
     for(const depth of [-64,0,64]){line(46,ARENA.floor+depth*.65,worldWidth-46,ARENA.floor+depth*.65,'#a7d9cc22',1);}
     for(const f of state.fighters){const ground=ARENA.floor+(f.depth??0)*.65;circle(f.x,ground,4,f.id===0?'#80e3d3':'#efb0b0');if(f.action){const m=MOVES[f.action.move],phase=actionPhase(f);if(phase.name==='Startup'&&m.damage>0){const end=f.x+f.facing*(m.reach||130);line(f.x,ground,end,ground,'#ffd78b77',3);c.font='bold 11px system-ui';c.textAlign='center';c.fillStyle='#ffe0a1';c.fillText(m.projectile?'RANGED':m.pierce?'PIERCE':m.launch?'LAUNCH':m.spike?'DIVE':'STRIKE',f.x,ground-155*(f.scale??1));}else if(phase.name==='Recovery'){c.font='10px system-ui';c.textAlign='center';c.fillStyle='#b4c8d9';c.fillText('RECOVERY',f.x,ground-150*(f.scale??1));}}}

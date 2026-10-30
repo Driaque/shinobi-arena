@@ -1,4 +1,4 @@
-> **v0.24: PixiJS Visual Lab with original artwork and a playable aerial showcase.** [Release notes](docs/releases/0.24.0.md).
+> **v0.25: Main-game Practice graphics with Aren, Canvas/PixiJS switching and existing loadouts.** [Release notes](docs/releases/0.25.0.md).
 
 # Fabled Rivals
 
@@ -8,6 +8,10 @@ Formerly Shinobi Arena. The current roster is a development prototype; a fully o
 
 A playable browser fighting prototype with a **28-character selectable roster spanning Naruto, Boruto and TNR originals**, desktop keyboard controls,
 a landscape analog stick and customizable touch controls, online matchmaking, local two-player and a computer opponent.
+
+## Practice graphics
+
+Choose Training, open Practice, then select Graphics → PixiJS · Aren preview. Aren and a sparring echo use the selected fighter kits, all seven equipped jutsus, weapons, items and existing controls. Canvas · Aren preview gives the same appearance for comparison; Canvas · selected fighters restores the original view. This setting applies only to Practice and saves on this device. The native sprite/scenery layer uses PixiJS; existing Canvas combat cues remain as a compatibility layer.
 
 ## Visual Lab
 

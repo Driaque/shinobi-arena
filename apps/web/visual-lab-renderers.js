@@ -9,6 +9,8 @@ import {
 } from "pixi.js";
 import { WORLD, FRAMES, ASSETS } from "./packages/presentation/visual-lab.js";
 
+import { cameraForScene as camera } from "./packages/presentation/camera.js";
+
 const teal = 0x8eead7,
   gold = 0xffcb88;
 async function loadImage(url) {
@@ -29,17 +31,6 @@ function backgroundRect(image, scene) {
     h = (w * image.height) / image.width;
   return { x: -20 - scene.parallax, y: WORLD.height - h, w, h };
 }
-function camera(scene, width, height) {
-  const scale = Math.min(
-    width / WORLD.width,
-    (height * 0.75) / (Math.max(...scene.fighters.map((f) => f.air)) + 175),
-  );
-  return {
-    scale,
-    x: (width - WORLD.width * scale) / 2,
-    y: height * 0.84 - WORLD.floor * scale,
-  };
-}
 export function createCanvasLab(canvas, art, resolution) {
   const ctx = canvas.getContext("2d", { alpha: false });
   if (!ctx) throw Error("Canvas 2D is unavailable");
@@ -50,7 +41,7 @@ export function createCanvasLab(canvas, art, resolution) {
   function fighter(f, alpha = 1, offset = 0) {
     const a = f.frame;
     ctx.save();
-    ctx.globalAlpha = alpha;
+    ctx.globalAlpha = alpha * (f.alpha ?? 1);
     ctx.translate(f.x + offset, f.y + f.bob);
     ctx.scale(f.facing * f.scale, f.scale);
     ctx.drawImage(
@@ -233,6 +224,7 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
             .fill({ color: 0x5dedd3, alpha: 0.025 * i });
       const a = actors[f.id];
       a.container.position.set(f.x, f.y);
+      a.container.alpha = f.alpha ?? 1;
       a.container.zIndex = f.depth;
       paintSprite(a.sprite, f);
       for (let i = 0; i < 3; i++) {

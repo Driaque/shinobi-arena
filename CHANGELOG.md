@@ -1,5 +1,10 @@
 # Release notes
 
+## 0.25.0
+
+- Integrate the Aren appearance and Skyglass Terrace into main-game Practice with persisted Canvas/PixiJS settings and state-preserving switching.
+- Keep existing loadouts, controls and combat cues; add lazy loading, Canvas fallback, recoverable graphics retry and cleanup outside Practice. Ranked/CPU/local battles and replay viewing retain their existing renderer.
+
 ## 0.24.0
 
 - Add an opt-in PixiJS Visual Lab with original Aren sprites and Skyglass Terrace artwork, the existing combat engine, touch/keyboard practice and a real five-hit aerial showcase.
