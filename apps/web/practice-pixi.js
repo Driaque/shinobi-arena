@@ -55,7 +55,7 @@ export async function createPracticeBackends(parent, onLost) {
   }
   return {
     hasPixi: () => pixiAvailable,
-    draw(state, viewport, requested) {
+    draw(state, viewport, requested, {preview=true,catalog={}}={}) {
       if (disposed) return;
       const selected =
         requested === "pixi" && pixiAvailable ? "pixi" : "canvas";
@@ -73,6 +73,7 @@ export async function createPracticeBackends(parent, onLost) {
       const scene = practiceSceneFor(state, viewport, {
         reduced,
         effects: document.documentElement.dataset.effects !== "off",
+        selected:!preview,catalog,
       });
       renderers[selected].draw(scene);
       return selected;

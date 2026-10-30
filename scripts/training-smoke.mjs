@@ -1,3 +1,4 @@
+import {legacyRoster} from './loadout-helper.mjs';
 import {chromium} from 'playwright';
 import {spawn} from 'node:child_process';
 import assert from 'node:assert/strict';
@@ -6,10 +7,10 @@ const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,P
 let browser;
 try{
  await new Promise((resolve,reject)=>{server.stdout.once('data',resolve);server.once('error',reject);server.once('exit',code=>reject(new Error(`Server exited ${code}`)));});
- browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH,args:['--no-sandbox','--disable-dev-shm-usage']}: {})});
+ browser=await chromium.launch({args:['--enable-unsafe-swiftshader'],headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH,args:['--no-sandbox','--disable-dev-shm-usage','--enable-unsafe-swiftshader']}: {})});
  await mkdir('test-results',{recursive:true});
  const page=await browser.newPage({viewport:{width:1280,height:900}}),errors=[];page.on('pageerror',e=>{errors.push(e.message);console.error(e.stack);});
- await page.clock.install({time:new Date('2030-01-01T00:00:00Z')});await page.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));await page.goto('http://127.0.0.1:4184');
+ await page.clock.install({time:new Date('2030-01-01T00:00:00Z')});await page.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));await page.goto('http://127.0.0.1:4184');await legacyRoster(page);
  await page.selectOption('#mode','training');assert.equal(await page.locator('#opponent-label').innerText(),'TRAINING DUMMY');assert.equal(await page.locator('.difficulty-label').isVisible(),false);
  await page.click('#play');await page.clock.runFor(32);assert.equal(await page.locator('#timer').innerText(),'∞');assert.match(await page.locator('#training-coach-title').innerText(),/FREE PRACTICE/);
  // Miss explanation and an instant arena reset, without injecting game state.
@@ -23,15 +24,15 @@ try{
  await page.click('#training-reset');await page.clock.runFor(32);assert.match(await page.locator('#training-coach-title').innerText(),/0\/3/);
  await drill('combo');await tap('KeyJ',100,16);await tap('KeyJ',100,100);await tap('KeyJ',200);assert.match(await page.locator('#training-coach-title').innerText(),/COMPLETE/);assert.match(await page.locator('#combo0').innerText(),/3 HITS/);await page.screenshot({path:'test-results/training-combo.png'});
  await drill('counter');assert.equal(await page.locator('#weapon1').inputValue(),'katana');await tap('KeyK',1250);await tap('KeyH',200);assert.match(await page.locator('#training-coach-title').innerText(),/COMPLETE/);
- // Unsupported awakening kits get a clearly identified Naruto drill; input still has to earn the form.
- await page.selectOption('#mode','cpu');await page.selectOption('#mode','training');await page.locator('#character0 input[value="hinata"]').check();await page.click('#play');await drill('awakening');assert.equal(await page.locator('#name0').innerText(),'NARUTO');assert.match(await page.locator('#training-feedback').innerText(),/Naruto/);
+ // Unsupported awakening kits get a clearly identified Winta drill; input still has to earn the form.
+ await page.selectOption('#mode','cpu');await page.selectOption('#mode','training');await page.locator('#character0 input[value="hinata"]').check();await page.click('#play');await drill('awakening');assert.equal(await page.locator('#name0').innerText(),'WINTA');assert.match(await page.locator('#training-feedback').innerText(),/Winta/);
  await page.clock.runFor(9000);assert.match(await page.locator('#awakening-label0').innerText(),/READY/);await tap('KeyT',50);assert.match(await page.locator('#training-coach-title').innerText(),/COMPLETE/);
  await page.click('#training-settings');assert.equal(await page.locator('#training-charge').isDisabled(),true);assert.match(await page.locator('#training-record').innerText(),/4\/4/);await page.click('#training-close');
- await page.reload();await page.selectOption('#mode','training');await page.click('#play');await page.click('#training-settings');assert.match(await page.locator('#training-record').innerText(),/4\/4/);assert.equal(await page.locator('#training-drill option').evaluateAll(nodes=>nodes.filter(n=>n.textContent.includes('✓')).length),4);
+ await page.reload();await legacyRoster(page);await page.selectOption('#mode','training');await page.click('#play');await page.click('#training-settings');assert.match(await page.locator('#training-record').innerText(),/4\/4/);assert.equal(await page.locator('#training-drill option').evaluateAll(nodes=>nodes.filter(n=>n.textContent.includes('✓')).length),4);
  await page.selectOption('#training-drill','free');await page.check('#training-cooldowns');await page.click('#training-start');await page.click('#training-settings');assert.equal(await page.locator('#training-charge').isDisabled(),false);await page.click('#training-charge');await page.click('#training-close');await page.click('#play');await tap('KeyT',40);assert.match(await page.locator('#awakening-label0').innerText(),/KURAMA/);
  await page.selectOption('#mode','cpu');await page.clock.runFor(32);assert.equal(await page.locator('#training-coach').isVisible(),false);assert.equal(await page.locator('#training-settings').isVisible(),false);assert.equal(await page.locator('#timer').innerText(),'90');assert.equal(await page.locator('.difficulty-label').isVisible(),true);assert.deepEqual(errors,[]);await page.close();
  const context=await browser.newContext({viewport:{width:844,height:390},isMobile:true,hasTouch:true});const mobile=await context.newPage(),mobileErrors=[];mobile.on('pageerror',e=>mobileErrors.push(e.message));
- await mobile.clock.install({time:new Date('2030-01-01T00:00:00Z')});await mobile.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));await mobile.goto('http://127.0.0.1:4184');await mobile.selectOption('#mode','training');await mobile.click('#play');await mobile.clock.runFor(32);
+ await mobile.clock.install({time:new Date('2030-01-01T00:00:00Z')});await mobile.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));await mobile.goto('http://127.0.0.1:4184');await legacyRoster(mobile);await mobile.selectOption('#mode','training');await mobile.click('#play');await mobile.clock.runFor(32);
  const mobileDrill=async id=>{await mobile.click('#training-settings');await mobile.selectOption('#training-drill',id);await mobile.click('#training-start');await mobile.clock.runFor(32);};
  await mobileDrill('movement');const cdp=await context.newCDPSession(mobile),jump=await mobile.locator('[data-action=jump]').boundingBox(),dash=await mobile.locator('[data-action=dashForward]').boundingBox();const point=(r,id)=>({x:r.x+r.width/2,y:r.y+r.height/2,id}),j=point(jump,1),d=point(dash,2);
  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[j]});await mobile.clock.runFor(40);await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await mobile.clock.runFor(80);

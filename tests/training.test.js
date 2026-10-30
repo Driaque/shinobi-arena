@@ -46,7 +46,7 @@ test('awakening drill fills from damage and only completes on legal activation',
  for(let t=0;t<700&&!s.training.completed;t++)stepTraining(s,{awakening:s.training.step===1&&s.fighters[0].stun===0});assert.equal(s.training.completed,true);assert.ok(s.fighters[0].damageTaken>=400);assert.equal(activeAwakening(s.fighters[0]).name,'Kurama Chakra Mode');assert.equal(s.fighters[0].hp,1000);
 });
 test('awakening drill falls back to Naruto only when the chosen fighter has no form',()=>{
- const original=[{character:'hinata',weapon:'katana'},{character:'winta',weapon:'kaiken'}],s=createTraining(original,{drill:'awakening'});assert.equal(s.fighters[0].character,'naruto');assert.equal(s.fighters[0].weapon,'katana');assert.match(s.training.note,/Naruto/);assert.equal(original[0].character,'hinata');
+ const original=[{character:'hinata',weapon:'katana'},{character:'winta',weapon:'kaiken'}],s=createTraining(original,{drill:'awakening'});assert.equal(s.fighters[0].character,'winta');assert.equal(s.fighters[0].weapon,'katana');assert.match(s.training.note,/Winta/);assert.equal(original[0].character,'hinata');
  const silent=createTraining([{character:'silent',weapon:'tachi'},{character:'winta',weapon:'katana'}],{drill:'awakening'});assert.equal(silent.fighters[0].character,'silent');
 });
 test('free-practice form charging cannot complete a guided challenge',()=>{

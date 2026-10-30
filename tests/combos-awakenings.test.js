@@ -8,8 +8,8 @@ function close(){const s=createMatch();s.fighters[0].x=600;s.fighters[1].x=670;r
 function ready(character='naruto'){
  const s=createMatch([load(character),load('sasuke')]);s.fighters[0].hp=500;s.fighters[0].damageTaken=500;return s;
 }
-test('twenty-eight roster entries have valid unique identities, move slots and awakening definitions',()=>{
- assert.equal(Object.keys(CHARACTERS).length,28);
+test('thirty-five roster entries have valid unique identities, move slots and awakening definitions',()=>{
+ assert.equal(Object.keys(CHARACTERS).length,35);
  assert.equal(Object.values(CHARACTERS).filter(c=>c.era==='Boruto').length,4);
  for(const [id,c]of Object.entries(CHARACTERS)){
   assert.equal(c.id,id);assert.equal(moveFor({character:id,weapon:'kunai',awakeningTicks:0},'awakening'),null);assert.ok(MOVES[c.special1]&&MOVES[c.special2]);if(c.bloodline)assert.ok(MOVES[c.bloodline]);

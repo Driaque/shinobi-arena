@@ -1,3 +1,4 @@
+import {legacyRoster} from './loadout-helper.mjs';
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
 import assert from "node:assert/strict";
@@ -63,12 +64,10 @@ try {
     p.on("request", (r) => requests.push(r.url()));
     await p.clock.install({ time: new Date("2030-01-01T00:00:00Z") });
     await p.clock.pauseAt(new Date("2030-01-01T00:00:01Z"));
-    await p.goto("http://127.0.0.1:4199");
+    await p.goto("http://127.0.0.1:4199");await legacyRoster(p);
     await p.clock.runFor(32);
-    assert.ok(
-      !requests.some((u) => u.includes("/practice-pixi.js")),
-      "classic game does not download PixiJS",
-    );
+    await p.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-pixi');
+    assert.ok(requests.some(u=>u.includes('/practice-pixi.js')),'all-mode Pixi graphics load on the main game');
     await p.selectOption("#mode", "training");
     await p.locator("#character0 input[value=silent]").check();
     await p.click("#edit-loadout0");
@@ -214,39 +213,41 @@ try {
     await p.clock.runFor(32);
     assert.equal(
       await p.locator("#canvas").getAttribute("data-presentation"),
-      "classic",
+      "selected-pixi",
     );
-    assert.equal(await p.locator("[data-practice-art]").count(), 0);
+    assert.equal(await p.locator("[data-practice-art]").count(), 2);
     assert.match(await p.locator("#name0").innerText(), /^SILENT$/);
     for (const mode of ["local", "online"]) {
       await p.selectOption("#mode", mode);
       await p.clock.runFor(32);
       assert.equal(
         await p.locator("#canvas").getAttribute("data-presentation"),
-        "classic",
+        "selected-pixi",
       );
-      assert.equal(await p.locator("[data-practice-art]").count(), 0);
+      assert.equal(await p.locator("[data-practice-art]").count(), 2);
     }
     const requestStart = requests.length;
     await p.reload();
     await p.clock.runFor(32);
+    await p.waitForFunction(()=>document.querySelector("#canvas").dataset.presentation==="selected-pixi");
+    await p.clock.runFor(32);
     assert.equal(
       await p.locator("#canvas").getAttribute("data-presentation"),
-      "classic",
+      "selected-pixi",
     );
     assert.equal(await p.locator("#practice-renderer").inputValue(), "pixi");
-    assert.ok(!requests.slice(requestStart).some(u=>u.includes("/practice-pixi.js")),"saved Practice graphics do not load in CPU mode");
+    assert.ok(requests.slice(requestStart).some(u=>u.includes("/practice-pixi.js")),"Pixi graphics reload for CPU while Practice appearance stays isolated");
     await context.close();
   }
   const { context: fallback, page: f } = await open();
   await f.addInitScript(() => {
-    localStorage.setItem("fabled.practice.graphics.v1", "pixi");
+    localStorage.setItem("fabled.practice.graphics.v2", "pixi");
     const original = HTMLCanvasElement.prototype.getContext;
     HTMLCanvasElement.prototype.getContext = function (type, ...args) {
       return /webgl/.test(type) ? null : original.call(this, type, ...args);
     };
   });
-  await f.goto("http://127.0.0.1:4199");
+  await f.goto("http://127.0.0.1:4199");await legacyRoster(f);
   await f.selectOption("#mode", "training");
   await f.click("#play");
   await f.waitForFunction(
@@ -264,7 +265,7 @@ try {
   await r.route("**/practice-pixi.js*", (route) =>
     blocked ? route.abort() : route.continue(),
   );
-  await r.goto("http://127.0.0.1:4199");
+  await r.goto("http://127.0.0.1:4199");await legacyRoster(r);
   await r.selectOption("#mode", "training");
   await r.click("#play");
   await r.click("#training-settings");
@@ -287,7 +288,7 @@ try {
   await retryContext.close();
   assert.deepEqual(errors, []);
   console.log(
-    "Main Practice Pixi checks passed: lazy versioned bundle, existing 7-jutsu loadout and controls, state-preserving A/B switches, real five-hit air combo, field and awakening, mobile analog/jump/crouch-guard, context loss/retry, persisted preference with CPU isolation, unavailable-WebGL fallback and failed-module recovery.",
+    "Main Practice Pixi checks passed: lazy versioned bundle, existing 7-jutsu loadout and controls, state-preserving A/B switches, real five-hit air combo, field and awakening, mobile analog/jump/crouch-guard, context loss/retry, all-mode rendering with separate Practice preference, unavailable-WebGL fallback and failed-module recovery.",
   );
 } finally {
   await browser?.close();

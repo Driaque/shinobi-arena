@@ -1,3 +1,4 @@
+import {DEFAULT_FIGHTERS,isOriginalFighter} from './packages/engine/originals.js';
 import {mountIcon} from './packages/ui/jutsu-icons.js';
 import {installMobileUI} from './mobile-ui.js';
 import {createGamepads} from './packages/input/gamepad.js';
@@ -23,14 +24,14 @@ const sound=createAudio({moves:MOVES,onOpen:()=>{clearInputs();pause();}});
 const prediction=createPrediction();const frameTimes=[];
 const inputs=[createInput(),createInput()];
 const buttons=[...document.querySelectorAll('[data-action]')];
-const render=createPracticeRenderer($('#canvas'),{getMode:()=>mode});
+const render=createPracticeRenderer($('#canvas'),{getMode:()=>mode,onSettings:()=>{clearInputs();pause();}});
 const portrait=matchMedia('(orientation: portrait)'), touch=matchMedia('(any-pointer: coarse)');
 let controls,trainingUI,online,loadoutUI,techniqueTray;
 let onlinePlayers=[],onlineScreen='',activeTournament=null;
 let difficulty='easy';
 try{difficulty=difficultyFor(localStorage.getItem('shinobi-arena.difficulty.v1')).id;}catch{}
 $('#difficulty').value=difficulty;
-const newMatch=(loadouts)=>$('#mode').value==='training'&&trainingUI?trainingUI.create(loadouts):createMatch(loadouts,{difficulty});
+const newMatch=(loadouts=DEFAULT_FIGHTERS.map(character=>({character,weapon:CHARACTERS[character].defaultWeapon??'katana'})))=>$('#mode').value==='training'&&trainingUI?trainingUI.create(loadouts):createMatch(loadouts,{difficulty});
 let state=newMatch(), paused=true, started=false, mode='cpu', cpu={}, lastTime=0, accumulator=0, feedbackUntil=0;
 const shortNames={tidalEdict:'TIDAL EDICT',royalTempest:'ROYAL TEMPEST',triuneFlow:'TRIUNE FLOW',royalGale:'ROYAL GALE',releasedTempest:'SOVEREIGN',harmoniousSlash:'HARMONIOUS',echoingRift:'ECHOING RIFT',aquaGuard:'TRIUNE FLOW',tetsugan:'TETSUGAN',mizukumi:'MIZUKUMI',eclipseDrain:'ECLIPSE DRAIN',shinraiOu:'SHINRAI ŌU',ascendantSlash:'ASCENDANT CUT',ascendantRift:'METAL RIFT',dominionMizukumi:'DOMINION DASH',dominionDrain:'DOMINION DRAIN',special1:'RASENGAN',chidori:'CHIDORI',clone:'CLONE',fireball:'FIREBALL',lionFists:'TWIN LIONS',chakraStrike:'PALM STRIKE',snakeStrike:'SNAKES',seal:'SEAL',sharingan:'SHARINGAN',byakugan:'BYAKUGAN'};
 function readLoadouts(){if(loadoutUI)return [0,1].map(i=>loadoutUI.read(i));return [0,1].map(i=>({character:$(`#character${i} input:checked`).value,weapon:$(`#weapon${i}`).value,weapons:[$(`#weapon${i}`).value,$(`#weapon-secondary${i}`).value||null],items:[0,1,2,3].map(slot=>$(`#item${i}-${slot}`).value||null)}));}
@@ -43,15 +44,15 @@ function describeLoadouts(){
     $(`#inventory-hint${i}`).textContent=picks.filter(Boolean).length+' / 4 consumables · '+picks.filter(Boolean).map(id=>ITEMS[id].name).join(' · ');
 
     const form=awakeningFor({character:character.id});
-    $(`#kit${i}`).innerHTML=`<strong>${character.title}</strong><br><span class="kit-description">${character.description}<br></span><span class="kit-label">${weapon.description}</span>${form?`<br><span class="form-note">Awakening: ${form.name}${form.proposed?' (proposed)':''} · ${form.threshold} HP lost</span>`:''}`;
+    $(`#kit${i}`).innerHTML=`<strong>${character.title}</strong><br><span class="kit-description">${character.description}<br>${character.backstory?`<details class="fighter-story"><summary>Story & connections</summary><p>${character.backstory}</p><p>${character.relationships}</p></details>`:''}<br></span><span class="kit-label">${weapon.description}</span>${form?`<br><span class="form-note">Awakening: ${form.name}${form.proposed?' (proposed)':''} · ${form.threshold} HP lost</span>`:''}`;
   }
   loadoutUI?.sync();
   if(!started&&mode!=='online')state=newMatch(readLoadouts());
 }
 for(const i of [0,1]){
-  createRoster($(`#character${i}`),i,i===0?'naruto':'sasuke',()=>{if(CHARACTERS[$(`#character${i} input:checked`).value].defaultWeapon)$(`#weapon${i}`).value=CHARACTERS[$(`#character${i} input:checked`).value].defaultWeapon;if($(`#character${i} input:checked`).value==='dora'){$(`#weapon${i}`).value='fans';$(`#weapon-secondary${i}`).value='katana';}loadoutUI?.resetCharacter(i);describeLoadouts();});
+  createRoster($(`#character${i}`),i,DEFAULT_FIGHTERS[i],()=>{if(CHARACTERS[$(`#character${i} input:checked`).value].defaultWeapon)$(`#weapon${i}`).value=CHARACTERS[$(`#character${i} input:checked`).value].defaultWeapon;if($(`#character${i} input:checked`).value==='dora'){$(`#weapon${i}`).value='fans';$(`#weapon-secondary${i}`).value='katana';}loadoutUI?.resetCharacter(i);describeLoadouts();});
   for(const weapon of Object.values(WEAPONS))$(`#weapon${i}`).add(new Option(weapon.name,weapon.id));
-  $(`#weapon${i}`).value='kunai';
+  $(`#weapon${i}`).value=CHARACTERS[DEFAULT_FIGHTERS[i]].defaultWeapon??'katana';
   $(`#weapon-secondary${i}`).add(new Option('None',''));
   for(const weapon of Object.values(WEAPONS))$(`#weapon-secondary${i}`).add(new Option(weapon.name,weapon.id));
   $(`#weapon-secondary${i}`).value='katana';$(`#weapon-secondary${i}`).addEventListener('change',describeLoadouts);
@@ -61,14 +62,22 @@ for(const i of [0,1]){
 loadoutUI=createLoadouts({onChange:describeLoadouts});
 function filterRoster(){
   const query=$('#roster-search').value.trim().toLowerCase(),era=$('#roster-era').value;
+  for(const o of $('#roster-era').options)if(['Naruto','Boruto','Akatsuki'].includes(o.value))o.disabled=!$('#include-anime').checked;
   let count=0;for(const character of Object.values(CHARACTERS)){
-    const show=(!query||`${character.name} ${character.title}`.toLowerCase().includes(query))&&(era==='all'||character.era===era||era==='Akatsuki'&&character.faction==='Akatsuki');
+    const show=(isOriginalFighter(character.id)||$('#include-anime').checked)&&(!query||`${character.name} ${character.title}`.toLowerCase().includes(query))&&(era==='all'||character.era===era||era==='Akatsuki'&&character.faction==='Akatsuki');
     for(const card of document.querySelectorAll(`.character-card[data-character="${character.id}"]`))card.hidden=!show;
     if(show)count++;
   }
   $('#roster-count').textContent=`${count} fighter${count===1?'':'s'}`;
   for(const empty of document.querySelectorAll('.roster-empty'))empty.hidden=count>0;
 }
+$('#include-anime').addEventListener('change',()=>{
+ if(!$('#include-anime').checked){
+  if(!['all','Original'].includes($('#roster-era').value))$('#roster-era').value='all';
+  for(const i of [0,1]){const selected=$(`#character${i} input:checked`);if(selected&&!isOriginalFighter(selected.value)){const fallback=$(`#character${i} input[value="${DEFAULT_FIGHTERS[i]}"]`);fallback.checked=true;fallback.dispatchEvent(new Event('change'));}}
+ }
+ filterRoster();
+});
 $('#roster-search').addEventListener('input',filterRoster);$('#roster-era').addEventListener('change',filterRoster);
 describeLoadouts();filterRoster();
 function clearInputs(){controls?.reset();inputs.forEach(i=>i.reset());cpu={};buttons.forEach(b=>b.classList.remove('active'));}
@@ -92,7 +101,7 @@ function orientation(){
   $('#landscape-tip').hidden=!mobilePortrait;
 }
 const coach=document.createElement('section');coach.id='match-coach';coach.className='match-coach';coach.hidden=true;document.querySelector('#overlay-description').after(coach);
-function showCoach(slot=0){const report=summarizeFight(state,slot);coach.replaceChildren();const p=document.createElement('p');p.textContent=`Direct damage dealt ${report.mine.damage??0} · Taken ${state.fighters[slot].damageTaken??0} (${report.other.fieldDamage??0} from fields) · Parries ${report.mine.parries??0} · Recovery punishes ${report.mine.punishes??0} · Jutsu links ${report.mine.links??0}`;const tip=document.createElement('p');tip.textContent=report.tip;coach.append(p,tip);const practice=document.createElement('button');practice.type='button';practice.textContent='Practice this matchup';practice.onclick=()=>{if(mode==='online')online.reset();$('#mode').value='training';$('#mode').dispatchEvent(new Event('change'));trainingUI.openSettings();};coach.append(practice);coach.hidden=false;}
+function showCoach(slot=0){const report=summarizeFight(state,slot);coach.replaceChildren();const p=document.createElement('p');p.textContent=`Direct damage dealt ${report.mine.damage??0} · Taken ${state.fighters[slot].damageTaken??0} (${report.other.fieldDamage??0} from fields) · Parries ${report.mine.parries??0} · Recovery punishes ${report.mine.punishes??0} · Jutsu links ${report.mine.links??0}`;const tip=document.createElement('p');tip.textContent=report.tip;const stats=document.createElement('details');const summary=document.createElement('summary');summary.textContent='Match stats';stats.append(summary,p);coach.append(tip);const practice=document.createElement('button');practice.type='button';practice.textContent='Practice this matchup';practice.onclick=()=>{if(mode==='online')online.reset();$('#mode').value='training';$('#mode').dispatchEvent(new Event('change'));trainingUI.openSettings();};coach.append(practice,stats);coach.hidden=false;}
 function finish(){
   clearInputs();paused=true;showCoach();
   const name=state.fighters[state.result==='player1'?0:1].name;
@@ -128,7 +137,7 @@ $('#mode').addEventListener('change',event=>{
 });
 controls=createControls({inputs,onPause:pause,isPlaying:()=>!paused&&state.status==='playing'&&$('#rotate').hidden});
 function useTrainingState(next){
- state=next;started=true;
+ state=next;started=true;if(next.loadouts.some(l=>!isOriginalFighter(l.character)))$('#include-anime').checked=true;filterRoster();
  for(const i of [0,1]){$(`#character${i} input[value="${state.loadouts[i].character}"]`).checked=true;loadoutUI.update(i,state.loadouts[i]);$(`#weapon${i}`).value=state.loadouts[i].weapon;$(`#weapon-secondary${i}`).value=state.loadouts[i].weapons[1]??'';for(const slot of [0,1,2,3])$(`#item${i}-${slot}`).value=state.loadouts[i].items[slot]??'';}
  describeLoadouts();
 }
