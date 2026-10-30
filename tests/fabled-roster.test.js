@@ -9,6 +9,7 @@ test('ten originals have playable distinct kits, connected stories and original 
   assert.equal(CHARACTERS[c.id],c);assert.ok(c.backstory.length>100&&c.relationships.length>50);kits.add(c.special1+'|'+c.special2);
   const l=validateLoadout({character:c.id,weapon:c.defaultWeapon});const s=createMatch([l,l]);for(let i=0;i<90;i++)stepMatch(s,[{special1:i===0},{}]);assert.ok(s.fighters.every(f=>Number.isFinite(f.hp)));
  }assert.equal(kits.size,10);
+ assert.match(ORIGINAL_FIGHTERS.silent.relationships,/blood brother/);assert.match(ORIGINAL_FIGHTERS.winta.relationships,/blood brother/);
  for(const c of ['silent','winta','dora','aren'])assert.ok(isOriginalFighter(c));
 });
 test('native projectile/scenery geometry is bounded, deterministic and retains exact snapshot positions across seeks',()=>{

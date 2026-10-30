@@ -75,6 +75,7 @@ try {
    }
    assert.equal(await page.locator('#overlay').isVisible(),true,'round ends');
    assert.match(await page.locator('#overlay-title').innerText(),/Naruto wins/);
+   const coach=page.locator('#match-coach');assert.ok((await coach.boundingBox()).height<=101,'post-fight tip stays compact');assert.equal(await coach.locator('details').getAttribute('open'),null);await coach.locator('summary').click();assert.match(await coach.innerText(),/Direct damage dealt/);await coach.locator('summary').click();
    assert.equal(await page.locator('#play').innerText(),round===0?'Next round':'Rematch');
    await page.click('#play');
  }

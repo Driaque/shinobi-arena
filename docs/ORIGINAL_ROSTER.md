@@ -6,7 +6,7 @@ Skyglass Terrace once connected the river courts, the northern pass and the susp
 
 Once the keeper of Hyorin’s northern pass, Silent sealed a fractured Skyglass conduit inside his own armor to stop a catastrophe. He now searches for its missing heart before the seal destroys his home.
 
-Dora is his wife and closest strategist. Winta held the pass beside him. Rook forged the armor that keeps him alive.
+Dora is his wife and closest strategist. His blood brother Winta held the pass beside him. Rook forged the armor that keeps him alive.
 
 Play style: Precision sword counters. Tetsugan reflects guarded hits; Echoing Rift pulls and exposes metal vulnerability.
 
@@ -14,7 +14,7 @@ Play style: Precision sword counters. Tetsugan reflects guarded hits; Echoing Ri
 
 Winta survived the northern breach by turning a failing conduit into a crimson storm. Celebrated as a rescuer, he carries the guilt of abandoning a rescue order that could have saved Oryn’s expedition.
 
-Silent’s trusted battle companion. Oryn blames him for the expedition’s loss. Eira alone has read his unaltered rescue report.
+Silent’s blood brother and trusted battle companion. Oryn blames him for the expedition’s loss. Eira alone has read his unaltered rescue report.
 
 Play style: Lightning sword pressure, dash attacks and recovery through clean drain hits. Shinrai Ōu strengthens lightning.
 
