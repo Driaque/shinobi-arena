@@ -25,6 +25,9 @@ function tick(now) {
   frame = 0;
   if (now - previous >= 1000/24) {
     previous = now;
+    // Modal loadout/settings screens cover the roster. Avoid GPU readbacks
+    // behind them and while the selection overlay is closed.
+    if(document.hidden || document.querySelector('dialog[open]') || document.querySelector('#overlay')?.hidden){schedule();return;}
     for (const entry of entries) {
       if (!entry.card.isConnected) { entry.destroy(); entries.delete(entry); continue; }
       if (!document.hidden && entry.visible && entry.card.getClientRects().length && !entry.card.closest('[hidden]')) {
@@ -58,14 +61,17 @@ export async function animatePortrait(card, visual, character) {
   const effects=new Graphics(); stage.addChild(effects);
   const color=Number.parseInt(character.color.slice(1),16);
   const seed=[...character.id].reduce((n,c)=>n+c.charCodeAt(0),0);
-  let visible=false, lastStill=false;
+  let visible=false, lastStill=false, lastDraw=-Infinity;
+  const input=card.querySelector('input');
   const entry={card,get visible(){return visible;},restore(){if(canvas.isConnected)canvas.replaceWith(visual);},
     draw(time){
+      const active=card.matches(':hover,:focus-within') || input?.checked;
       const still=reduced(), enabled=document.documentElement.dataset.effects!=='off';
+      if(!still && time-lastDraw < 1/(active?12:8)) return;
+      lastDraw=time;
       if(still && lastStill) return;
       lastStill=still;
       const t=still?0:time, phase=seed*.37;
-      const active=card.matches(':hover,:focus-within') || card.querySelector('input')?.checked;
       const energy=active?1:.45;
       sprite.position.set(72+(still?0:Math.sin(t*.8+phase)*1.1),99+(still?0:Math.sin(t*1.8+phase)*1.3));
       sprite.scale.set(1.045,1.045+(still?0:Math.sin(t*1.8+phase)*.009));
@@ -93,7 +99,7 @@ export async function animatePortrait(card, visual, character) {
   };
   const observer=new IntersectionObserver(records=>{
     visible=records[0].isIntersecting;
-    if(visible) {lastStill=false;entry.draw(performance.now()/1000);}
+    if(visible) {lastStill=false;lastDraw=-Infinity;entry.draw(performance.now()/1000);}
   });
   entry.draw(performance.now()/1000);
   visual.replaceWith(canvas); observer.observe(card); entries.add(entry); schedule();
