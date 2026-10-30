@@ -33,6 +33,8 @@ test("Practice appearance preserves selected kits, consumables and simulated com
   assert.equal(scene.fighters[0].scale * 302, 120 * state.fighters[0].scale);
   assert.equal(scene.projectiles.length, 0);
   assert.equal(scene.zones.length, 0);
+  const legacy=structuredClone(state);delete legacy.fighters[0].scale;
+  assert.ok(Math.abs(practiceSceneFor(legacy,viewport).fighters[0].scale*302-120)<1e-9);
 });
 test("Practice sprite camera aligns with the main engine floor, depth and shake without stretching", () => {
   const viewport = {
