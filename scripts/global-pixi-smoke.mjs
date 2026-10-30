@@ -26,7 +26,13 @@ try{
   assert.equal(await p.evaluate(async()=>{
    const {createRenderer}=await import('./renderer.js'),{createMatch}=await import('./packages/engine/index.js');const host=document.createElement('div');host.style.cssText='position:fixed;width:800px;height:400px;left:-1000px';const canvas=document.createElement('canvas');host.append(canvas);document.body.append(host);const render=createRenderer(canvas),state=createMatch();render(state,{sampled:true});state.fighters[0].x=777;render(state,{sampled:true});const x=render.frame.state.fighters[0].x;render.dispose();host.remove();return x;
   }),777,'replay samples at the same tick use the actual interpolated position');
-  await p.reload();assert.equal(await p.locator('#include-anime').isChecked(),false);assert.equal(await p.locator('#character0 .character-card:visible').count(),10);assert.deepEqual(errors,[]);await context.close();
+  await p.reload();assert.equal(await p.locator('#include-anime').isChecked(),false);assert.equal(await p.locator('#character0 .character-card:visible').count(),10);assert.deepEqual(errors,[]);
+  await p.route('**/roster-pixi.js*',route=>route.abort());await p.reload();
+  await p.waitForSelector('#character0 .character-portrait');
+  assert.equal(await p.locator('#character0 [data-animated-portrait]').count(),0,'failed Pixi module retains static portraits');
+  await p.locator('#character0 input[value=silent]').check();
+  assert.equal(await p.locator('#character0 input:checked').inputValue(),'silent','static fallback keeps selection usable');
+  assert.deepEqual(errors,[]);await context.close();
  }
  console.log('Global Pixi/original roster passed: 10 originals and stories, explicit anime opt-in/reset, CPU/local/Training/online presentation, selected fighter identity, native WebGL, global Canvas choice, context loss/retry, portrait and desktop.');
 }finally{await browser?.close();server.kill();}

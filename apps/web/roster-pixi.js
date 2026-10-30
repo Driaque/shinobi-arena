@@ -27,7 +27,10 @@ function tick(now) {
     previous = now;
     for (const entry of entries) {
       if (!entry.card.isConnected) { entry.destroy(); entries.delete(entry); continue; }
-      if (!document.hidden && entry.visible && entry.card.getClientRects().length && !entry.card.closest('[hidden]')) entry.draw(now/1000);
+      if (!document.hidden && entry.visible && entry.card.getClientRects().length && !entry.card.closest('[hidden]')) {
+        try { entry.draw(now/1000); }
+        catch { entry.restore(); entry.destroy(); entries.delete(entry); }
+      }
     }
   }
   schedule();
@@ -48,7 +51,8 @@ export async function animatePortrait(card, visual, character) {
   const sc=source.getContext('2d');
   const w=visual.naturalWidth || visual.width, h=visual.naturalHeight || visual.height;
   const scale=Math.max(144/w,152/h);
-  sc.drawImage(visual,(144-w*scale)/2,(152-h*scale)/2,w*scale,h*scale);
+  const vertical=visual instanceof HTMLImageElement ? .28 : .5;
+  sc.drawImage(visual,(144-w*scale)/2,(152-h*scale)*vertical,w*scale,h*scale);
   const texture=Texture.from(source), stage=new Container();
   const sprite=new Sprite(texture); sprite.anchor.set(.5,.65); stage.addChild(sprite);
   const effects=new Graphics(); stage.addChild(effects);
