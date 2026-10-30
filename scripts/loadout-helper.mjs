@@ -10,8 +10,8 @@ export async function equip(page,selector,value){
 
 // Existing combat regression scenarios explicitly opt into the legacy roster.
 // Original-default behavior is covered separately by the global graphics suite.
-export async function legacyRoster(page){
+export async function legacyRoster(page,{weapons=true}={}){
  if(!await page.locator('#include-anime').count())return;
  await page.locator('#include-anime').check();await page.selectOption('#roster-era','all');
- for(const [i,id] of ['naruto','sasuke'].entries()){await page.locator(`#character${i} input[value=${id}]`).check();await equip(page,`#weapon${i}`,'kunai');}
+ for(const [i,id] of ['naruto','sasuke'].entries()){await page.locator(`#character${i} input[value=${id}]`).check();if(weapons)await equip(page,`#weapon${i}`,'kunai');}
 }
