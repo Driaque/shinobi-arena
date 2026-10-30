@@ -1,5 +1,10 @@
 # Release notes
 
+## 0.24.0
+
+- Add an opt-in PixiJS Visual Lab with original Aren sprites and Skyglass Terrace artwork, the existing combat engine, touch/keyboard practice and a real five-hit aerial showcase.
+- Compare Canvas 2D and WebGL against the same scene, with device-local measurements, resolution controls, reduced motion and Canvas fallback. The main game renderer and online rules remain unchanged.
+
 ## 0.23.0
 
 - Rebrand the game as Fabled Rivals across the splash, header, online arena, browser metadata, FR monogram/favicon and current release publishing.

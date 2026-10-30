@@ -1,4 +1,5 @@
 import {cp,mkdir,rm,writeFile,readFile,readdir} from 'node:fs/promises';
+import {build} from 'esbuild';
 const {version}=JSON.parse(await readFile('package.json','utf8'));
 await rm('dist',{recursive:true,force:true});await mkdir('dist',{recursive:true});
 await cp('apps/web','dist',{recursive:true});await cp('packages','dist/packages',{recursive:true});
@@ -8,7 +9,10 @@ if(onlineURL){const url=new URL(onlineURL);if(!['https:','wss:'].includes(url.pr
 await writeFile('dist/online-config.json',JSON.stringify({url:onlineURL}));
 // Fingerprint the complete native-module graph, not just main.js, across version upgrades.
 async function versionModules(dir){for(const e of await readdir(dir,{withFileTypes:true})){const path=`${dir}/${e.name}`;if(e.isDirectory())await versionModules(path);else if(e.name.endsWith('.js')){const source=await readFile(path,'utf8');await writeFile(path,source.replace(/(\bfrom\s*['"])(\.\.?\/[^'"]+\.js)(['"])/g,`$1$2?v=${version}$3`));}}}
+const lab=await build({entryPoints:['dist/visual-lab.js'],bundle:true,format:'esm',platform:'browser',target:'es2022',minify:true,write:false,legalComments:'eof'});
+await writeFile('dist/visual-lab.js',lab.outputFiles[0].contents);
 await versionModules('dist');
+const labHtml=await readFile('dist/visual-lab.html','utf8');await writeFile('dist/visual-lab.html',labHtml.replace('./visual-lab.js"',`./visual-lab.js?v=${version}"`).replace('./visual-lab.css"',`./visual-lab.css?v=${version}"`));
 const html=await readFile('dist/index.html','utf8');await writeFile('dist/index.html',html.replace('./main.js"',`./main.js?v=${version}"`).replace('./startup.js"',`./startup.js?v=${version}"`).replace('./styles.css"',`./styles.css?v=${version}"`).replace('./icons.css"',`./icons.css?v=${version}"`));
 const escape=s=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 const inline=s=>escape(s).replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/`([^`]+)`/g,'<code>$1</code>');
