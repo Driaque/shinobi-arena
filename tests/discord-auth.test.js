@@ -43,7 +43,8 @@ test('denial and expired proofs never create account sessions',async()=>{
  await assert.rejects(f.auth.complete({...payload,requestKey,returnOrigin:origin},f.accounts));assert.equal(f.connections.length,0);
 });
 test('disabled configuration and anonymous linking fail safely',()=>{
- const disabled=createDiscordAuth({});assert.equal(disabled.enabled,false);assert.throws(()=>disabled.start({}),/not configured/);
+ // Explicitly disable the fixture even when a deploy build has production OAuth env vars.
+ const disabled=createDiscordAuth({clientId:null,clientSecret:null,publicOrigin:null});assert.equal(disabled.enabled,false);assert.throws(()=>disabled.start({}),/not configured/);
  const f=fixture();assert.throws(()=>f.auth.start({mode:'link',requestKey,returnOrigin:origin}),/Restore your player profile/);
 });
 test('provider errors are sanitized and cannot be replayed',async()=>{
