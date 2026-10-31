@@ -10,7 +10,9 @@ try{
  const errors=[];
  async function context(mobile=false){
   const ctx=await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1280,height:900},isMobile:mobile,hasTouch:mobile});
-  await ctx.route('https://discord.com/oauth2/authorize?**',route=>{const url=new URL(route.request().url());assert.equal(url.searchParams.get('scope'),'identify');assert.equal(url.searchParams.get('code_challenge_method'),'S256');return route.fulfill({status:302,headers:{location:origin+'/auth/discord/callback?'+new URLSearchParams({state:url.searchParams.get('state'),code:'test-code',iss:'https://discord.com'})}});});
+  // Route the initial request: Playwright does not re-route subsequent redirect hops.
+  // Keep the real server's state/binding cookie, then emulate Discord's callback redirect.
+  await ctx.route(origin+'/auth/discord/authorize?**',async route=>{const response=await route.fetch({maxRedirects:0});assert.equal(response.status(),302);const url=new URL(response.headers().location);assert.equal(url.origin,'https://discord.com');assert.equal(url.searchParams.get('scope'),'identify');assert.equal(url.searchParams.get('code_challenge_method'),'S256');await route.fulfill({response,headers:{...response.headers(),location:origin+'/auth/discord/callback?'+new URLSearchParams({state:url.searchParams.get('state'),code:'test-code',iss:'https://discord.com'})}});});
   const page=await ctx.newPage();page.on('pageerror',e=>errors.push(e.message));await page.goto(origin);await page.click('#account-profile');await page.waitForSelector('.discord-account');return {ctx,page};
  }
  async function authorize(page,label){
