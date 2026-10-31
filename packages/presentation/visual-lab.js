@@ -124,9 +124,11 @@ export function poseFor(f, tick, reduced = false) {
     return { frame: 2 + (Math.floor((f.travel ?? tick * Math.abs(f.vx ?? 3)) / 30) % 2), name: "Run" };
   return { frame: reduced ? 0 : Math.floor(tick / 35) % 2, name: "Idle" };
 }
-export function sceneFor(state, { reduced = false, effects = true } = {}) {
+export function sceneFor(state, settings = {}) {
+  const { reduced = false, effects = true } = settings;
   const fighters = state.fighters.map((f) => {
     const pose = poseFor(f, state.tick, reduced),
+      atlasSelected = Boolean(settings.selected && settings.atlasFighters?.includes(f.character)),
       frame = FRAMES[pose.frame];
     let from = pose.frame, phase = 5;
     if (!reduced) {
@@ -147,19 +149,25 @@ export function sceneFor(state, { reduced = false, effects = true } = {}) {
       frameIndex:pose.frame,
       blendFrame: FRAMES[from],
       blendIndex:from,
-      blend: Math.max(0, Math.min(1, phase / 4)),
+      // Atlas sheets already contain authored movement poses. Crossfading two
+      // full-body cells makes limbs double-expose and appear to jitter in motion.
+      blend: atlasSelected ? 1 : Math.max(0, Math.min(1, phase / 4)),
       pose: pose.name,
       x: f.x,
       y: WORLD.floor + (f.depth ?? 0) * 0.65 - f.y,
       facing: f.facing,
       scale: (0.48 * (f.scale ?? 0.86)) / 0.86,
+      // Do not add procedural bob/rotation to painted frames: their root and
+      // body movement are already authored into the sheet.
       bob:
-        reduced || f.y > 0 || f.action ? 0 : Math.sin(state.tick * 0.065) * 0.7,
+        atlasSelected || reduced || f.y > 0 || f.action ? 0 : Math.sin(state.tick * 0.065) * 0.7,
       awake: effects && !reduced && f.awakeningTicks > 0,
       hit: state.tick - f.lastHit < 5,
       blocking: f.blocking,
       action: f.action,
-      motion: motionFor(f, state.tick, reduced),
+      motion: atlasSelected
+        ? { x: 0, y: 0, rotation: 0, trail: false }
+        : motionFor(f, state.tick, reduced),
       crouching: f.crouching,
       bodyScale: f.scale ?? 1,
       depth: f.depth ?? 0,
