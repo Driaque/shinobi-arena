@@ -1,5 +1,10 @@
 # Release notes
 
+## 0.29.0
+
+- Add Discord sign-in and explicit guest-profile linking, cross-device game sessions and device logout. Conflicting profiles are never merged automatically.
+- Add Profile / sign in entry point and private linked-account details. Production activation requires a configured Discord developer application. [Release notes](docs/releases/0.29.0.md).
+
 ## 0.28.3
 
 - Make matchmaking cancelable during profile loading, ignore stale attempts, share concurrent profile requests and restore controls after connection failures.

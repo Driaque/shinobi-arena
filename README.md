@@ -1,4 +1,4 @@
-> **v0.28.3: Safer matchmaking cancellation, timeouts and retries.** [Release notes](docs/releases/0.28.3.md).
+> **v0.29.0: Discord accounts and cross-device profiles, with guest play preserved.** [Release notes](docs/releases/0.29.0.md).
 
 # Fabled Rivals
 
@@ -85,7 +85,7 @@ Naruto’s Kurama Chakra Mode changes his signatures to Kurama Rasengan and Chak
 
 ## Limits
 
-Combat balance and artwork remain prototypes, not a finished competitive fighter or detailed anime sprite production. Online play uses the deployed Render server and currently has no prediction/rollback or reconnect support. Audio, accounts and saved replays are not implemented. Local two-player can be limited by a keyboard's
+Combat balance and artwork remain prototypes, not a finished competitive fighter or detailed anime sprite production. Online play uses the deployed Render server and has optional local movement prediction but no full rollback or reconnect support. Audio, browser profiles and archived replays are implemented. Discord sign-in requires developer application configuration; see docs/DISCORD_ACCOUNTS.md. Local two-player can be limited by a keyboard's
 hardware key rollover. Computer strategy is simple. Physical iPhone/Android validation remains necessary.
 
 ## Develop

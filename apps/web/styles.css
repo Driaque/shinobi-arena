@@ -201,3 +201,5 @@ label:has(select){cursor:pointer}label:has(select)>select{flex:1;min-width:0}
 @media(max-height:520px) and (orientation:landscape){.character-roster{max-height:max(190px,44svh)}.match-coach{max-height:66px;padding:4px 6px}.match-coach>p,.match-coach>button{font-size:9px}.match-coach>button{padding:5px 6px}.match-coach details summary{font-size:9px}}
 @media(max-width:620px) and (orientation:portrait){.character-roster{max-height:min(48svh,420px)}.match-coach{grid-template-columns:1fr;max-height:105px}.match-coach>button{justify-self:start}}
 .match-coach>button{min-height:28px}.match-coach details summary{min-height:24px;line-height:24px}
+
+.discord-account{padding:16px;margin:16px 0;border:1px solid #385269;border-radius:10px;background:#102237}.discord-account h3{margin-top:0}.discord-account button{margin:4px 8px 4px 0}
