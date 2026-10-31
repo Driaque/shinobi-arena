@@ -122,39 +122,30 @@ export function poseFor(f, tick, reduced = false) {
     f.previous?.right
   )
     return { frame: 2 + (Math.floor((f.travel ?? tick * Math.abs(f.vx ?? 3)) / 30) % 2), name: "Run" };
-  return { frame: reduced ? 0 : Math.floor(tick / 35) % 2, name: "Idle" };
+  // Pose 1 is a separate illustration, not an in-between breathing frame.
+  return { frame: 0, name: "Idle" };
 }
 export function sceneFor(state, { reduced = false, effects = true } = {}) {
   const fighters = state.fighters.map((f) => {
     const pose = poseFor(f, state.tick, reduced),
       frame = FRAMES[pose.frame];
-    let from = pose.frame, phase = 5;
-    if (!reduced) {
-      const move = MOVES[f.action?.move];
-      if (pose.name === 'Run') {
-        phase = (f.travel ?? state.tick * Math.abs(f.vx ?? 3)) % 30;
-        from = pose.frame === 2 ? 3 : 2;
-      } else if (move && ['Anticipation','Strike','Follow-through'].includes(pose.name)) {
-        phase = f.action.age - (pose.name === 'Strike' ? move.startup : pose.name === 'Follow-through' ? move.startup + move.active : 0);
-        from = pose.name === 'Strike' ? 8 : pose.name === 'Follow-through' ? 9 : 0;
-      } else if (pose.name === 'Landing') {
-        phase = state.tick - f.landedAt; from = 5;
-      }
-    }
+    // Painted key poses are discrete silhouettes, not compatible tween frames.
+    // Crossfading them doubles limbs/weapons and makes moving bodies translucent.
     return {
       id: f.id,
       frame,
       frameIndex:pose.frame,
-      blendFrame: FRAMES[from],
-      blendIndex:from,
-      blend: Math.max(0, Math.min(1, phase / 4)),
+      blendFrame: frame,
+      blendIndex:pose.frame,
+      blend: 1,
       pose: pose.name,
       x: f.x,
       y: WORLD.floor + (f.depth ?? 0) * 0.65 - f.y,
       facing: f.facing,
       scale: (0.48 * (f.scale ?? 0.86)) / 0.86,
       bob:
-        reduced || f.y > 0 || f.action ? 0 : Math.sin(state.tick * 0.065) * 0.7,
+        reduced || f.y > 0 || f.action || Math.abs(f.vx ?? 0) > 0.3 || f.dash
+          ? 0 : Math.sin(state.tick * 0.065) * 0.7,
       awake: effects && !reduced && f.awakeningTicks > 0,
       hit: state.tick - f.lastHit < 5,
       blocking: f.blocking,

@@ -1,4 +1,4 @@
-> **v0.27: Ten original rivals, connected stories and Pixi battlefields in every mode.** [Release notes](docs/releases/0.27.0.md).
+> **v0.28.1: Clean painted-pose animation in PixiJS and Canvas.** [Release notes](docs/releases/0.28.1.md).
 
 # Fabled Rivals
 
