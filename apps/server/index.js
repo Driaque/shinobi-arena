@@ -6,9 +6,13 @@ import {WebSocketServer,WebSocket} from 'ws';
 import {createArena} from './arena.js';
 import {TournamentError} from './tournaments.js';
 import {createStore} from './store.js';
+import {createDiscordAuth} from './discord-auth.js';
+import {AccountError} from './accounts.js';
+import {createHash} from 'node:crypto';
 import {playerProfile,PROTOCOL_VERSION,RULES_VERSION} from '../../packages/network/protocol.js';
 const {version}=JSON.parse(await readFile(new URL('../../package.json',import.meta.url),'utf8'));
-export function createOnlineServer({origins=[],port=Number(process.env.PORT||4175),host='0.0.0.0',staticDirectory='dist',store:providedStore,storeOptions={},storageExpiresAt=process.env.STORAGE_EXPIRES_AT??null,...arenaOptions}={}){
+export function createOnlineServer({origins=[],port=Number(process.env.PORT||4175),host='0.0.0.0',staticDirectory='dist',store:providedStore,storeOptions={},storageExpiresAt=process.env.STORAGE_EXPIRES_AT??null,discordOptions={},...arenaOptions}={}){
+ const discord=createDiscordAuth({...discordOptions,allowedOrigins:origins}),authenticatedSockets=new Map(),authBudgets=new Map();
  const storeReady=providedStore?Promise.resolve(providedStore):createStore(storeOptions);let storageHealthy=true;
  let tournamentTail=Promise.resolve();const tournamentAction=fn=>{const run=tournamentTail.then(fn);tournamentTail=run.catch(()=>{});return run;};
  const pending=new Map();
@@ -24,12 +28,49 @@ export function createOnlineServer({origins=[],port=Number(process.env.PORT||417
  const server=createServer(async(req,res)=>{
   res.setHeader('X-Content-Type-Options','nosniff');const url=new URL(req.url,'http://localhost');
   if(trusted(req)&&req.headers.origin){res.setHeader('Access-Control-Allow-Origin',req.headers.origin);res.setHeader('Vary','Origin');}
+  if(url.pathname.startsWith('/auth/discord/')){
+   res.setHeader('Cache-Control','no-store');res.setHeader('Referrer-Policy','no-referrer');
+   try{
+    if(req.method!=='GET')throw new AccountError('Use the game sign-in button.');
+    if(!discord.enabled)throw new AccountError('Discord sign-in is not configured yet.',503);
+    if(url.pathname==='/auth/discord/authorize'){const next=discord.authorize(url.searchParams.get('flow'));res.writeHead(302,{'Set-Cookie':next.cookie,Location:next.url}).end();return;}
+    if(url.pathname==='/auth/discord/callback'){
+     const next=await discord.callback(url.searchParams,req.headers.cookie);
+     res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Set-Cookie':next.cookie,'Content-Security-Policy':`default-src 'none'; script-src 'nonce-${next.html.nonce}'; base-uri 'none'; frame-ancestors 'none'`}).end(next.html.body);return;
+    }
+    throw new AccountError('Unknown sign-in endpoint.',404);
+   }catch(e){res.writeHead(e instanceof AccountError?e.status:503,{'Content-Type':'text/plain; charset=utf-8'}).end(e instanceof AccountError?e.message:'Sign-in is temporarily unavailable. Return to the game and try again.');return;}
+  }
   if(url.pathname.startsWith('/api/')){
    if(!trusted(req)){reply(res,403,{error:'Origin is not allowed'});return;}
    if(req.method==='OPTIONS'){res.writeHead(204,{'Access-Control-Allow-Headers':'Authorization, Content-Type','Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Max-Age':'600'}).end();return;}
    try{
     const store=await storeReady;
-    if(req.method==='GET'&&url.pathname==='/api/status'){reply(res,200,{storage:store.kind,durable:store.durable,rankedAvailable:store.durable&&storageHealthy,expiresAt:storageExpiresAt,replayRetentionDays:14,maxReplays:200,tournamentsAvailable:Boolean(store.tournaments&&store.durable&&storageHealthy),characterBenchmarksAvailable:Boolean(store.tournaments&&store.durable&&storageHealthy)});return;}
+    if(url.pathname.startsWith('/api/auth/discord/')){
+     if(req.method!=='POST'){reply(res,405,{error:'Use POST.'});return;}
+     if(!req.headers.origin||(req.headers.origin!==discord.origin&&!allowed.has(req.headers.origin))){reply(res,403,{error:'Start sign-in from the game.'});return;}
+     if(!store.durable||!storageHealthy){reply(res,503,{error:'Account sign-in requires healthy persistent storage.'});return;}
+     const token=req.headers.authorization?.replace(/^Bearer /,''),player=await store.identity(token);
+     if(url.pathname==='/api/auth/discord/logout'){
+      await store.accounts.logout(token);
+      const tokenHash=token?createHash('sha256').update(token).digest('hex'):null;
+      for(const [ws,value]of authenticatedSockets)if(tokenHash&&value===tokenHash)ws.close(1000,'Signed out');
+      reply(res,200,{ok:true});return;
+     }
+     const value=await body(req);
+     if(url.pathname==='/api/auth/discord/start'){
+      const at=Date.now(),ip=req.socket.remoteAddress;
+      for(const [key,b]of authBudgets)if(at-b.at>60000)authBudgets.delete(key);
+      const budget=authBudgets.get(ip)??{at,n:0};if(authBudgets.size>=2000&&!authBudgets.has(ip))throw new AccountError('Sign-in is busy. Try again shortly.',429);
+      authBudgets.set(ip,budget);if(++budget.n>60)throw new AccountError('Too many sign-in attempts. Try again shortly.',429);
+      reply(res,200,discord.start({...value,returnOrigin:req.headers.origin,playerId:player?.id}));return;
+     }
+     if(url.pathname==='/api/auth/discord/complete'){
+      reply(res,200,await discord.complete({...value,returnOrigin:req.headers.origin,playerId:player?.id},store.accounts));return;
+     }
+     reply(res,404,{error:'Unknown account action.'});return;
+    }
+    if(req.method==='GET'&&url.pathname==='/api/status'){reply(res,200,{discordAvailable:discord.enabled&&store.durable&&storageHealthy,storage:store.kind,durable:store.durable,rankedAvailable:store.durable&&storageHealthy,expiresAt:storageExpiresAt,replayRetentionDays:14,maxReplays:200,tournamentsAvailable:Boolean(store.tournaments&&store.durable&&storageHealthy),characterBenchmarksAvailable:Boolean(store.tournaments&&store.durable&&storageHealthy)});return;}
     if(req.method==='GET'&&url.pathname==='/api/meta'){reply(res,200,await store.meta());return;}
     if(url.pathname==='/api/tournaments'||url.pathname.startsWith('/api/tournaments/')){
      if(!store.tournaments){reply(res,503,{error:'Tournaments are unavailable.'});return;}
@@ -49,9 +90,9 @@ export function createOnlineServer({origins=[],port=Number(process.env.PORT||417
      const ip=req.socket.remoteAddress,at=Date.now();if(budgets.size>1000)for(const [key,b]of budgets)if(at-b.at>3600000)budgets.delete(key);const b=budgets.get(ip)??{at,n:0};if(at-b.at>3600000){b.at=at;b.n=0;}budgets.set(ip,b);if(++b.n>30){reply(res,429,{error:'Too many new profiles. Restore your existing profile or try later.'});return;}
      const value=await body(req);let profile;try{profile=playerProfile({name:value.name,character:'naruto',weapon:'kunai'});}catch(e){reply(res,400,{error:e.message});return;}reply(res,201,await store.createIdentity(profile.name));return;
     }
-    if(req.method==='GET'&&url.pathname==='/api/me'){const player=await store.identity(req.headers.authorization?.replace(/^Bearer /,''));if(!player){reply(res,401,{error:'Restore or create your player profile'});return;}reply(res,200,{player,rewards:store.tournaments?await store.tournaments.rewards(player.id):{points:0,unlocks:[]},matches:await store.history({...paging(url),playerId:player.id})});return;}
+    if(req.method==='GET'&&url.pathname==='/api/me'){const player=await store.identity(req.headers.authorization?.replace(/^Bearer /,''));if(!player){reply(res,401,{error:'Restore or create your player profile'});return;}reply(res,200,{player,auth:await store.accounts.info(req.headers.authorization?.replace(/^Bearer /,''),player.id),rewards:store.tournaments?await store.tournaments.rewards(player.id):{points:0,unlocks:[]},matches:await store.history({...paging(url),playerId:player.id})});return;}
     reply(res,404,{error:'Unknown endpoint'});
-   }catch(e){if(e instanceof TournamentError){reply(res,e.status,{error:e.message});return;}console.error('Arena API failed:',e.code??e.name);reply(res,e instanceof SyntaxError||e.message==='Request is too large'?400:503,{error:e instanceof SyntaxError?'Invalid JSON':'Service is temporarily unavailable'});}return;
+   }catch(e){if(e instanceof TournamentError||e instanceof AccountError){reply(res,e.status,{error:e.message});return;}console.error('Arena API failed:',e.code??e.name);reply(res,e instanceof SyntaxError||e.message==='Request is too large'?400:503,{error:e instanceof SyntaxError?'Invalid JSON':'Service is temporarily unavailable'});}return;
   }
   if(url.pathname==='/health'){res.writeHead(200,{'Content-Type':'application/json'}).end(JSON.stringify({ok:true,version,commit:process.env.RENDER_GIT_COMMIT??null,...arena.stats(),storageHealthy,pendingResults:pending.size}));return;}
   if(url.pathname==='/online-config.json'){res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'}).end('{"sameOrigin":true}');return;}
@@ -69,12 +110,12 @@ export function createOnlineServer({origins=[],port=Number(process.env.PORT||417
     if(msg.protocol!==PROTOCOL_VERSION||msg.rules!==RULES_VERSION)throw new TournamentError('Game version changed. Refresh before joining.');
     if(client.match||arena.isQueued(client)||client.spectating)throw new Error('Already in a queue, match or spectator session.');
     const store=await storeReady;client.tournament=null;if(msg.queue==='ranked'&&(!store.durable||!storageHealthy))throw new Error('Ranked storage is temporarily unavailable. Casual play is available.');
-    if(msg.token){const identity=await store.identity(msg.token);if(!identity)throw new Error('Player profile expired. Restore or create a profile.');client.playerId=identity.id;const profile=playerProfile(msg.profile);await store.rename(identity.id,profile.name);}
+    if(msg.token){const identity=await store.identity(msg.token);if(!identity)throw new Error('Player profile expired. Restore or create a profile.');client.playerId=identity.id;authenticatedSockets.set(ws,createHash('sha256').update(msg.token).digest('hex'));const profile=playerProfile(msg.profile);await store.rename(identity.id,profile.name);}
     const profile=playerProfile(msg.profile);await store.tournaments?.validateEquipment(client.playerId,profile);
     if(msg.tournamentId){if(!store.durable||!storageHealthy||!client.playerId)throw new TournamentError('Tournament play requires a saved profile and persistent storage.');await tournamentAction(async()=>{client.tournament=await store.tournaments.prepare(msg.tournamentId,client.playerId,profile.character);arena.message(client,msg);});return;}
    }arena.message(client,msg);if(client.closed)ws.close(1008,'Rate limit exceeded');}catch(e){if(e instanceof SyntaxError)ws.close(1008,'Invalid JSON');else if(ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:'error',message:e instanceof TournamentError||e.message?.startsWith('Player profile')||e.message?.startsWith('Ranked storage')?e.message:'Unable to join. Check your profile and loadout.'}));}});});
   ws.on('pong',()=>{alive=true;});const handshakeTimeout=setTimeout(()=>{if(!client.profile&&!client.spectating)ws.close(1008,'Join timeout');},30000);handshakeTimeout.unref();const heartbeat=setInterval(()=>{if(!alive){ws.terminate();return;}alive=false;ws.ping();},10000);heartbeat.unref();
-  ws.on('error',()=>{});ws.on('close',()=>{clearInterval(heartbeat);clearTimeout(handshakeTimeout);arena.disconnect(client);});
+  ws.on('error',()=>{});ws.on('close',()=>{authenticatedSockets.delete(ws);clearInterval(heartbeat);clearTimeout(handshakeTimeout);arena.disconnect(client);});
  });
  let last=performance.now(),accumulator=0;const timer=setInterval(()=>{const current=performance.now();accumulator+=Math.min(current-last,100);last=current;while(accumulator>=1000/60){arena.advance();accumulator-=1000/60;}},4);timer.unref();
  return {server,arena,storeReady,flushResults:flush,listen:async()=>{const store=await storeReady;await store.tournaments?.recover();return new Promise(r=>server.listen(port,host,r));},close:async()=>{clearInterval(timer);clearInterval(retry);arena.close();for(const ws of wss.clients)ws.close(1001,'Server shutting down');const closing=new Promise(r=>{wss.close();server.close(r);setTimeout(()=>{for(const ws of wss.clients)ws.terminate();},100).unref();});await flush();const store=await storeReady;await store.close();await closing;}};

@@ -1,3 +1,4 @@
+import {createAccounts} from './accounts.js';
 import {createTournaments} from './tournaments.js';
 import {aggregateMeta} from '../../packages/engine/meta.js';
 import {RULES_VERSION} from '../../packages/engine/index.js';
@@ -23,7 +24,8 @@ export async function createStore({databaseURL=process.env.DATABASE_URL,filename
  }
  const tournaments=await createTournaments({query,transaction,now});
  const publicPlayer=p=>p?{id:p.id,name:p.name,rating:Number(p.rating),games:Number(p.games),wins:Number(p.wins),losses:Number(p.losses),draws:Number(p.draws),ratedGames:Number(p.rated_games),tier:tier({rating:Number(p.rating),ratedGames:Number(p.rated_games)})}:null;
- async function identity(token){if(typeof token!=='string'||!/^[A-Za-z0-9_-]{43}$/.test(token))return null;return publicPlayer((await query('SELECT * FROM players WHERE token_hash=$1',[hash(token)]))[0]);}
+ const accounts=await createAccounts({query,transaction,now,publicPlayer});
+ async function identity(token){if(typeof token!=='string'||!/^[A-Za-z0-9_-]{43}$/.test(token))return null;return publicPlayer((await query('SELECT * FROM players WHERE token_hash=$1',[hash(token)]))[0])??await accounts.identity(token);}
  async function createIdentity(name){const id=randomUUID(),token=randomBytes(32).toString('base64url');await transaction(q=>q('INSERT INTO players(id,token_hash,name,created_at) VALUES($1,$2,$3,$4)',[id,hash(token),name,now()]));return {token,player:await identity(token)};}
  async function rename(id,name){await transaction(q=>q('UPDATE players SET name=$1 WHERE id=$2',[name,id]));}
  async function save(record){return transaction(async q=>{
@@ -57,5 +59,5 @@ export async function createStore({databaseURL=process.env.DATABASE_URL,filename
  async function replay(id){return (await query('SELECT archive FROM matches WHERE id=$1',[id]))[0]?.archive??null;}
  let metaCache=null,metaAt=0;
  async function meta(){if(metaCache&&now()-metaAt<60000)return metaCache;const rows=await query('SELECT rules,participants,result FROM matches WHERE rules=$1 AND ranked=1 AND created_at>=$2 ORDER BY created_at DESC LIMIT 500',[RULES_VERSION,now()-30*86400000]);metaCache=aggregateMeta(rows.map(r=>({rules:r.rules,players:JSON.parse(r.participants),result:JSON.parse(r.result)})),RULES_VERSION);metaAt=now();return metaCache;}
- return {tournaments,meta,createIdentity,identity,rename,save,leaderboard,history,replay,durable:postgres||filename!==':memory:',kind:postgres?'postgres':'sqlite',ping:()=>query('SELECT 1 AS ok'),close:async()=>{await tail;await shutdown();}};
+ return {accounts,tournaments,meta,createIdentity,identity,rename,save,leaderboard,history,replay,durable:postgres||filename!==':memory:',kind:postgres?'postgres':'sqlite',ping:()=>query('SELECT 1 AS ok'),close:async()=>{await tail;await shutdown();}};
 }
