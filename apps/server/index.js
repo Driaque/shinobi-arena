@@ -7,6 +7,7 @@ import {createArena} from './arena.js';
 import {TournamentError} from './tournaments.js';
 import {createStore} from './store.js';
 import {playerProfile,PROTOCOL_VERSION,RULES_VERSION} from '../../packages/network/protocol.js';
+const {version}=JSON.parse(await readFile(new URL('../../package.json',import.meta.url),'utf8'));
 export function createOnlineServer({origins=[],port=Number(process.env.PORT||4175),host='0.0.0.0',staticDirectory='dist',store:providedStore,storeOptions={},storageExpiresAt=process.env.STORAGE_EXPIRES_AT??null,...arenaOptions}={}){
  const storeReady=providedStore?Promise.resolve(providedStore):createStore(storeOptions);let storageHealthy=true;
  let tournamentTail=Promise.resolve();const tournamentAction=fn=>{const run=tournamentTail.then(fn);tournamentTail=run.catch(()=>{});return run;};
@@ -52,7 +53,7 @@ export function createOnlineServer({origins=[],port=Number(process.env.PORT||417
     reply(res,404,{error:'Unknown endpoint'});
    }catch(e){if(e instanceof TournamentError){reply(res,e.status,{error:e.message});return;}console.error('Arena API failed:',e.code??e.name);reply(res,e instanceof SyntaxError||e.message==='Request is too large'?400:503,{error:e instanceof SyntaxError?'Invalid JSON':'Service is temporarily unavailable'});}return;
   }
-  if(url.pathname==='/health'){res.writeHead(200,{'Content-Type':'application/json'}).end(JSON.stringify({ok:true,...arena.stats(),storageHealthy,pendingResults:pending.size}));return;}
+  if(url.pathname==='/health'){res.writeHead(200,{'Content-Type':'application/json'}).end(JSON.stringify({ok:true,version,commit:process.env.RENDER_GIT_COMMIT??null,...arena.stats(),storageHealthy,pendingResults:pending.size}));return;}
   if(url.pathname==='/online-config.json'){res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'}).end('{"sameOrigin":true}');return;}
   try{
    const path=resolve(root,`.${url.pathname.endsWith('/')?url.pathname+'index.html':url.pathname}`);if(!path.startsWith(root+sep)){res.writeHead(403).end();return;}
