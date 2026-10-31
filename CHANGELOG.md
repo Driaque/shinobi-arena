@@ -1,5 +1,10 @@
 # Release notes
 
+## 0.28.2
+
+- Prepare CI-gated, commit-pinned Render deployment with live health/version verification. Activation requires the repository deploy-hook secret.
+- Health responses include release version and Render commit. [Release notes](docs/releases/0.28.2.md).
+
 ## 0.28.1
 
 - Remove painted-pose crossfades in PixiJS and Canvas to prevent doubled limbs and translucent fighters during running and attacks. Hold a stable idle silhouette with subtle breathing.
