@@ -41,3 +41,8 @@ The Render preview database created for this feature is shinobi-arena-history in
 Persistence failures are logged without connection strings, retain up to 100 pending results and retry every five seconds. Ranked joins are disabled while persistence is unhealthy. This bounded in-process retry queue does not survive a process crash during a database outage; a durable outbox is future work. Graceful shutdown drains accepted persistence work. Game-server /health reports storage status and pending writes; a failed database startup prevents listening.
 
 Production PostgreSQL tables are namespaced in the shinobi_arena schema; test commands clear hosted database environment settings before starting isolated child processes.
+
+
+## Client connection lifecycle (v0.28.3)
+
+The connecting phase begins before profile lookup. Cancel/mode changes invalidate the attempt before awaiting identity or socket-close work. Profile requests are single-flight per server; cancellation preserves a successfully created profile but prevents late matchmaking. The full attempt has a 15-second budget. Failures unlock lobby controls and clear latency samples. Retries wait for the old socket's close acknowledgement, and never reuse old event handlers. This is safe requeue, not reconnect/resume of an active match; existing server forfeit rules still apply.

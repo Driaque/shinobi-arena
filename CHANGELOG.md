@@ -1,5 +1,10 @@
 # Release notes
 
+## 0.28.3
+
+- Make matchmaking cancelable during profile loading, ignore stale attempts, share concurrent profile requests and restore controls after connection failures.
+- Bound the complete connection attempt and clear stale latency readings. [Release notes](docs/releases/0.28.3.md).
+
 ## 0.28.2
 
 - Prepare CI-gated, commit-pinned Render deployment with live health/version verification. Activation requires the repository deploy-hook secret.
