@@ -1,4 +1,4 @@
-> **v0.28.1: Clean painted-pose animation in PixiJS and Canvas.** [Release notes](docs/releases/0.28.1.md).
+> **v0.28.3: Safer matchmaking cancellation, timeouts and retries.** [Release notes](docs/releases/0.28.3.md).
 
 # Fabled Rivals
 

@@ -113,7 +113,7 @@ function finish(){
 }
 $('#play').addEventListener('click',()=>{
   if(!$('#rotate').hidden)return;coach.hidden=true;
-  if(mode==='online'){if(activeTournament&&(!started||state.status==='matchOver')){arenaHub.open('tournaments');return;}if(online.phase==='roundOver'){online.ready();$('#play').disabled=true;$('#play').textContent='Waiting for opponent…';}else {online.reset();online.join();}return;}
+  if(mode==='online'){if(activeTournament&&(!started||state.status==='matchOver')){arenaHub.open('tournaments');return;}if(online.phase==='roundOver'){online.ready();$('#play').disabled=true;$('#play').textContent='Waiting for opponent…';}else {if(online.busy)return;online.reset();online.join();}return;}
   if(!started||state.status==='matchOver')state=newMatch(readLoadouts());
   else if(state.status==='roundOver')nextRound(state);
   clearInputs();paused=false;started=true;accumulator=0;lastTime=performance.now();$('#overlay').hidden=true;$('#play').blur();$('#feedback').textContent='';

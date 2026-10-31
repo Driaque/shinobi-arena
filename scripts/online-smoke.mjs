@@ -18,6 +18,16 @@ try{
  const near=async()=>{const until=Date.now()+5000;while(Date.now()<until){if(snapshot&&Math.abs(snapshot.fighters[0].x-snapshot.fighters[1].x)<=60)return;await new Promise(r=>setTimeout(r,20));}throw new Error(`Did not approach: ${snapshot?.fighters.map(f=>f.x)}`);};
  for(const page of [p,q]){if(process.env.ONLINE_TEST_URL)page.on('console',m=>{if(m.type()==='error')console.error(m.text());});page.on('pageerror',e=>{errors.push(e.stack);console.error(e.stack);});await page.addInitScript(()=>localStorage.setItem('shinobi.experience.v1',JSON.stringify({prediction:true})));await page.goto(baseURL);await legacyRoster(page);await page.selectOption('#mode','online');}
  await p.fill('#player-name','Silent');await p.locator('#character0 input[value=silent]').check();await equip(p,'#weapon0','tachi');await equip(p,'#weapon-secondary0','kaiken');await equip(p,'#item0-0','smokeBomb');
+ // Cancelling during a delayed profile request must not open a ghost queue entry.
+ let releaseIdentity;const identityStarted=new Promise(resolve=>{releaseIdentity=resolve;});
+ await p.route('**/api/identity',route=>releaseIdentity(route));
+ await p.click('#play');const identityRoute=await identityStarted;
+ assert.equal(await p.locator('#play').isDisabled(),true);assert.equal(await p.locator('#online-cancel').isVisible(),true);
+ await p.click('#online-cancel');await identityRoute.continue();
+ await p.waitForFunction(()=>Object.keys(localStorage).some(k=>k.startsWith('shinobi.profile.v1.')&&localStorage.getItem(k)));
+ await p.unroute('**/api/identity');
+ assert.equal(await p.locator('#play').isDisabled(),false);assert.equal(await p.locator('#player-name').isDisabled(),false);
+ const cancelledHealth=await (await p.request.get(new URL('/health',baseURL).href)).json();assert.equal(cancelledHealth.connections,0);assert.equal(cancelledHealth.queued,0);
  await p.click('#play');await p.waitForFunction(()=>document.querySelector('#online-status').textContent.includes('Waiting for an opponent'));assert.equal(await p.locator('#online-cancel').isVisible(),true);
  await p.click('#online-cancel');await p.waitForFunction(()=>document.querySelector('#play').disabled===false);await p.click('#play');await p.waitForFunction(()=>document.querySelector('#online-status').textContent.includes('Waiting for an opponent'));
  await q.fill('#player-name','AquaPrincess');await q.locator('#character0 input[value=dora]').check();await equip(q,'#weapon0','fans');await equip(q,'#weapon-secondary0','tachi');await equip(q,'#item0-0','poison');await q.click('#play');
