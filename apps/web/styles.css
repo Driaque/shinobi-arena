@@ -203,3 +203,8 @@ label:has(select){cursor:pointer}label:has(select)>select{flex:1;min-width:0}
 .match-coach>button{min-height:28px}.match-coach details summary{min-height:24px;line-height:24px}
 
 .discord-account{padding:16px;margin:16px 0;border:1px solid #385269;border-radius:10px;background:#102237}.discord-account h3{margin-top:0}.discord-account button{margin:4px 8px 4px 0}
+
+/* Keep Save reachable even when the Jutsus advisor or named builds grow. */
+.loadout-book>.loadout-content{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:3px}
+.loadout-book .equipment-grid{max-height:none;overflow:visible}
+.loadout-book>header,.loadout-book>footer{flex:none}

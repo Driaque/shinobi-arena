@@ -1,5 +1,9 @@
 # Release notes
 
+## 0.29.1
+
+- Keep Save loadout visible on Jutsus, Weapons and Consumables while their contents scroll, including smaller phone screens. [Release notes](docs/releases/0.29.1.md).
+
 ## 0.29.0
 
 - Add Discord sign-in and explicit guest-profile linking, cross-device game sessions and device logout. Conflicting profiles are never merged automatically.

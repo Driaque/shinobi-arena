@@ -4,6 +4,21 @@ import {createMatch,stepMatch,CHARACTERS,MOVES,AWAKENINGS,RULES_VERSION} from '.
 const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'4196'},stdio:['ignore','pipe','inherit']});let browser;
 try{await new Promise((r,j)=>{server.stdout.once('data',r);server.once('error',j);});browser=await chromium.launch({args:['--enable-unsafe-swiftshader'],headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH,args:['--no-sandbox','--disable-dev-shm-usage','--enable-unsafe-swiftshader']}: {})});const ctx=await browser.newContext({viewport:{width:1440,height:960}}),p=await ctx.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.clock.install({time:new Date('2030-01-01')});await p.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));
 await p.route('**/api/meta',route=>route.fulfill({json:{rules:RULES_VERSION,sample:0,pairs:[]}}));await p.goto('http://127.0.0.1:4196');await legacyRoster(p);await p.click('#edit-loadout0');assert.match(await p.locator('#loadout-advisor').innerText(),/STRATEGY ADVISOR/);await p.getByRole('button',{name:'Aerial starter',exact:true}).click();assert.match(await p.locator('#loadout-advisor').innerText(),/Rising Gale → Sky Cleave/);await p.fill('#build-name','Sky test');await p.getByRole('button',{name:'Save named build',exact:true}).click();await p.getByRole('button',{name:'Control starter',exact:true}).click();await p.getByRole('button',{name:'Load Sky test',exact:true}).click();await p.click('#loadout-save');assert.ok((await p.evaluate(()=>JSON.parse(localStorage.getItem('shinobi.builds.v1'))))[0].loadout.jutsus.includes('skyCleave'));
+// Save stays visible on every tab, before and after scrolling long Jutsu content.
+for(const viewport of [{width:1440,height:810},{width:390,height:844},{width:844,height:390}]){
+ await p.setViewportSize(viewport);await p.click('#edit-loadout0');
+ for(const tab of ['jutsu','weapon','item']){
+  await p.locator(`[data-loadout-tab=${tab}]`).click();
+  for(const end of [false,true]){
+   await p.locator('.loadout-content').evaluate((el,end)=>{el.scrollTop=end?el.scrollHeight:0;},end);
+   const rect=await p.locator('#loadout-save').boundingBox();
+   assert.ok(rect&&rect.y>=0&&rect.y+rect.height<=viewport.height,`Save visible on ${tab} at ${viewport.width}x${viewport.height}`);
+   assert.equal(await p.locator('#loadout-save').evaluate(el=>{const r=el.getBoundingClientRect();return el.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}),true,'Save is not clipped or covered');
+  }
+ }
+ await p.click('#loadout-save');assert.equal(await p.locator('#loadout-book').evaluate(el=>el.open),false);
+}
+await p.setViewportSize({width:1440,height:960});
 await p.click('#experience-settings');await p.locator('[data-experience=deadZone]').fill('0.25');await p.locator('[data-experience=doublePullMs]').fill('400');await p.locator('[data-experience=shake]').uncheck();await p.locator('[data-experience=prediction]').check();await p.locator('[data-experience=compact]').check();await p.click('#experience-close');assert.equal(await p.evaluate(()=>document.documentElement.dataset.shake),'off');await p.reload();assert.equal(await p.evaluate(()=>JSON.parse(localStorage.getItem('shinobi.experience.v1')).doublePullMs),400);
 await p.selectOption('#mode','training');await p.click('#play');await p.clock.runFor(50);assert.equal(await p.locator('#canvas').evaluate(c=>c.width/window.devicePixelRatio),1600);assert.equal(await p.locator('[data-control=special1]').isVisible(),false);const guard=await p.locator('[data-quick-action=crouchGuard]').boundingBox();await p.mouse.move(guard.x+guard.width/2,guard.y+guard.height/2);await p.mouse.down();await p.clock.runFor(40);assert.match(await p.locator('#movement-state').innerText(),/CROUCH GUARD/);await p.mouse.up();
 await p.click('#control-settings');await p.locator('.visibility-settings summary').click();await p.locator('[data-control-visible=crouchGuard]').uncheck();await p.click('#save-controls');await p.click('#play');await p.clock.runFor(32);assert.equal(await p.locator('[data-quick-action=crouchGuard]').isVisible(),false);

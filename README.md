@@ -1,4 +1,4 @@
-> **v0.29.0: Discord accounts and cross-device profiles, with guest play preserved.** [Release notes](docs/releases/0.29.0.md).
+> **v0.29.1: Save loadout stays visible on every loadout tab.** [Release notes](docs/releases/0.29.1.md).
 
 # Fabled Rivals
 
