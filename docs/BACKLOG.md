@@ -1,5 +1,25 @@
 # Ordered backlog
 
+## Current product priorities
+
+The following sequence supersedes the historical milestone order below. Planned items are not implementation claims.
+
+| Priority | Work | Acceptance |
+| --- | --- | --- |
+| P0 | Character animation and combat readability | Clean opaque poses, stable roots, readable startup/contact/recovery; verify desktop and physical phones. v0.28.1 addresses crossfade ghosting only. |
+| P0 | Online reliability | Record latency/jitter and match completion; test cross-device hit consistency and reconnect handling before choosing further prediction/rollback work. |
+| P1 | Discord sign-in and persistent identity | Keep guest play; server-verified Discord login links to a permanent internal player ID; prove ownership before attaching guest history/rating/rewards; explicit conflict flow; cross-device recovery and logout. Keep provider credentials server-side. |
+| P1 | Friends and private matches | Add friends, share room links, challenge and rematch; optional presence, block/report controls; no automatic Discord friend imports or messages. |
+| P1 | First-match onboarding | Recommended builds, short interactive introduction and obvious retry/rematch; measure first-match completion without help. |
+| P1 | Distinct original fighters | Each rival has a recognizable mechanic, animation identity and teachable counterplay; validate with human matches. |
+| P2 | Character mastery | Character-specific challenges award cosmetic titles, colours and badges; no combat stat advantages. Build on existing training and persistent identity. |
+| P2 | Battlefield variety | Visually distinct stages with readable combat; interactive terrain needs separate design and balance tests. |
+| P2 | Player and competitor research | Separate live observations, documented features and hypotheses; record source, player problem, proposed experiment and success measure. |
+
+Track visit → ready → first match → completed match → rematch → return → friend invite, split by device/input. Verify actual hosting/database lifetime before wider playtests.
+
+## Historical milestones
+
 0.4.0 update: F07 keyboard rebinding is implemented, along with analog movement, a drag/resize
 touch layout editor, conflict checks and per-device/profile persistence. See CONTROL_SETTINGS.md.
 

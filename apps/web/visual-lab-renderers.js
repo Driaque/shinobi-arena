@@ -109,8 +109,7 @@ export function createCanvasLab(canvas, art, resolution) {
       if (!scene.reduced && (f.pose === "Dash" || f.motion?.trail))
         for (let i = 3; i > 0; i--)
           fighter(f, 0.09 * (4 - i), -f.facing * i * 22);
-      if (f.blend < 1) fighter({...f, frame:f.blendFrame}, 1-f.blend);
-      fighter(f, f.blend ?? 1);
+      fighter(f);
       if (f.blocking) {
         const height=(f.crouching?68:110)*(f.bodyScale??1);
         ellipse(f.x + f.facing * 18, f.y - height/2, 25, height/2, "#88ead74a");
@@ -188,9 +187,8 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
       return s;
     });
     const sprite = new Sprite(textures[0]);
-    const transition = new Sprite(textures[0]);
-    container.addChild(transition, sprite);
-    return { container, ghosts, sprite, transition };
+    container.addChild(sprite);
+    return { container, ghosts, sprite };
   });
   let lost = false;
   const contextLost = (e) => {
@@ -253,9 +251,7 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
       a.container.alpha = f.alpha ?? 1;
       a.container.zIndex = f.depth;
       paintSprite(a.sprite, f);
-      a.sprite.alpha = f.blend ?? 1;
-      a.transition.visible = f.blend < 1;
-      if(a.transition.visible){paintSprite(a.transition,{...f,frame:f.blendFrame,frameIndex:f.blendIndex});a.transition.alpha=1-f.blend;}
+      a.sprite.alpha = 1;
       for (let i = 0; i < 3; i++) {
         const g = a.ghosts[i];
         g.visible = !scene.reduced && (f.pose === "Dash" || Boolean(f.motion?.trail));

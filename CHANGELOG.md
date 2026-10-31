@@ -1,5 +1,10 @@
 # Release notes
 
+## 0.28.1
+
+- Remove painted-pose crossfades in PixiJS and Canvas to prevent doubled limbs and translucent fighters during running and attacks. Hold a stable idle silhouette with subtle breathing.
+- Record the prioritized quality, Discord identity, friend-play and mastery roadmap as planned work. [Release notes](docs/releases/0.28.1.md).
+
 ## 0.28.0
 
 - Add detailed painted 16-pose combat sheets for all ten original fighters, including refreshed Aren artwork, across the main Pixi/Canvas presentation.
