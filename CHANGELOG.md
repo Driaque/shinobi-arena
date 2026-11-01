@@ -1,5 +1,10 @@
 # Release notes
 
+## 0.30.0
+
+- Added a player lounge with online players and guests, availability, profile summaries and accepted casual duel challenges.
+- Added opponent gestures before and after fights, plus a profile card and saved display-name editing.
+
 ## 0.29.3
 
 - Restore continuously animated original fighters by default alongside Pixi battlefield effects, with an optional painted fighter style.

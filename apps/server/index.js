@@ -90,6 +90,11 @@ export function createOnlineServer({origins=[],port=Number(process.env.PORT||417
      const ip=req.socket.remoteAddress,at=Date.now();if(budgets.size>1000)for(const [key,b]of budgets)if(at-b.at>3600000)budgets.delete(key);const b=budgets.get(ip)??{at,n:0};if(at-b.at>3600000){b.at=at;b.n=0;}budgets.set(ip,b);if(++b.n>30){reply(res,429,{error:'Too many new profiles. Restore your existing profile or try later.'});return;}
      const value=await body(req);let profile;try{profile=playerProfile({name:value.name,character:'naruto',weapon:'kunai'});}catch(e){reply(res,400,{error:e.message});return;}reply(res,201,await store.createIdentity(profile.name));return;
     }
+    if(req.method==='POST'&&url.pathname==='/api/me'){
+     const player=await store.identity(req.headers.authorization?.replace(/^Bearer /,''));if(!player){reply(res,401,{error:'Restore or create your player profile'});return;}
+     const value=await body(req);let profile;try{profile=playerProfile({name:value.name,character:'silent',weapon:'tachi'});}catch(e){reply(res,400,{error:e.message});return;}
+     await store.rename(player.id,profile.name);reply(res,200,{ok:true,name:profile.name});return;
+    }
     if(req.method==='GET'&&url.pathname==='/api/me'){const player=await store.identity(req.headers.authorization?.replace(/^Bearer /,''));if(!player){reply(res,401,{error:'Restore or create your player profile'});return;}reply(res,200,{player,auth:await store.accounts.info(req.headers.authorization?.replace(/^Bearer /,''),player.id),rewards:store.tournaments?await store.tournaments.rewards(player.id):{points:0,unlocks:[]},matches:await store.history({...paging(url),playerId:player.id})});return;}
     reply(res,404,{error:'Unknown endpoint'});
    }catch(e){if(e instanceof TournamentError||e instanceof AccountError){reply(res,e.status,{error:e.message});return;}console.error('Arena API failed:',e.code??e.name);reply(res,e instanceof SyntaxError||e.message==='Request is too large'?400:503,{error:e instanceof SyntaxError?'Invalid JSON':'Service is temporarily unavailable'});}return;
@@ -106,11 +111,11 @@ export function createOnlineServer({origins=[],port=Number(process.env.PORT||417
  wss.on('connection',ws=>{
   let alive=true,chain=Promise.resolve();
   const client=arena.connect(value=>{if(ws.readyState!==WebSocket.OPEN)return;if(ws.bufferedAmount>256*1024){ws.terminate();return;}ws.send(JSON.stringify(value));});if(!client){ws.close(1013,'Server full');return;}
-  ws.on('message',data=>{chain=chain.then(async()=>{try{const msg=JSON.parse(data.toString());if(msg.type==='join'){
+  ws.on('message',data=>{chain=chain.then(async()=>{try{const msg=JSON.parse(data.toString());if(msg.type==='join'||msg.type==='lounge'){
     if(msg.protocol!==PROTOCOL_VERSION||msg.rules!==RULES_VERSION)throw new TournamentError('Game version changed. Refresh before joining.');
     if(client.match||arena.isQueued(client)||client.spectating)throw new Error('Already in a queue, match or spectator session.');
     const store=await storeReady;client.tournament=null;if(msg.queue==='ranked'&&(!store.durable||!storageHealthy))throw new Error('Ranked storage is temporarily unavailable. Casual play is available.');
-    if(msg.token){const identity=await store.identity(msg.token);if(!identity)throw new Error('Player profile expired. Restore or create a profile.');client.playerId=identity.id;authenticatedSockets.set(ws,createHash('sha256').update(msg.token).digest('hex'));const profile=playerProfile(msg.profile);await store.rename(identity.id,profile.name);}
+    if(msg.token){const identity=await store.identity(msg.token);if(!identity)throw new Error('Player profile expired. Restore or create a profile.');client.playerId=identity.id;client.publicStats={rating:identity.rating,tier:identity.tier,wins:identity.wins,losses:identity.losses,draws:identity.draws};client.kind=(await store.accounts.info(msg.token,identity.id))?.provider?'player':'guest';authenticatedSockets.set(ws,createHash('sha256').update(msg.token).digest('hex'));const profile=playerProfile(msg.profile);await store.rename(identity.id,profile.name);}
     const profile=playerProfile(msg.profile);await store.tournaments?.validateEquipment(client.playerId,profile);
     if(msg.tournamentId){if(!store.durable||!storageHealthy||!client.playerId)throw new TournamentError('Tournament play requires a saved profile and persistent storage.');await tournamentAction(async()=>{client.tournament=await store.tournaments.prepare(msg.tournamentId,client.playerId,profile.character);arena.message(client,msg);});return;}
    }arena.message(client,msg);if(client.closed)ws.close(1008,'Rate limit exceeded');}catch(e){if(e instanceof SyntaxError)ws.close(1008,'Invalid JSON');else if(ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:'error',message:e instanceof TournamentError||e.message?.startsWith('Player profile')||e.message?.startsWith('Ranked storage')?e.message:'Unable to join. Check your profile and loadout.'}));}});});

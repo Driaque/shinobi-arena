@@ -2,7 +2,18 @@ import {randomUUID} from 'node:crypto';
 import {createMatch,stepMatch,nextRound,TICK_RATE,CHARACTERS,MOVES,AWAKENINGS} from '../../packages/engine/index.js';
 import {playerProfile,cleanInput,PROTOCOL_VERSION,RULES_VERSION} from '../../packages/network/protocol.js';
 export function createArena({countdownTicks=180,roundBreakTicks=180,maxClients=200,maxMatches=20,maxSpectators=40,onResult=()=>{},now=()=>Date.now()}={}){
- const clients=new Set(),queue=[],matches=new Set();let tick=0;
+ const clients=new Set(),queue=[],matches=new Set(),challenges=new Map();let tick=0;
+ const available=c=>clients.has(c)&&c.profile&&!c.match&&!queue.includes(c)&&!c.spectating;
+ const presence=()=>[...clients].filter(c=>c.profile).map(c=>({id:c.id,name:c.profile.name,character:c.profile.character,kind:c.kind??'guest',stats:c.publicStats??null,status:c.match?'fighting':queue.includes(c)?'queued':c.spectating?'spectating':'available'}));
+ function broadcastPresence(){const players=presence();for(const c of clients)if(c.lounge)send(c,{type:'presence',self:c.id,players});}
+ function clearChallenges(c,reason='unavailable'){for(const [id,ch]of challenges)if(ch.from===c||ch.to===c){challenges.delete(id);for(const p of [ch.from,ch.to])send(p,{type:'challengeClosed',id,reason});}}
+ function startMatch(players,mode){
+  for(const p of players)clearChallenges(p);
+  const state=createMatch(players.map(c=>c.profile)),id=players[0].tournament?.matchId??randomUUID(),createdAt=now();
+  const m={tournament:players[0].tournament?structuredClone(players[0].tournament):null,id,createdAt,mode,players,state,spectators:new Set(),phase:'countdown',remaining:countdownTicks,startedTick:tick,playedTicks:0,recorded:false,replay:{schema:1,id,rules:RULES_VERSION,tickRate:TICK_RATE,createdAt,mode,players:players.map(c=>({...c.profile,playerId:c.playerId??null})),catalog:{characters:CHARACTERS,moves:MOVES,awakenings:AWAKENINGS},loadouts:structuredClone(state.loadouts),frames:[],inputs:[],rounds:[],truncated:false}};
+  matches.add(m);frame(m);players.forEach((c,slot)=>{c.match=m;c.slot=slot;c.ready=false;c.lastSeq=-1;c.input={};c.pending=[];send(c,{...snapshot(m),type:'matched',slot});});broadcastPresence();
+ }
+
  const send=(c,value)=>{if(clients.has(c))c.send(value);};
  const queueStatus=()=>queue.forEach(c=>{const own=queue.filter(p=>p.queueMode===c.queueMode&&(c.queueMode!=='tournament'||p.tournament?.matchId===c.tournament?.matchId));send(c,{type:'queued',position:own.indexOf(c)+1,waiting:own.length,mode:c.queueMode});});
  function removeQueued(c){const i=queue.indexOf(c);if(i>=0){queue.splice(i,1);queueStatus();}}
@@ -26,14 +37,11 @@ export function createArena({countdownTicks=180,roundBreakTicks=180,maxClients=2
   for(const mode of ['casual','ranked','tournament'])while(matches.size<maxMatches){
    const eligible=queue.filter(c=>c.queueMode===mode);if(eligible.length<2)break;
    let players=eligible.slice(0,2);if(mode==='tournament'){players=null;for(const first of eligible){const second=eligible.find(c=>c!==first&&c.playerId!==first.playerId&&c.tournament?.matchId===first.tournament?.matchId&&first.tournament.players.includes(c.playerId));if(second){players=[first,second];if(first.tournament.benchmark)players.sort((a,b)=>first.tournament.players.indexOf(a.playerId)-first.tournament.players.indexOf(b.playerId));break;}}if(!players)break;}for(const p of players)queue.splice(queue.indexOf(p),1);
-   const state=createMatch(players.map(c=>c.profile)),id=players[0].tournament?.matchId??randomUUID(),createdAt=now();
-   const m={tournament:players[0].tournament?structuredClone(players[0].tournament):null,id,createdAt,mode,players,state,spectators:new Set(),phase:'countdown',remaining:countdownTicks,startedTick:tick,playedTicks:0,recorded:false,replay:{schema:1,id,rules:RULES_VERSION,tickRate:TICK_RATE,createdAt,mode,players:players.map(c=>({...c.profile,playerId:c.playerId??null})),catalog:{characters:CHARACTERS,moves:MOVES,awakenings:AWAKENINGS},loadouts:structuredClone(state.loadouts),frames:[],inputs:[],rounds:[],truncated:false}};
-   matches.add(m);frame(m);
-   players.forEach((c,slot)=>{c.match=m;c.slot=slot;c.ready=false;c.input={};c.pending=[];send(c,{...snapshot(m),type:'matched',slot});});
+   startMatch(players,mode);
   }
   queueStatus();
  }
- function connect(sendFn){if(clients.size>=maxClients)return null;const c={send:sendFn,match:null,spectating:null,input:{},pending:[],lastInput:tick,lastSeq:-1,budget:0,budgetAt:tick,profile:null,ready:false,playerId:null};clients.add(c);send(c,{type:'hello',protocol:PROTOCOL_VERSION,rules:RULES_VERSION});return c;}
+ function connect(sendFn){if(clients.size>=maxClients)return null;const c={id:randomUUID(),send:sendFn,match:null,spectating:null,input:{},pending:[],lastInput:tick,lastSeq:-1,budget:0,budgetAt:tick,profile:null,ready:false,playerId:null};clients.add(c);send(c,{type:'hello',protocol:PROTOCOL_VERSION,rules:RULES_VERSION});return c;}
  function message(c,msg){
   if(!clients.has(c))return;if(tick-c.budgetAt>=60){c.budget=0;c.budgetAt=tick;}if(++c.budget>180){disconnect(c);return;}
   try{
@@ -44,14 +52,44 @@ export function createArena({countdownTicks=180,roundBreakTicks=180,maxClients=2
     if(msg.protocol!==PROTOCOL_VERSION||msg.rules!==RULES_VERSION)throw new Error('Game version changed. Refresh before watching.');
     const m=[...matches].find(m=>m.id===msg.id);if(!m)throw new Error('Match has ended.');if(m.spectators.size>=maxSpectators)throw new Error('Spectator seats are full.');unwatch(c);c.spectating=m;m.spectators.add(c);send(c,{...snapshot(m),type:'watching'});return;
    }
-   if(msg.type==='cancel'){unwatch(c);if(c.match)end(c.match,c.match.phase==='matchOver'?'match-complete':'opponent-left',c.match.phase==='matchOver'?null:c);removeQueued(c);send(c,{type:'cancelled'});pair();return;}
+   if(msg.type==='lounge'){
+    if(c.match||queue.includes(c)||c.spectating)throw new Error('Leave your fight or queue first.');
+    if(msg.protocol!==PROTOCOL_VERSION||msg.rules!==RULES_VERSION)throw new Error('Game version changed. Refresh before joining.');
+    if(c.playerId&&[...clients].some(p=>p!==c&&p.playerId===c.playerId&&p.profile))throw new Error('This profile is already online.');
+    c.profile=playerProfile(msg.profile);c.lounge=true;c.tournament=null;broadcastPresence();return;
+   }
+   if(['challenge','challengeReply','challengeCancel'].includes(msg.type)){
+    if(!c.lounge||!available(c))throw new Error('Enter the lounge and leave your match or queue first.');
+    if(msg.type==='challenge'){
+     const target=[...clients].find(p=>p.id===msg.target);
+     if(!target||target===c||!target.lounge||!available(target)||c.playerId&&c.playerId===target.playerId)throw new Error('That player is unavailable.');
+     if(tick-(c.lastChallenge??-600)<300)throw new Error('Wait five seconds before sending another challenge.');
+     if([...challenges.values()].some(ch=>[ch.from,ch.to].includes(c)||[ch.from,ch.to].includes(target)))throw new Error('A challenge is already pending.');
+     c.lastChallenge=tick;const id=randomUUID(),ch={id,from:c,to:target,expires:tick+1800};challenges.set(id,ch);
+     for(const p of [c,target])send(p,{type:'challenge',id,from:{id:c.id,name:c.profile.name},to:{id:target.id,name:target.profile.name},expiresIn:30});return;
+    }
+    const ch=challenges.get(msg.id);if(!ch)throw new Error('This challenge expired or was closed.');
+    if(msg.type==='challengeCancel'&&ch.from!==c||msg.type==='challengeReply'&&ch.to!==c)throw new Error('This challenge is not yours.');
+    if(msg.type==='challengeReply'&&msg.accept===true){
+     if(ch.expires<=tick||!available(ch.from)||!available(ch.to))throw new Error('That player is unavailable.');
+     if(matches.size>=maxMatches)throw new Error('Arena is full. Try again shortly.');
+     startMatch([ch.from,ch.to],'casual');
+    }else clearChallenges(c,msg.type==='challengeCancel'?'cancelled':'declined');return;
+   }
+   if(msg.type==='gesture'){
+    const m=c.match;if(!m||!['countdown','roundOver','matchOver'].includes(m.phase))throw new Error('Gestures are available before and after fights.');
+    if(!['bow','wave','ready','goodFight','wellPlayed','rematch'].includes(msg.gesture))throw new Error('Unknown gesture.');
+    if(tick-(c.lastGesture??-180)<120)throw new Error('Wait before sending another gesture.');c.lastGesture=tick;
+    for(const p of m.players)send(p,{type:'gesture',slot:c.slot,name:c.profile.name,gesture:msg.gesture});return;
+   }
+   if(msg.type==='cancel'){unwatch(c);if(c.match)end(c.match,c.match.phase==='matchOver'?'match-complete':'opponent-left',c.match.phase==='matchOver'?null:c);removeQueued(c);clearChallenges(c);broadcastPresence();send(c,{type:'cancelled'});pair();return;}
    if(c.spectating)throw new Error('Spectators are read-only.');
    if(msg.type==='join'){
     if(c.match||queue.includes(c))throw new Error('Already in a queue or match.');
     if(msg.protocol!==PROTOCOL_VERSION||msg.rules!==RULES_VERSION)throw new Error('Game version changed. Refresh before joining.');
     if(c.playerId&&[...clients].some(p=>p!==c&&p.playerId===c.playerId&&(p.match||queue.includes(p))))throw new Error('This player profile is already playing or queued.');
     c.queueMode=c.tournament?'tournament':msg.queue==='ranked'?'ranked':'casual';if(c.queueMode==='ranked'&&!c.playerId)throw new Error('Create or restore your player profile for ranked play.');
-    c.profile=playerProfile(msg.profile);c.lastSeq=-1;queue.push(c);pair();
+    c.profile=playerProfile(msg.profile);c.lastSeq=-1;clearChallenges(c);queue.push(c);pair();broadcastPresence();
    }else if(msg.type==='input'){
     if(!c.match||c.match.phase!=='playing'||c.match.state.status!=='playing')return;
     if(!Number.isSafeInteger(msg.seq)||msg.seq<=c.lastSeq)return;c.lastSeq=msg.seq;c.lastInput=tick;const input=cleanInput(msg.input);c.pending.push({...input,_seq:msg.seq});if(c.pending.length>8)c.pending.shift();
@@ -59,11 +97,13 @@ export function createArena({countdownTicks=180,roundBreakTicks=180,maxClients=2
     const m=c.match;if(!m||m.phase!=='roundOver')return;c.ready=true;
     if(m.players.every(p=>p.ready)){nextRound(m.state);m.phase='countdown';m.remaining=countdownTicks;m.replay.rounds.push({at:tick-m.startedTick,state:structuredClone(m.state)});frame(m);for(const p of m.players){p.input={};p.pending=[];p.ready=false;}}
    }else throw new Error('Unknown message.');
-  }catch(error){send(c,{type:'error',message:error.message});}
+  }catch(error){send(c,{type:['challenge','challengeReply','challengeCancel','gesture'].includes(msg?.type)?'socialError':'error',message:error.message});}
  }
- function disconnect(c){if(!clients.has(c))return;unwatch(c);removeQueued(c);clients.delete(c);c.closed=true;if(c.match)end(c.match,c.match.phase==='matchOver'?'match-complete':'opponent-disconnected',c.match.phase==='matchOver'?null:c);pair();}
+ function disconnect(c){if(!clients.has(c))return;unwatch(c);removeQueued(c);clearChallenges(c,'disconnected');clients.delete(c);c.closed=true;if(c.match)end(c.match,c.match.phase==='matchOver'?'match-complete':'opponent-disconnected',c.match.phase==='matchOver'?null:c);pair();broadcastPresence();}
  function advance(){
   tick++;
+  for(const [id,ch]of challenges)if(ch.expires<=tick){challenges.delete(id);for(const c of [ch.from,ch.to])send(c,{type:'challengeClosed',id,reason:'expired'});}
+  if(tick%120===0)broadcastPresence();
   for(const m of matches){
    if(m.phase==='countdown'){if(--m.remaining<=0)m.phase='playing';}
    else if(m.phase==='playing'){
@@ -78,7 +118,7 @@ export function createArena({countdownTicks=180,roundBreakTicks=180,maxClients=2
    if((m.phase==='roundOver'||m.phase==='matchOver')&&--m.remaining<=-TICK_RATE*120)end(m,'room-expired');
   }
  }
- function close(){for(const m of [...matches])end(m,'server-shutdown');clients.clear();queue.length=0;}
+ function close(){for(const m of [...matches])end(m,'server-shutdown');clients.clear();queue.length=0;challenges.clear();}
  function cancelTournamentQueue(id,pairId){for(const c of [...queue])if(c.tournament?.id===id&&c.tournament.pairId===pairId){removeQueued(c);c.tournament=null;send(c,{type:'ended',reason:'tournament-updated'});}pair();}
  return {isQueued:c=>queue.includes(c),hasTournamentMatch:(id,playerId)=>[...matches].some(m=>m.tournament?.id===id&&m.players.some(c=>c.playerId===playerId)&&m.phase!=='matchOver'),cancelTournamentQueue,connect,message,disconnect,advance,close,list:()=>[...matches].filter(m=>m.phase!=='matchOver').map(m=>({id:m.id,mode:m.mode,phase:m.phase,round:m.state.round,wins:m.state.wins,players:publicPlayers(m),spectators:m.spectators.size,capacity:maxSpectators})),stats:()=>({connections:clients.size,queued:queue.length,matches:matches.size,tick,spectators:[...clients].filter(c=>c.spectating).length})};
 }

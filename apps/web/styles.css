@@ -208,3 +208,20 @@ label:has(select){cursor:pointer}label:has(select)>select{flex:1;min-width:0}
 .loadout-book>.loadout-content{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:3px}
 .loadout-book .equipment-grid{max-height:none;overflow:visible}
 .loadout-book>header,.loadout-book>footer{flex:none}
+
+/* Social arena and player identity */
+#player-lounge {border-top:1px solid #405b79;margin-top:16px;padding-top:12px}
+#lounge-roster {max-height:280px;overflow:auto;overscroll-behavior:contain}
+.lounge-player {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #30445e}
+.lounge-player small,.profile-card small {display:block;color:#b9cce0}
+#duel-invitations:not(:empty) {padding:12px;border:1px solid #d4b377;border-radius:8px;margin:12px 0}
+#fight-gestures {margin:12px 0;padding:10px;background:#102237;border:1px solid #405b79;border-radius:10px}
+#fight-gestures[hidden] {display:none}
+#fight-gestures h3 {margin:0 0 8px;font-size:14px}
+#fight-gestures button {margin:3px;padding:9px 12px;min-height:40px;font-size:12px}
+#gesture-feed {min-height:1.5em;color:#f1c780}
+.profile-card {padding:20px;border:1px solid #786444;border-radius:14px;background:linear-gradient(130deg,#203148,#0d192a);margin-bottom:16px}
+.profile-card h2 {font-size:28px;margin:8px 0 20px}
+.profile-stats {display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:12px}
+.profile-stats strong {font-size:20px;color:#f1c780}
+@media(max-width:600px){.profile-card{padding:14px}.profile-stats{grid-template-columns:repeat(3,1fr)}.lounge-player{align-items:flex-start}}
