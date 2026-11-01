@@ -1,5 +1,10 @@
 # Release notes
 
+## 0.30.0
+
+- Added server-verified daily, weekly and permanent online challenges, cosmetic profile titles and a forgiving seven-day login track.
+- Arena → Challenges shows progress, reset times, login claims and title selection. Arcade progression, story and co-op remain planned.
+
 ## 0.29.3
 
 - Restore continuously animated original fighters by default alongside Pixi battlefield effects, with an optional painted fighter style.
