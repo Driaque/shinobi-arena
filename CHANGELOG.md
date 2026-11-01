@@ -1,5 +1,10 @@
 # Release notes
 
+## 0.31.0
+
+- Add pre-fight stage selection: Skyglass Terrace, Frostbound Pass, Ember Forge, Moonlit Grove, Sunken Court and Random.
+- Share stage identity across local rounds, online players, spectators and recorded replay frames, with matching Canvas/Pixi scenery. [Release notes](docs/releases/0.31.0.md).
+
 ## 0.29.3
 
 - Restore continuously animated original fighters by default alongside Pixi battlefield effects, with an optional painted fighter style.

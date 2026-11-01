@@ -1,3 +1,4 @@
+import {stageShapes} from './packages/presentation/stages.js';
 import {sceneryFor,projectileShapes} from './packages/presentation/battlefield.js';
 import {
   Application,
@@ -70,7 +71,7 @@ export function createCanvasLab(canvas, art, resolution) {
     const view = camera(scene, canvas.width, canvas.height);
     ctx.setTransform(view.scale, 0, 0, view.scale, view.x, view.y);
     const bg = backgroundRect(art.arena, scene);
-    ctx.drawImage(art.arena, bg.x, bg.y, bg.w, bg.h);
+    if(!scene.stage||scene.stage==='skyglass')ctx.drawImage(art.arena, bg.x, bg.y, bg.w, bg.h);else shapes(stageShapes(scene.stage));
     shapes(sceneryFor(scene));
     const ellipse = (x, y, rx, ry, color) => {
       ctx.fillStyle = color;
@@ -196,6 +197,7 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
     container.addChild(sprite);
     return { container, ghosts, sprite };
   });
+  let terrainStage=null;
   let lost = false;
   const contextLost = (e) => {
     e.preventDefault();
@@ -220,6 +222,9 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
   function shapes(graphics,items){for(const s of items){if(s.kind==='ellipse')graphics.ellipse(s.x,s.y,s.rx,s.ry).fill({color:s.color,alpha:s.alpha??1});else if(s.kind==='line')graphics.moveTo(s.x,s.y).lineTo(s.x2,s.y2).stroke({color:s.color,alpha:s.alpha??1,width:s.width??1});else graphics.poly(s.points).fill({color:s.color,alpha:s.alpha??1});}}
   function draw(scene) {
     if (lost) return;
+    const stage=scene.stage??'skyglass';
+    bg.visible=stage==='skyglass';
+    if(terrainStage!==stage){terrain.clear();if(stage!=='skyglass')shapes(terrain,stageShapes(stage));shapes(terrain,staticScenery);terrainStage=stage;}
     const view = camera(scene, app.screen.width, app.screen.height);
     root.scale.set(view.scale);
     root.position.set(view.x, view.y);

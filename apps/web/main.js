@@ -1,3 +1,4 @@
+import {createStagePicker} from './stage-picker.js';
 import {DEFAULT_FIGHTERS,isOriginalFighter} from './packages/engine/originals.js';
 import {mountIcon} from './packages/ui/jutsu-icons.js';
 import {installMobileUI} from './mobile-ui.js';
@@ -31,7 +32,8 @@ let onlinePlayers=[],onlineScreen='',activeTournament=null;
 let difficulty='easy';
 try{difficulty=difficultyFor(localStorage.getItem('shinobi-arena.difficulty.v1')).id;}catch{}
 $('#difficulty').value=difficulty;
-const newMatch=(loadouts=DEFAULT_FIGHTERS.map(character=>({character,weapon:CHARACTERS[character].defaultWeapon??'katana'})))=>$('#mode').value==='training'&&trainingUI?trainingUI.create(loadouts):createMatch(loadouts,{difficulty});
+const stages=createStagePicker(()=>{if(!started&&mode!=='online')state=newMatch(readLoadouts());});
+const newMatch=(loadouts=DEFAULT_FIGHTERS.map(character=>({character,weapon:CHARACTERS[character].defaultWeapon??'katana'})))=>{const next=$('#mode').value==='training'&&trainingUI?trainingUI.create(loadouts):createMatch(loadouts,{difficulty,stage:stages.value()});if(next.training)next.stage=stages.resolve();return next;};
 let state=newMatch(), paused=true, started=false, mode='cpu', cpu={}, lastTime=0, accumulator=0, feedbackUntil=0;
 const shortNames={tidalEdict:'TIDAL EDICT',royalTempest:'ROYAL TEMPEST',triuneFlow:'TRIUNE FLOW',royalGale:'ROYAL GALE',releasedTempest:'SOVEREIGN',harmoniousSlash:'HARMONIOUS',echoingRift:'ECHOING RIFT',aquaGuard:'TRIUNE FLOW',tetsugan:'TETSUGAN',mizukumi:'MIZUKUMI',eclipseDrain:'ECLIPSE DRAIN',shinraiOu:'SHINRAI ŌU',ascendantSlash:'ASCENDANT CUT',ascendantRift:'METAL RIFT',dominionMizukumi:'DOMINION DASH',dominionDrain:'DOMINION DRAIN',special1:'RASENGAN',chidori:'CHIDORI',clone:'CLONE',fireball:'FIREBALL',lionFists:'TWIN LIONS',chakraStrike:'PALM STRIKE',snakeStrike:'SNAKES',seal:'SEAL',sharingan:'SHARINGAN',byakugan:'BYAKUGAN'};
 function readLoadouts(){if(loadoutUI)return [0,1].map(i=>loadoutUI.read(i));return [0,1].map(i=>({character:$(`#character${i} input:checked`).value,weapon:$(`#weapon${i}`).value,weapons:[$(`#weapon${i}`).value,$(`#weapon-secondary${i}`).value||null],items:[0,1,2,3].map(slot=>$(`#item${i}-${slot}`).value||null)}));}
@@ -143,7 +145,7 @@ function useTrainingState(next){
 }
 trainingUI=createTrainingUI({pause,clearInputs,getState:()=>state,setState:useTrainingState,getLoadouts:readLoadouts,isTraining:()=>mode==='training',isStarted:()=>started,isEditing:()=>controls.editing,binding:action=>controls.binding(0,action),start:()=>{paused=false;started=true;accumulator=0;lastTime=performance.now();$('#overlay').hidden=true;}});
 
-online=createOnline({getProfile:()=>readLoadouts()[0],onStatus:()=>{
+online=createOnline({getProfile:()=>({...readLoadouts()[0],stage:stages.value()}),onStatus:()=>{
  if(mode==='online'){for(const el of document.querySelectorAll('#character0 input,#weapon0,#weapon-secondary0,#item0-0,#item0-1,#item0-2,#item0-3'))el.disabled=online?.busy??false;$('#play').disabled=online?.busy??false;$('#play').textContent=online?.busy?'Finding opponent…':activeTournament?'View tournament bracket':'Find opponent';}
 },onEnd:message=>{
  if(mode!=='online')return;clearInputs();started=false;paused=true;onlineScreen='';
@@ -254,6 +256,7 @@ function paintHud(){
 let padMap=padBindings();window.addEventListener('arena:pad-map',()=>padMap=padBindings());
 const gamepads=createGamepads({inputs,settings:experience,bindings:()=>padMap,isPlaying:()=>started&&!paused&&state.status==='playing'&&$('#rotate').hidden&&!document.querySelector('dialog[open]'),isLocal:()=>mode==='local',onPause:pause});
 function frame(now){
+  stages.lock((started&&state.status!=='matchOver')||mode==='online'&&online?.busy);
   gamepads.poll();
   if(!lastTime)lastTime=now;
   if(mode==='online'){
