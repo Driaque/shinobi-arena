@@ -5,6 +5,7 @@ import { FIGHTER_FRAMES, fighterAtlasData } from './fighter-atlases.js';
 // Presentation only: the selected character IDs, loadouts, physics and results stay intact.
 export function practiceSceneFor(state, viewport, settings = {}) {
   const scene = sceneFor(state, settings);
+  scene.stage=settings.selected?state.stage??'skyglass':'skyglass';
   scene.viewport = { ...viewport };
   scene.decorative=settings.effects!==false;
   for (const actor of scene.fighters) {

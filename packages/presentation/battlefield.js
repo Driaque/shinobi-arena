@@ -7,6 +7,10 @@ export function sceneryFor(scene){
  for(let i=0;i<13;i++){const x=i*140-40;shapes.push({kind:'line',x:800+(x-800)*.84,y:floor-42,x2:x,y2:floor+110,color:0xa0c8cd,alpha:.12,width:1});}
  for(const side of [0,1]){const x=side?1576:24;shapes.push({kind:'poly',points:[x-12,floor+110,x-18,floor-165,x+16,floor-165,x+12,floor+110],color:0x172b3a,alpha:.7});shapes.push({kind:'line',x:x-3,y:floor-156,x2:x-3,y2:floor+100,color:0x76a6ae,alpha:.35,width:2});shapes.push({kind:'ellipse',x,y:floor-120,rx:5,ry:13,color:0xffcf89,alpha:.7});}
  if(scene.decorative&&!scene.reduced)for(let i=0;i<8;i++)shapes.push({kind:'ellipse',x:(i*227+scene.tick*.12-shift*.6+1600)%1600,y:floor+45+Math.sin(scene.tick*.009+i)*5,rx:12+i%3*5,ry:1.5,color:0x90e1da,alpha:.06});
+ if(scene.decorative&&!scene.reduced&&scene.stage&&scene.stage!=='skyglass')for(let i=0;i<16;i++){
+  const x=(i*137+scene.tick*(scene.stage==='frost'?.35:.16))%1600,y=scene.stage==='forge'?570-((i*53+scene.tick*.65)%370):100+((i*79+scene.tick*.35)%470);
+  shapes.push({kind:'ellipse',x,y,rx:scene.stage==='frost'?1.8:1.4,ry:scene.stage==='frost'?1.8:2.2,color:scene.stage==='forge'?0xffa663:scene.stage==='grove'?0xc1efb0:0xb5e9ee,alpha:.25+(i%3)*.1});
+ }
  return shapes;
 }
 export function projectileShapes(scene){

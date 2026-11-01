@@ -20,7 +20,7 @@ export function createTraining(loadouts,options={}){
  state.training={...config,step:0,completed:false,feedback:note||DRILLS[config.drill].hint,feedbackUntil:240,note,guardTick:-1000,parried:false,stats:{damage:0,hits:0,bestCombo:0}};
  return state;
 }
-export function resetTraining(state){if(!state.training)throw new Error('Training state required');const next=createTraining(state.loadouts,state.training);next.training.sequence=structuredClone(state.training.sequence??[]);return next;}
+export function resetTraining(state){if(!state.training)throw new Error('Training state required');const next=createTraining(state.loadouts,state.training);next.stage=state.stage;next.training.sequence=structuredClone(state.training.sequence??[]);return next;}
 export function chargeTrainingAwakening(state){
  if(!state.training||state.training.drill!=='free')return false;
  const f=state.fighters[0],form=awakeningFor(f);if(!form)return false;
