@@ -1,5 +1,9 @@
 # Release notes
 
+## 0.29.1
+- Add Discord's required application User-Agent header to server-side OAuth requests.
+- Add redacted provider-stage diagnostics and isolate disabled OAuth tests from production configuration. Real provider authorization remains under verification. [Release notes](docs/releases/0.29.1.md).
+
 ## 0.29.0
 
 - Add Discord sign-in and explicit guest-profile linking, cross-device game sessions and device logout. Conflicting profiles are never merged automatically.
