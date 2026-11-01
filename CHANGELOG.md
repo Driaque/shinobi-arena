@@ -1,9 +1,15 @@
 # Release notes
 
-## 0.30.0
+## 0.30.1
 
 - Added server-verified daily, weekly and permanent online challenges, cosmetic profile titles and a forgiving seven-day login track.
 - Arena → Challenges shows progress, reset times, login claims and title selection. Arcade progression, story and co-op remain planned.
+
+## 0.30.0
+
+- Author distinct Aren/Silent sword poses with joint-constrained arms and hand-attached moving blades.
+- Add hit/guard sparks, landing rings, dash streaks, charge cues and decaying impact shake.
+- Add Animation Review with slow playback, tick stepping, joint markers and mirrored poses. [Release notes](docs/releases/0.30.0.md).
 
 ## 0.29.3
 
