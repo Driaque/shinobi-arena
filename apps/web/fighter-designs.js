@@ -61,19 +61,28 @@ export function drawFighterDesign(c, f, pose, {cloth,skin,hair,move}) {
  path([[-21,-59],[20,-59],[21,-52],[-21,-51]],dark);line(-18,-55,18,-56,accent,1);
  path([[-3,-59],[4,-59],[5,-52],[-3,-52]],accent);
  // Main sleeve and bracer articulate with the attack hand, not a painted frame.
- limb([13,-89],[32,pose.armY-6],13,cloth);
- limb([32,pose.armY-6],[pose.armX,pose.armY],10,skin);
- const dx=pose.armX-32,dy=6,len=Math.hypot(dx,dy)||1;
+ const frontElbow=pose.elbow??{x:32,y:pose.armY-6};
+ limb([13,-89],[frontElbow.x,frontElbow.y],13,cloth);
+ limb([frontElbow.x,frontElbow.y],[pose.armX,pose.armY],10,skin);
+ const dx=pose.armX-frontElbow.x,dy=pose.armY-frontElbow.y,len=Math.hypot(dx,dy)||1;
  const wrist=[pose.armX-dx/len*4,pose.armY-dy/len*4];
- limb([32+dx*.48,pose.armY-6+dy*.48],wrist,11,silent?'#52778e':'#316e63');
+ limb([frontElbow.x+dx*.48,frontElbow.y+dy*.48],wrist,11,silent?'#52778e':'#316e63');
  line(wrist[0]-2,wrist[1]-4,wrist[0]+2,wrist[1]+3,accent,1.5);
  oval(pose.armX,pose.armY,6,6,dark);oval(pose.armX+2,pose.armY-1,3,3,skin);
- if(!move&&['tachi','katana','kaiken','championKatana'].includes(f.weapon)){
-  const x=pose.armX,y=pose.armY;
-  line(x-7,y+5,x,y,ink,5);line(x-7,y+5,x,y,'#b0a17d',2);
-  path([[x,y-2],[x+40,y-30],[x+49,y-34],[x+43,y-26],[x+2,y+1]],'#c6e1ee');
-  line(x+5,y-4,x+42,y-29,'#f0fbff',1);line(x-2,y-6,x+5,y+5,accent,3);
+ if((!move||move.sword)&&['tachi','katana','kaiken','championKatana'].includes(f.weapon)){
+  c.save();c.translate(pose.armX,pose.armY);c.rotate(pose.weaponAngle??-.65);
+  const length=f.weapon==='kaiken'?32:76;
+  if(pose.swing!=null){
+   c.save();c.globalAlpha*=.24;
+   for(let i=3;i>0;i--){c.rotate(-.11);path([[0,0],[length,-3],[length+7,0],[length,3]],silent?'#9cddff':'#a9ffdf',null);}
+   c.restore();
+  }
+  line(-13,0,1,0,ink,6);line(-12,0,0,0,'#9f937b',3);
+  path([[1,-2],[length,-3],[length+8,0],[length,2],[1,2]],'#b7d3e1');
+  line(5,-1,length,-2,'#f0fbff',1);line(0,-7,0,7,accent,3);
+  c.restore();
  }
+
  // Face, swept hair and expressive eye retain a clear profile at gameplay scale.
  oval(0,-111,15,19,gradient(-12,-123,16,-100,['#f4ddc8',skin,'#a57f70']));
  if(silent){

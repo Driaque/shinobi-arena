@@ -1,5 +1,6 @@
 import {paintStageCanvas} from './packages/presentation/stages.js';
 import {stageFor} from './packages/engine/stages.js';
+import {paintBattleLife} from './living-motion.js';
 import {drawFighterDesign} from './fighter-designs.js';
 import {paintPracticeEffects} from './practice-effects.js';
 import {fighterPose,sampleFighters,projectLocalFighter} from './motion.js';
@@ -148,7 +149,7 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
       c.beginPath();c.ellipse(28,-78,Math.min(move.reach??110,150)*.65,43,move.spike?-.6:.1,-1.5+pose.weight,1.3+pose.weight);c.stroke();c.globalAlpha*=.4;c.lineWidth=12;c.stroke();c.restore();
     }
     if(action?.move==='clone'&&attacking&&!ghost){c.save();c.globalAlpha=.35;line(55,-70,180,-70,'#83d7ed',35);c.restore();}
-    if(action&&(['kunai','katana','shuriken'].includes(action.move)||move.sword)){
+    if(!redesigned&&action&&(['kunai','katana','shuriken'].includes(action.move)||move.sword)){
       const length=move.sword&&action.move!=='kaiken'?90:35;
       line(armX-5,armY,armX+length,armY-15,'#dce6ed',action.move==='katana'?5:4);
       line(armX+2,armY-10,armX+5,armY+7,'#cbb16c',4);
@@ -224,7 +225,7 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
     c.setTransform(dpr*zoom,0,0,dpr*zoom,worldWidth*dpr*.5*(1-zoom),(viewHeight*.9-ARENA.floor*zoom)*dpr);
     c.save();
     let shakeX=0,shakeY=0;
-    if(!reducedMotion.matches&&document.documentElement.dataset.shake!=='off'){const recent=state.fighters.find(f=>state.tick-f.lastHit<4);if(recent){const strength=recent.blockedHit?1:4;shakeX=Math.sin(state.tick*13)*strength;shakeY=Math.cos(state.tick*9)*strength*.5;c.translate(shakeX,shakeY);}}
+    if(!reducedMotion.matches&&document.documentElement.dataset.shake!=='off'){const recent=state.fighters.find(f=>state.tick-f.lastHit<4);if(recent){const decay=Math.max(0,1-(state.tick-recent.lastHit)/4),strength=(recent.blockedHit?1:Math.min(4,1+(recent.lastDamage??0)/50))*decay;shakeX=Math.sin(state.tick*13)*strength;shakeY=Math.cos(state.tick*9)*strength*.5;c.translate(shakeX,shakeY);}}
     render.frame={state,viewport:{worldWidth,viewHeight,zoom,shakeX,shakeY}};
     if(layers?.background!==false){if(state.stage&&state.stage!=='skyglass')paintStageCanvas(c,state.stage);else background(state.tick,(state.fighters[0].x+state.fighters[1].x)/2);}
     // Ground lanes and narrow/sweeping windups make depth separation readable.
@@ -268,6 +269,7 @@ c.save();c.translate(p.x,y);c.scale(p.direction,1);const color=MOVES[p.move].col
       if(element==='lightning')for(let i=0;i<4;i++){const h=Math.sin(Math.floor(state.tick*.5)+i*3)*30;line(-35+i*16,h,-22+i*16,-h,'#e4faff',2);}
       if(element==='poison')for(let i=0;i<5;i++)circle(-i*10,Math.sin(state.tick*.14+i)*17,3,'#deffae99');
       c.restore();}
+    paintBattleLife(c,state,{floor:ARENA.floor,reduced:reducedMotion.matches,effects:document.documentElement.dataset.effects!=='off'});
     const transformed=state.fighters.find(f=>f.awakeningFlash>0);
     if(transformed){c.textAlign='center';c.font='bold 32px system-ui';c.fillStyle=activeAwakening(transformed).color;c.fillText(activeAwakening(transformed).name.toUpperCase(),640,270);}
     c.restore();
