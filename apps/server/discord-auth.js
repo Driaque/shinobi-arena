@@ -5,6 +5,7 @@ const digest=value=>createHash('sha256').update(value).digest('base64url');
 const equal=(a,b)=>a.length===b.length&&timingSafeEqual(Buffer.from(a),Buffer.from(b));
 const valid=value=>typeof value==='string'&&/^[A-Za-z0-9_-]{43}$/.test(value);
 const json=value=>JSON.stringify(value).replaceAll('<','\\u003c');
+const userAgent='DiscordBot (https://github.com/Driaque/shinobi-arena, 1.0)';
 export function createDiscordAuth({clientId=process.env.DISCORD_CLIENT_ID,clientSecret=process.env.DISCORD_CLIENT_SECRET,publicOrigin=process.env.PUBLIC_ORIGIN,allowedOrigins=[],request=fetch,now=()=>Date.now(),onFailure=()=>{}}={}){
  let origin;
  try{const u=new URL(publicOrigin);if(u.origin!==publicOrigin||u.username||u.password||!(u.protocol==='https:'||u.protocol==='http:'&&['localhost','127.0.0.1'].includes(u.hostname)))throw Error();origin=u.origin;}catch{}
@@ -41,10 +42,10 @@ export function createDiscordAuth({clientId=process.env.DISCORD_CLIENT_ID,client
   const form=new URLSearchParams({client_id:clientId,client_secret:clientSecret,grant_type:'authorization_code',code:params.get('code'),redirect_uri:origin+'/auth/discord/callback',code_verifier:f.verifier});
   let user,stage='token_request',status=null;
   try{
-   const response=await request('https://discord.com/api/oauth2/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:form,signal:AbortSignal.timeout(15000)});
+   const response=await request('https://discord.com/api/oauth2/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','User-Agent':userAgent},body:form,signal:AbortSignal.timeout(15000)});
    status=response.status??null;if(!response.ok)throw Error();stage='token_response';const token=await response.json();
    if(token.token_type?.toLowerCase()!=='bearer'||typeof token.access_token!=='string'||!token.scope?.split(' ').includes('identify'))throw Error();
-   stage='profile_request';status=null;const result=await request('https://discord.com/api/v10/users/@me',{headers:{Authorization:'Bearer '+token.access_token},signal:AbortSignal.timeout(15000)});
+   stage='profile_request';status=null;const result=await request('https://discord.com/api/v10/users/@me',{headers:{Authorization:'Bearer '+token.access_token,'User-Agent':userAgent},signal:AbortSignal.timeout(15000)});
    status=result.status??null;if(!result.ok)throw Error();stage='profile_response';user=await result.json();if(!/^\d{5,25}$/.test(user?.id??''))throw Error();
   }catch(error){onFailure({stage,status:Number.isInteger(status)?status:null,timeout:error?.name==='TimeoutError'});throw new AccountError('Discord could not verify this sign-in. Your profile was not changed. Try again.',502);}
   const proof=nonce();grants.set(digest(proof),{...f,flow,user:{id:user.id,username:String(user.username??'').slice(0,80),global_name:String(user.global_name??'').slice(0,80)},expires:now()+60000});
