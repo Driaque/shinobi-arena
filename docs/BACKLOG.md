@@ -25,7 +25,7 @@ Track visit → ready → first match → completed match → rematch → return
 3. Short Silent and Winta character story chapter: brothers, dialogue panels, a few encounters, rival fight and ending. Reuse arenas and combat; establish original lore before expanding the campaign.
 4. Two-player co-op survival: synchronized waves, readable enemy patterns and teammate assistance, followed by bosses. Validate AI, two-client authority, disconnects, mobile performance and reward eligibility before release.
 
-Story and co-op are approved future work, not shipped modes. The initial login track is seven cumulative claim days, without streak resets. Challenges use UTC day/Monday-week boundaries. Measure challenge participation, repeat visits and rematches before expanding reward volume.
+v0.31.0 introduces the first Northern Echoes story chapter and private two-player, three-wave survival. Additional chapters, boss encounters, in-wave revives, reconnect, profile rewards and shared exploration remain future work. The initial login track is seven cumulative claim days, without streak resets. Challenges use UTC day/Monday-week boundaries. Measure challenge participation, repeat visits and rematches before expanding reward volume.
 
 ## Historical milestones
 

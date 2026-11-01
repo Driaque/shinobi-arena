@@ -208,3 +208,5 @@ label:has(select){cursor:pointer}label:has(select)>select{flex:1;min-width:0}
 .loadout-book>.loadout-content{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:3px}
 .loadout-book .equipment-grid{max-height:none;overflow:visible}
 .loadout-book>header,.loadout-book>footer{flex:none}
+
+.adventures-link{display:inline-flex;align-items:center;min-height:40px;padding:8px 12px;border:1px solid #6f8896;border-radius:6px;background:#183344;color:#f0cf94;text-decoration:none;font-weight:700;font-size:13px}.adventures-link:focus-visible{outline:3px solid #f0cf94;outline-offset:2px}

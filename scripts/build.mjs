@@ -12,6 +12,7 @@ async function versionModules(dir){for(const e of await readdir(dir,{withFileTyp
 for(const entry of ['visual-lab','practice-pixi','roster-pixi']){const result=await build({entryPoints:[`dist/${entry}.js`],bundle:true,format:'esm',platform:'browser',target:'es2022',minify:true,write:false,legalComments:'eof'});await writeFile(`dist/${entry}.js`,result.outputFiles[0].contents);}
 await versionModules('dist');
 const labHtml=await readFile('dist/visual-lab.html','utf8');await writeFile('dist/visual-lab.html',labHtml.replace('./visual-lab.js"',`./visual-lab.js?v=${version}"`).replace('./visual-lab.css"',`./visual-lab.css?v=${version}"`));
+const adventures=await readFile('dist/adventures.html','utf8');await writeFile('dist/adventures.html',adventures.replace('./adventures.js"',`./adventures.js?v=${version}"`).replace('./adventures.css"',`./adventures.css?v=${version}"`));
 const html=await readFile('dist/index.html','utf8');await writeFile('dist/index.html',html.replace('./main.js"',`./main.js?v=${version}"`).replace('./startup.js"',`./startup.js?v=${version}"`).replace('./styles.css"',`./styles.css?v=${version}"`).replace('./icons.css"',`./icons.css?v=${version}"`));
 const escape=s=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 const inline=s=>escape(s).replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/`([^`]+)`/g,'<code>$1</code>');
