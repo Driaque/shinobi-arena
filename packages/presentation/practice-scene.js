@@ -19,6 +19,8 @@ export function practiceSceneFor(state, viewport, settings = {}) {
       actor.scale=120/fighterAtlasData(fighter.character).standingHeight*(fighter.scale??1);
     }
   }
+  // Fluid bodies are drawn continuously by the original foreground renderer.
+  if(settings.fluid)scene.fighters=[];
   // Native elemental fields; smoke, item cues and all text stay in the overlay.
   scene.zones = (state.zones ?? []).filter(z => z.kind === 'elemental').map(z => ({...z, element: MOVES[z.move]?.ground?.element ?? 'water'}));
   scene.projectiles = (state.projectiles??[]).map(p=>({...p,color:settings.catalog?.moves?.[p.move]?.color??MOVES[p.move]?.color??'#ffcb88',element:settings.catalog?.moves?.[p.move]?.element??MOVES[p.move]?.element??(MOVES[p.move]?.effect==='burn'?'fire':undefined)}));

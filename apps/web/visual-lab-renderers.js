@@ -152,14 +152,20 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
     throw error;
   }
   const root = new Container();
+  root.eventMode = "none";
+  root.interactiveChildren = false;
   app.stage.addChild(root);
   const bgTexture = Texture.from(art.arena),
     bg = new Sprite(bgTexture);
   root.addChild(bg);
+  const terrain = new Graphics();
+  const staticScenery = sceneryFor({decorative:false});
+  shapes(terrain,staticScenery);
   const ground = new Graphics(),
     fighters = new Container(),
     effects = new Graphics();
-  root.addChild(ground, fighters, effects);
+  root.addChild(terrain, ground, fighters, effects);
+  fighters.sortableChildren = true;
   const atlas = Texture.from(art.fighter),
     textures = FRAMES.map(
       (f) =>
@@ -223,7 +229,8 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
     bg.height = rect.h;
     ground.clear();
     effects.clear();
-    shapes(ground,sceneryFor(scene));
+    // Retain static geometry; rebuild only the animated additions.
+    shapes(ground,sceneryFor(scene).slice(staticScenery.length));
     for(const a of actors)a.container.visible=false;
     for (const z of scene.zones ?? [])
       if (z.kind === "elemental")
@@ -264,7 +271,6 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
           .fill({color:teal,alpha:0.18}).stroke({color:teal,width:2,alpha:0.65});
       }
     }
-    fighters.sortableChildren = true;
     shapes(effects,projectileShapes(scene));
     for (const p of scene.motes)
       effects.circle(p.x, p.y, p.r).fill({ color: 0xacede3, alpha: p.alpha });

@@ -21,3 +21,21 @@ export function interpolateFighter(a,b,t){
 }
 // Local input must not be held behind a snapshot interpolation window.
 export function sampleFighters(previous,current,t,online=false){return current.map((f,i)=>online?interpolateFighter(previous[i],f,t):{...f});}
+
+// Project only the observed last tick's displacement, never stale velocity.
+// One tick maximum keeps local input immediate on high-refresh displays.
+export function projectLocalFighter(previous, current, fraction, ticks=1){
+ const result={...current};
+ if(!previous||ticks!==1||previous.character!==current.character)return result;
+ const alpha=Number.isFinite(fraction)?clamp(fraction):0;
+ if(Math.abs(current.x-previous.x)>40||Math.abs(current.y-previous.y)>40)return result;
+ for(const key of ['x','y','depth','travel']){
+  const delta=(current[key]??0)-(previous[key]??0);
+  // Ground contact and stop/start transitions stay at the current pose.
+  if(key==='y'&&current.y===0)continue;
+  if(key==='travel'&&delta<0)continue;
+  result[key]=(current[key]??0)+delta*alpha;
+ }
+ result.y=Math.max(0,result.y);
+ return result;
+}

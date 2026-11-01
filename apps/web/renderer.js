@@ -1,5 +1,6 @@
+import {drawFighterDesign} from './fighter-designs.js';
 import {paintPracticeEffects} from './practice-effects.js';
-import {fighterPose,sampleFighters} from './motion.js';
+import {fighterPose,sampleFighters,projectLocalFighter} from './motion.js';
 import {actionPhase} from './packages/engine/training.js';
 import { ARENA, fighterBody, MOVES as LIVE_MOVES, CHARACTERS as LIVE_CHARACTERS, AWAKENINGS as LIVE_AWAKENINGS } from './packages/engine/index.js';
 export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACTERS,awakenings=LIVE_AWAKENINGS}={}) {
@@ -10,6 +11,7 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
   const c=canvas.getContext('2d');
   let worldWidth=ARENA.width,viewHeight=ARENA.height,zoom=1,frameTick=-1,frameRound=-1,blendStart=0,blendDuration=16,previous=[],targets=[],shown=[],visualTick=0,projectilePrevious=[],projectileTargets=[],projectileShown=[];
   const trails=[[],[]];
+  let localTickSpan=0;
   let externalActors=false,nativeEffects=false,nativeAren=false,nativeFighters=[];
   function resize(){
     const rect=canvas.parentElement.getBoundingClientRect();
@@ -76,6 +78,10 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
     const shade=(hex,k)=>'#'+[1,3,5].map(i=>Math.max(0,Math.min(255,parseInt(hex.slice(i,i+2),16)+k)).toString(16).padStart(2,'0')).join('');
     const cloth=state.tick-f.lastHit<5&&!f.blockedHit?'#fff2d4':form?.color??character.color;
     const dark=orange?'#223446':'#242d48', skin=character.skin??(f.character==='silent'?'#d6c2b4':'#e6b18b');
+    const armY=pose.armY,armX=pose.armX;
+    const redesigned=character.id==='aren'||character.id==='silent';
+    if(redesigned)drawFighterDesign(c,f,pose,{cloth,skin,hair:character.hair,move});
+    else {
     if(f.character==='dora'){c.fillStyle=character.hair;c.beginPath();c.moveTo(-19,-130);c.quadraticCurveTo(-46,-85,-28,form?-20:-48);c.lineTo(8,form?-25:-52);c.lineTo(13,-125);c.fill();}
     if(['silent','winta'].includes(f.character)){c.fillStyle=character.hair;c.beginPath();c.moveTo(-17,-134);c.quadraticCurveTo(-39-pose.trail,-98,-31-pose.trail,-63);c.lineTo(-13,-75);c.lineTo(3,-123);c.fill();for(let strand=0;strand<4;strand++)line(-19-strand*3,-117,-27-strand*3-pose.trail,-70+strand*3,'#ffffff22',1);}
     // Recognizable back silhouettes sit behind the articulated limbs.
@@ -104,7 +110,6 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
     if(['sasuke','boruto','kawaki'].includes(character.id)){line(-19,-94,-10,-82,'#343648',7);line(14,-94,8,-81,'#343648',7);line(-19,-56,22,-56,character.id==='sasuke'?'#9b85b8':'#d6a4bd',5);}
     if(['silent','winta','madara','kakashi'].includes(character.id)){const armor=character.id==='kakashi'?'#637e68':character.id==='silent'?'#6a8b9e':'#8c4c56';for(let plate=0;plate<3;plate++){c.fillStyle=armor;c.fillRect(-19,-86+plate*9,35,7);line(-17,-84+plate*9,13,-84+plate*9,'#ffffff2b',1);}for(const side of [-1,1]){c.fillStyle=armor;c.beginPath();c.moveTo(side*16,-94);c.lineTo(side*30,-89);c.lineTo(side*30,-76);c.lineTo(side*18,-82);c.fill();line(side*20,-91,side*28,-88,'#cad5d455',2);}}
     if(['lee','hinata','sakura'].includes(character.id)){for(let wrap=0;wrap<3;wrap++){line(-19+stride,-18+pose.foot+wrap*4,-9+stride,-18+pose.foot+wrap*4,'#d5d9cd',2);line(15-stride,-18+pose.foot+wrap*4,24-stride,-18+pose.foot+wrap*4,'#d5d9cd',2);}}
-    const armY=pose.armY,armX=pose.armX;
     if(pose.weight>.2&&(action?.move==='attack3'||action?.move==='airAttack3')){line(10,-48,66,-66,cloth,16);line(66,-66,93,-96,dark,13);}
     if(f.charging||move?.projectile||move?.ground||move?.buff){line(-14,-86,8,-96,dark,13);line(8,-96,pose.armX-9,pose.armY+7,skin,10);circle(pose.armX-9,pose.armY+7,5,skin);}else{line(-14,-86,-27,-64,dark,13);line(-27,-64,-16,-52,skin,11);}
     line(12,-87,32,armY-6,cloth,14);line(32,armY-6,armX,armY,skin,11);circle(armX,armY,7,'#273848');circle(armX+2,armY-1,4,skin);line(armX,armY+2,armX+5,armY+1,'#b18d75',1);
@@ -125,6 +130,7 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
     if(character.id==='silent'){line(-28,-72,-36,-34,'#273f55',8);line(-36,-34,-49-pose.trail,-23,'#668396',4);}
     // Headband ribbons trail behind the fighter.
     line(-19,-120,-41-pose.trail,-113+Math.sin(phase)*4,dark,4);line(-19,-119,-42-pose.trail,-125+Math.cos(phase)*4,dark,4);
+    } // Original bodies for the remaining roster.
     if(f.blocking || state.tick-f.lastHit<5&&f.blockedHit){c.strokeStyle='#80d6eb';c.lineWidth=4;c.beginPath();c.ellipse(26,-70,30,65,0,-1.4,1.4);c.stroke();}
     if(attacking&&['attack','attack2','attack3'].includes(action.move)){line(38,-81,88,-86,'#ffe1aa',4);line(42,-69,81,-70,'#ffe1aa77',2);}
     if(action?.move==='special1'||action?.move==='chidori'||action?.move==='lionFists'||action?.move==='kuramaRasengan'||action?.move==='karmaRasengan'){
@@ -151,7 +157,7 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
     if(attacking&&action&& !['attack','attack2','attack3','special1','chidori','lionFists','kuramaRasengan','karmaRasengan','clone','kunai','katana','shuriken'].includes(action.move)&&!move.projectile&&!move.buff){
       c.strokeStyle=move.color??character.color;c.lineWidth=7;c.beginPath();c.moveTo(25,-65);c.quadraticCurveTo(Math.min(move.reach,220)*.6,-130,Math.min(move.reach,250),-75);c.stroke();
     }
-    if(['silent','winta'].includes(character.id)){
+    if(!redesigned&&['silent','winta'].includes(character.id)){
       if(!action){line(-22,-70,-55,-22,'#c6d8e4',4);line(-25,-76,-16,-68,'#ae9b78',4);}
       if(character.id==='silent'){
         c.fillStyle='#1c2c3e';c.fillRect(-16,-108,32,13);circle(8,-110,2,'#83d7ff');
@@ -189,7 +195,7 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
     if(!ghost&&state.tick-f.lastHit<25&&f.lastDamage){c.save();c.font='bold 18px system-ui';c.textAlign='center';c.fillStyle=f.blockedHit?'#98d4e7':'#ffe0ac';c.globalAlpha=1-(state.tick-f.lastHit)/25;c.fillText(`−${f.lastDamage}`,x,ground-160-(state.tick-f.lastHit)*1.2);c.restore();}
     if(!ghost&&state.tick-f.lastHit<8){c.save();c.translate(x,ground-70);for(let i=0;i<7;i++){const a=i*.9;line(Math.cos(a)*15,Math.sin(a)*15,Math.cos(a)*40,Math.sin(a)*40,f.blockedHit?'#89dbea':'#ffd8a0',3);}c.restore();}
   }
-  const render=function render(authoritative,{interpolate=false,predicted=null,localSlot=0,layers=null,sampled=false}={}) {
+  const render=function render(authoritative,{interpolate=false,predicted=null,localSlot=0,layers=null,sampled=false,localAlpha=0}={}) {
     externalActors=layers?.actors===false;nativeEffects=layers?.nativeEffects===true;nativeAren=layers?.nativeAren===true;
     nativeFighters=layers?.nativeFighters??[];
     const now=performance.now();const nextWidth=authoritative.arena?.width??1280;if(nextWidth!==worldWidth){worldWidth=nextWidth;resize();}
@@ -197,14 +203,16 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
       const reset=frameTick<0||authoritative.tick<frameTick||frameRound!==authoritative.round;
       projectilePrevious=reset?[]:projectileShown;projectileTargets=authoritative.projectiles.map(p=>({...p}));
       previous=reset?authoritative.fighters.map(f=>({...f})):targets;
+      localTickSpan=reset?0:authoritative.tick-frameTick;
       blendDuration=Math.min(65,Math.max(16,(authoritative.tick-frameTick)*1000/60));blendStart=now;
       targets=authoritative.fighters.map(f=>({...f,action:f.action?{...f.action}:null}));visualTick=reset?authoritative.tick:frameTick;
       frameTick=authoritative.tick;frameRound=authoritative.round;if(reset)trails.forEach(t=>t.splice(0));
     }
     const blend=interpolate?Math.min(1,(now-blendStart)/blendDuration):1;shown=sampled?authoritative.fighters.map(f=>({...f})):sampleFighters(previous,targets,blend,interpolate);
+    if(!interpolate&&!sampled&&localAlpha>0)shown=shown.map((f,i)=>projectLocalFighter(previous[i],f,localAlpha,localTickSpan));
     if(predicted&&shown[localSlot]){const p=predicted.fighters[localSlot];for(const key of ['x','y','vy','vx','depth','travel','jumps','dash'])shown[localSlot][key]=p[key];}
     projectileShown=sampled?authoritative.projectiles.map(p=>({...p})):projectileTargets.map(p=>{const a=projectilePrevious.find(old=>old.id===p.id);return a?{...p,x:a.x+(p.x-a.x)*blend,y:a.y+(p.y-a.y)*blend}:p;});
-    const state={...authoritative,projectiles:projectileShown,tick:sampled?authoritative.tick:visualTick+(authoritative.tick-visualTick)*blend,fighters:shown};
+    const state={...authoritative,projectiles:projectileShown,tick:sampled?authoritative.tick:visualTick+(authoritative.tick-visualTick)*blend+(!interpolate?Math.max(0,Math.min(1,localAlpha)):0),fighters:shown};
 
     const width=worldWidth*dpr,height=Math.round(viewHeight*dpr);
     if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height;}

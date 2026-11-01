@@ -1,5 +1,11 @@
 # Release notes
 
+## 0.29.3
+
+- Restore continuously animated original fighters by default alongside Pixi battlefield effects, with an optional painted fighter style.
+- Redesign Aren and Silent as layered, articulated Canvas fighters with distinct outfits, armor, hair and weapon details.
+- Add bounded local sub-tick movement presentation and retain static Pixi scenery geometry. [Release notes](docs/releases/0.29.3.md).
+
 ## 0.29.2
 
 - Keep Save loadout visible on all tabs while the Strategy Advisor and equipment cards scroll, including phone screens. [Release notes](docs/releases/0.29.2.md).

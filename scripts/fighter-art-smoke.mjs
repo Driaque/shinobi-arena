@@ -29,7 +29,7 @@ try{
     await page.evaluate(()=>document.querySelector('#art-evidence [data-practice-art=pixi]').dispatchEvent(new Event('webglcontextlost',{cancelable:true})));
     assert.equal(await page.evaluate(()=>window.art.draw('pixi')),'canvas');
     await page.evaluate(()=>{window.art.backend.destroy();window.art.host.remove();});
-    await page.reload();await page.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-pixi');
+    await page.evaluate(()=>localStorage.setItem('fabled.fighter.style.v1','painted'));await page.reload();await page.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-pixi');
     await page.route('**/assets/originals/nyra.webp*',route=>route.abort());
     await page.selectOption('#mode','training');await page.locator('#character0 input[value=nyra]').check();await page.click('#play');
     await page.waitForFunction(()=>document.querySelector('#practice-graphics-status').textContent.includes('nyra'));
