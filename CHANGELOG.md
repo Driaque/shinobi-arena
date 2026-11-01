@@ -1,5 +1,11 @@
 # Release notes
 
+## 0.30.0
+
+- Author distinct Aren/Silent sword poses with joint-constrained arms and hand-attached moving blades.
+- Add hit/guard sparks, landing rings, dash streaks, charge cues and decaying impact shake.
+- Add Animation Review with slow playback, tick stepping, joint markers and mirrored poses. [Release notes](docs/releases/0.30.0.md).
+
 ## 0.29.3
 
 - Restore continuously animated original fighters by default alongside Pixi battlefield effects, with an optional painted fighter style.
