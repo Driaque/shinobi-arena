@@ -53,3 +53,17 @@ test('provider errors are sanitized and cannot be replayed',async()=>{
  await assert.rejects(auth.callback(params,r.cookie.split(';')[0]),e=>e.status===502&&!e.message.includes('private-provider-token'));
  await assert.rejects(auth.callback(params,r.cookie.split(';')[0]),/already used/);
 });
+test('provider diagnostics expose only stage, HTTP status and timeout, never response bodies or credentials',async()=>{
+ for(const failure of ['token','profile','timeout']){
+  const diagnostics=[];
+  const auth=createDiscordAuth({clientId:'123456789012345678',clientSecret:'private-client-secret',publicOrigin:origin,onFailure:value=>diagnostics.push(value),request:async url=>{
+   if(failure==='timeout')throw Object.assign(Error('private-code'),{name:'TimeoutError'});
+   if(failure==='token'||url.endsWith('/users/@me'))return {ok:false,status:failure==='token'?400:403,json:async()=>({error:'private-response-body'})};
+   return {ok:true,status:200,json:async()=>({access_token:'private-access-token',token_type:'Bearer',scope:'identify'})};
+  }});
+  const start=auth.start({mode:'signin',requestKey,returnOrigin:origin}),r=auth.authorize(start.flow);
+  await assert.rejects(auth.callback(new URLSearchParams({state:start.flow,code:'private-code',iss:'https://discord.com'}),r.cookie.split(';')[0]),/could not verify/);
+  assert.deepEqual(diagnostics,[{stage:failure==='profile'?'profile_request':'token_request',status:failure==='timeout'?null:failure==='token'?400:403,timeout:failure==='timeout'}]);
+  assert.equal(JSON.stringify(diagnostics).includes('private'),false);
+ }
+});

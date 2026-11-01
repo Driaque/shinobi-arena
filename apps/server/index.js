@@ -12,7 +12,7 @@ import {createHash} from 'node:crypto';
 import {playerProfile,PROTOCOL_VERSION,RULES_VERSION} from '../../packages/network/protocol.js';
 const {version}=JSON.parse(await readFile(new URL('../../package.json',import.meta.url),'utf8'));
 export function createOnlineServer({origins=[],port=Number(process.env.PORT||4175),host='0.0.0.0',staticDirectory='dist',store:providedStore,storeOptions={},storageExpiresAt=process.env.STORAGE_EXPIRES_AT??null,discordOptions={},...arenaOptions}={}){
- const discord=createDiscordAuth({...discordOptions,allowedOrigins:origins}),authenticatedSockets=new Map(),authBudgets=new Map();
+ const discord=createDiscordAuth({...discordOptions,allowedOrigins:origins,onFailure:details=>console.warn('Discord sign-in failed:',JSON.stringify(details))}),authenticatedSockets=new Map(),authBudgets=new Map();
  const storeReady=providedStore?Promise.resolve(providedStore):createStore(storeOptions);let storageHealthy=true;
  let tournamentTail=Promise.resolve();const tournamentAction=fn=>{const run=tournamentTail.then(fn);tournamentTail=run.catch(()=>{});return run;};
  const pending=new Map();
