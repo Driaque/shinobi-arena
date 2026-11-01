@@ -63,3 +63,11 @@ test('native fields retain element, depth and expiry while smoke stays in the co
  assert.deepEqual(state,before);assert.equal(scene.zones.length,1);
  assert.equal(scene.zones[0].element,'water');assert.equal(scene.zones[0].depth,18);assert.equal(scene.zones[0].remaining,24);
 });
+
+test('fluid fighters retain effects and authoritative state without loading painted bodies',()=>{
+ const state=createTraining([{character:'silent',weapon:'tachi'},{character:'aren',weapon:'katana'}]);
+ const before=structuredClone(state),scene=practiceSceneFor(state,{}, {selected:true,fluid:true});
+ assert.equal(scene.fighters.length,0);
+ assert.deepEqual(state,before);
+ assert.ok(scene.motes.length>0);
+});

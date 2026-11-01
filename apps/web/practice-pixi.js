@@ -14,7 +14,11 @@ export async function createPracticeBackends(parent, onLost, onArtChange=()=>{})
   let disposed = false,
     pixiAvailable = false;
   const sizes = {};
-  let selectedFighters=[];
+  let selectedFighters=[], visible=null;
+  let bounds=parent.getBoundingClientRect();
+  const reducedMotion=matchMedia("(prefers-reduced-motion: reduce)");
+  const observer=new ResizeObserver(()=>{bounds=parent.getBoundingClientRect();});
+  observer.observe(parent);
   const sheets=createFighterAtlasStore(async id=>{
     const url=new URL('./assets/originals/'+id+'.webp',import.meta.url);
     url.search=new URL(import.meta.url).search;
@@ -49,6 +53,7 @@ export async function createPracticeBackends(parent, onLost, onArtChange=()=>{})
   function destroy() {
     if (disposed) return;
     disposed = true;
+    observer.disconnect();
     for (const renderer of Object.values(renderers)) {
       try {
         renderer.destroy();
@@ -61,20 +66,20 @@ export async function createPracticeBackends(parent, onLost, onArtChange=()=>{})
   }
   function hide() {
     for (const c of Object.values(canvases)) c.hidden = true;
+    visible=null;
   }
   return {
     hasPixi: () => pixiAvailable,
     fighterIds:()=>sheets.readyIds(),
     failedFighters:()=>sheets.failedIds().filter(id=>selectedFighters.includes(id)),
-    draw(state, viewport, requested, {preview=true,catalog={}}={}) {
+    draw(state, viewport, requested, {preview=true,catalog={},fluid=false}={}) {
       if (disposed) return;
-      selectedFighters=preview?[]:state.fighters.map(f=>f.character);
-      if(!preview)sheets.request(state.fighters.map(f=>f.character));
+      selectedFighters=preview||fluid?[]:state.fighters.map(f=>f.character);
+      if(!preview&&!fluid)sheets.request(state.fighters.map(f=>f.character));
       const selected =
         requested === "pixi" && pixiAvailable ? "pixi" : "canvas";
-      hide();
-      canvases[selected].hidden = false;
-      const rect = parent.getBoundingClientRect();
+      if(visible!==selected){hide();canvases[selected].hidden=false;visible=selected;}
+      const rect = bounds;
       if (
         sizes[selected]?.width !== rect.width ||
         sizes[selected]?.height !== rect.height
@@ -82,11 +87,11 @@ export async function createPracticeBackends(parent, onLost, onArtChange=()=>{})
         renderers[selected].resize(rect.width, rect.height);
         sizes[selected] = { width: rect.width, height: rect.height };
       }
-      const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const reduced = reducedMotion.matches;
       const scene = practiceSceneFor(state, viewport, {
         reduced,
         effects: document.documentElement.dataset.effects !== "off",
-        selected:!preview,catalog,atlasFighters:sheets.readyIds(),
+        selected:!preview,catalog,atlasFighters:sheets.readyIds(),fluid,
       });
       renderers[selected].draw(scene);
       canvases[selected].dataset.fighterModels=scene.fighters.map(f=>f.atlasId??'aren-preview').join(',');

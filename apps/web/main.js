@@ -271,7 +271,7 @@ function frame(now){
     if(state.status!=='playing')finish();
   }else accumulator=0;
   if(lastTime&&now-lastTime<250){frameTimes.push(now-lastTime);if(frameTimes.length>120)frameTimes.shift();}const q=online?.quality;netLabel.textContent=mode==='online'?`${q?.label??'Measuring'} · RTT ${q?.rtt??'—'}ms · jitter ${q?.jitter??0}ms · ${experience().prediction?'movement prediction':'authoritative movement'}`:mode==='training'?`Practice ${experience().speed}× · frame p95 ${Math.round([...frameTimes].sort((a,b)=>a-b)[Math.floor(frameTimes.length*.95)]??0)}ms · ${render.status().label}`:'';
-  lastTime=now;if(now>feedbackUntil)$('#feedback').textContent='';render(state,{interpolate:mode==='online',predicted:mode==='online'&&experience().prediction?prediction.sample(state):null,localSlot:online?.slot??0});sound.update(state,started&&!paused&&$('#rotate').hidden);paintHud();requestAnimationFrame(frame);
+  lastTime=now;if(now>feedbackUntil)$('#feedback').textContent='';render(state,{localAlpha:mode!=='online'&&!paused&&state.status==='playing'?accumulator*TICK_RATE:0,interpolate:mode==='online',predicted:mode==='online'&&experience().prediction?prediction.sample(state):null,localSlot:online?.slot??0});sound.update(state,started&&!paused&&$('#rotate').hidden);paintHud();requestAnimationFrame(frame);
 }
 $('#overlay-hint').textContent=`${difficultyFor(difficulty).name} · ${difficultyFor(difficulty).description}`;
 orientation();requestAnimationFrame(frame);

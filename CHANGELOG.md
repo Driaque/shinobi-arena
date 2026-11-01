@@ -1,5 +1,11 @@
 # Release notes
 
+## 0.29.2
+
+- Restore continuously animated original fighters by default alongside Pixi battlefield effects, with an optional painted fighter style.
+- Redesign Aren and Silent as layered, articulated Canvas fighters with distinct outfits, armor, hair and weapon details.
+- Add bounded local sub-tick movement presentation and retain static Pixi scenery geometry. [Release notes](docs/releases/0.29.2.md).
+
 ## 0.29.1
 - Add Discord's required application User-Agent header to server-side OAuth requests.
 - Add redacted provider-stage diagnostics and isolate disabled OAuth tests from production configuration. Real provider authorization remains under verification. [Release notes](docs/releases/0.29.1.md).

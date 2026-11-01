@@ -3,6 +3,8 @@ export const GRAPHICS_KEY='fabled.practice.graphics.v2';
 export const BATTLE_GRAPHICS_KEY='fabled.battle.graphics.v1';
 const valid=v=>['classic','canvas','pixi'].includes(v)?v:'classic';
 const read=(key,fallback)=>{try{return localStorage.getItem(key)??fallback;}catch{return fallback;}};
+export const FIGHTER_STYLE_KEY='fabled.fighter.style.v1';
+let fighterStyle=read(FIGHTER_STYLE_KEY,'fluid')==='painted'?'painted':'fluid';
 let graphics=read(BATTLE_GRAPHICS_KEY,'pixi')==='canvas'?'canvas':'pixi';
 let modulePromise=null,retryAttempt=0;
 function loadModule(){
@@ -33,11 +35,12 @@ export function createPracticeRenderer(canvas,{getMode=()=>'',catalog={},viewer=
   active=Boolean(backends);
   if(!active){base(state,options);canvas.dataset.presentation='classic';}
   else try{
-   base(state,{...options,layers:{background:false,actors:!preview,nativeAren:true,nativeFighters:preview?[]:backends.fighterIds(),nativeEffects:true}});
-   const actual=backends.draw(base.frame.state,base.frame.viewport,want,{preview,catalog});
+   base(state,{...options,layers:{background:false,actors:!preview,nativeAren:preview||fighterStyle==='painted',nativeFighters:preview||fighterStyle==='fluid'?[]:backends.fighterIds(),nativeEffects:true}});
+   const actual=backends.draw(base.frame.state,base.frame.viewport,want,{preview,catalog,fluid:!preview&&fighterStyle==='fluid'});
+   canvas.dataset.fighterStyle=preview?'preview':fighterStyle;
    canvas.dataset.presentation=(preview?'aren-':'selected-')+actual;
    const missing=backends.failedFighters();artFailed=missing.length>0;
-   report(artFailed?'Detailed artwork unavailable for '+missing.join(', ')+'. Original fighters remain playable. Retry graphics to recover.':gpuLost&&want==='pixi'?'WebGL unavailable. Canvas battlefield is active.':(actual==='pixi'?'PixiJS':'Canvas')+' · '+(preview?'Aren + sparring echo':'selected fighters + Skyglass Terrace'));
+   report(artFailed?'Detailed artwork unavailable for '+missing.join(', ')+'. Original fighters remain playable. Retry graphics to recover.':gpuLost&&want==='pixi'?'WebGL unavailable. Canvas battlefield is active.':(actual==='pixi'?'PixiJS':'Canvas')+' · '+(preview?'Aren + sparring echo':''+(fighterStyle==='fluid'?'continuous fighters':'painted fighters')+' + Skyglass Terrace'));
   }catch{release();failed=true;base(state,options);canvas.dataset.presentation='classic';report('Battlefield rendering stopped. Original Canvas restored. Retry graphics to recover.');}
   canvas.dataset.renderTick=state.tick;
  };
@@ -47,8 +50,9 @@ export function createPracticeRenderer(canvas,{getMode=()=>'',catalog={},viewer=
  render.dispose=()=>{disposed=true;lastState=null;window.removeEventListener('pagehide',release);window.removeEventListener('arena:graphics',globalChange);select?.removeEventListener('change',change);release();base.dispose();};
  if(!viewer&&!document.querySelector('#graphics-settings')){
   const button=document.createElement('button');button.id='graphics-settings';button.textContent='Graphics';button.type='button';document.querySelector('.tools').append(button);
-  const dialog=document.createElement('dialog');dialog.id='graphics-dialog';dialog.className='keys-dialog';dialog.innerHTML='<h2>Battlefield graphics</h2><label>Renderer<select id="battle-renderer"><option value="pixi">PixiJS · all modes</option><option value="canvas">Canvas · compatibility</option></select></label><p>Skyglass Terrace and combat effects apply to every mode, live spectating and replay viewing. Selected fighters keep their own appearance. WebGL failure falls back to Canvas.</p><p id="battle-graphics-status" role="status"></p><button id="battle-graphics-retry">Retry graphics</button><button id="graphics-close">Done</button>';document.body.append(dialog);
-  const field=dialog.querySelector('select');field.value=graphics;field.onchange=()=>{graphics=field.value==='canvas'?'canvas':'pixi';try{localStorage.setItem(BATTLE_GRAPHICS_KEY,graphics);}catch{}window.dispatchEvent(new Event('arena:graphics'));dialog.querySelector('#battle-graphics-status').textContent=label;};
+  const dialog=document.createElement('dialog');dialog.id='graphics-dialog';dialog.className='keys-dialog';dialog.innerHTML='<h2>Battlefield graphics</h2><label>Renderer<select id="battle-renderer"><option value="pixi">PixiJS · all modes</option><option value="canvas">Canvas · compatibility</option></select></label><label>Fighter animation<select id="fighter-style"><option value="fluid">Continuous · original Canvas fighters</option><option value="painted">Painted · sprite key poses</option></select></label><p>Skyglass Terrace and combat effects apply to every mode, live spectating and replay viewing. Selected fighters keep their own appearance. WebGL failure falls back to Canvas.</p><p id="battle-graphics-status" role="status"></p><button id="battle-graphics-retry">Retry graphics</button><button id="graphics-close">Done</button>';document.body.append(dialog);
+  const styleField=dialog.querySelector('#fighter-style');styleField.value=fighterStyle;styleField.onchange=()=>{fighterStyle=styleField.value==='painted'?'painted':'fluid';try{localStorage.setItem(FIGHTER_STYLE_KEY,fighterStyle);}catch{}window.dispatchEvent(new Event('arena:graphics'));dialog.querySelector('#battle-graphics-status').textContent=label;};
+  const field=dialog.querySelector('#battle-renderer');field.value=graphics;field.onchange=()=>{graphics=field.value==='canvas'?'canvas':'pixi';try{localStorage.setItem(BATTLE_GRAPHICS_KEY,graphics);}catch{}window.dispatchEvent(new Event('arena:graphics'));dialog.querySelector('#battle-graphics-status').textContent=label;};
   button.onclick=()=>{onSettings();dialog.querySelector('#battle-graphics-status').textContent=label;dialog.showModal();};dialog.querySelector('#graphics-close').onclick=()=>dialog.close();dialog.querySelector('#battle-graphics-retry').onclick=()=>{if(!modulePromise)retryAttempt++;window.dispatchEvent(new CustomEvent('arena:graphics',{detail:{retry:true}}));};
  }
  report('Battlefield graphics apply to every mode. The Practice appearance selector only changes the preview.');
