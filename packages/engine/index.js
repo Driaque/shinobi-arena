@@ -133,6 +133,9 @@ function substitute(state,f,other) {
   clearCombo(other);
   f.cooldowns.replacement=480;state.events.push({type:'replacement',target:f.id});
 }
+export function opponents(state,f){return state.fighters.filter(t=>t.id!==f.id&&(!state.coop||t.team!==f.team)&&t.hp>0);}
+export function targetFor(state,f,origin=f){return opponents(state,f).sort((a,b)=>Math.hypot(a.x-origin.x,(a.depth??0)-(origin.depth??0))-Math.hypot(b.x-origin.x,(b.depth??0)-(origin.depth??0)))[0]??state.fighters.find(t=>t.id!==f.id&&(!state.coop||t.team!==f.team))??f;}
+function separateFighters(state){for(let i=0;i<state.fighters.length;i++)for(let j=i+1;j<state.fighters.length;j++)if(state.fighters[i].hp>0&&state.fighters[j].hp>0)separate(state.fighters[i],state.fighters[j]);}
 function collectMelee(attacker, target, hits) {
   const action = attacker.action;
   if (!action) return;
@@ -151,7 +154,8 @@ export function stepMatch(state, inputs = [{}, {}]) {
   state.zones=state.zones.map(z=>({...z,remaining:z.remaining-1})).filter(z=>z.remaining>0);
   for(const f of state.fighters)tickEffects(state,f); if(!state.training)state.remainingTicks = Math.max(0, state.remainingTicks - 1);
   for (const f of state.fighters) {
-    const input = inputs[f.id] ?? {}, other = state.fighters[1 - f.id];
+    if(state.coop&&f.hp<=0){f.action=null;f.dash=null;f.blocking=false;continue;}
+    const input = inputs[f.id] ?? {}, other = targetFor(state,f);
     if(f.raijinMark&&--f.raijinMark.remaining<=0)f.raijinMark=null;
     if(fresh(input,f,'cycleItem')){
       for(let i=1;i<=4;i++){const next=(f.itemSlot+i)%4;if(f.items[next].count||f.raijinMark?.slot===next){f.itemSlot=next;break;}}
@@ -262,19 +266,19 @@ export function stepMatch(state, inputs = [{}, {}]) {
     f.x = clamp(f.x, ARENA.margin, ARENA.width - ARENA.margin);
     f.previous = { ...input };
   }
-  separate(...state.fighters);
+  separateFighters(state);
   const hits = [];
   for(const z of state.zones){
     if(z.kind!=='elemental'||state.tick<z.nextTick)continue;z.nextTick=state.tick+60;
-    const target=state.fighters[1-z.owner],m=MOVES[z.move];
+    for(const target of opponents(state,state.fighters[z.owner])){const m=MOVES[z.move];
     if(target.hp>0&&target.y<35&&depthDistance(target,z)<=55&&target.invulnerable===0&&!(target.airTech&&target.y>0)&&Math.hypot((target.x-z.x)/z.radius,((target.depth??0)-(z.depth??0))/55)<=1)hits.push({attacker:z.owner,target:target.id,direction:target.x>=state.fighters[z.owner].x?1:-1,move:z.move,damage:12,power:z.power,knockback:0,cost:0,hitstun:0,effect:m.ground.effect,duration:m.ground.effect==='bind'?24:90,potency:m.ground.potency,zoneTick:true});
   }
-  collectMelee(state.fighters[0], state.fighters[1], hits);
-  collectMelee(state.fighters[1], state.fighters[0], hits);
+  }
+  for(const attacker of state.fighters)if(attacker.hp>0)for(const target of opponents(state,attacker))collectMelee(attacker,target,hits);
   for (const p of state.projectiles) {
     const move=MOVES[p.move];p.x+=p.direction*move.speed;p.depth=(p.depth??0)+(p.vz??0);p.life--;
-    const target=state.fighters[1-p.owner],owner=state.fighters[p.owner];
-    const cloud=state.zones.find(z=>z.kind==='smoke'&&z.owner!==p.owner&&Math.hypot(p.x-z.x,p.y-z.y)<z.radius);
+    const owner=state.fighters[p.owner],target=targetFor(state,owner,p);
+    const cloud=state.zones.find(z=>z.kind==='smoke'&&z.owner!==p.owner&&(!state.coop||state.fighters[z.owner].team!==owner.team)&&Math.hypot(p.x-z.x,p.y-z.y)<z.radius);
     if(cloud&&depthDistance(p,cloud)<=55&&!move.blast){p.life=0;state.events.push({type:'smokeBlocked',target:cloud.owner});continue;}
     const laneHit=depthDistance(p,target)<=30;
     const absorbing=laneHit&&target.buffs.some(b=>b.type==='absorb')&&target.blocking&&target.facing===-p.direction&&target.invulnerable===0;
@@ -358,9 +362,9 @@ export function stepMatch(state, inputs = [{}, {}]) {
     }
     state.events.push({ type: guardBroken?'guardBreak':penetrated?'pierce':hit.blocked?'block':hit.punish?'punish':'hit', target: target.id, damage, move: hit.move });
   }
-  separate(...state.fighters);
+  separateFighters(state);
   for(const f of state.fighters)if(!f.action&&!f.dash&&!f.stun)f.travel=(f.travel??0)+Math.hypot(f.x-prior[f.id].x,((f.depth??0)-prior[f.id].depth)*.65);
-  if(state.training)return state;
+  if(state.training||state.coop)return state;
   const result = outcome({ hp1: state.fighters[0].hp, hp2: state.fighters[1].hp, remainingTicks: state.remainingTicks });
   if (result !== 'ongoing') {
     state.result = result;
@@ -371,7 +375,8 @@ export function stepMatch(state, inputs = [{}, {}]) {
   return state;
 }
 export function computerInput(state, player=1, difficulty=state.difficulty??'easy') {
-  const self=state.fighters[player],opponent=state.fighters[1-player];
+  const self=state.fighters[player],opponent=targetFor(state,self);
+  if(self.hp<=0)return {};
   const policy=difficultyFor(difficulty);
   if(policy.id!=='easy'&&state.tick>policy.openingTicks&&state.tick%180===0&&!self.action&&!self.stun&&!self.dash){if(self.items?.[self.itemSlot]?.count&&!self.cooldowns.useItem)return {useItem:true};if(self.items?.some(i=>i.count))return {cycleItem:true};}
   if(state.tick<policy.openingTicks)return {};

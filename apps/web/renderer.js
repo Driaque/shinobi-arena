@@ -250,6 +250,7 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
     }
     for(const f of state.fighters)if(f.raijinMark){const x=f.raijinMark.x;c.save();line(x,ARENA.floor-75,x,ARENA.floor-5,'#ffd87977',2);circle(x,ARENA.floor-7,8,'#ffd879');c.font='bold 12px system-ui';c.fillStyle='#ffd879';c.textAlign='center';c.fillText(`RAIJIN · ${(f.raijinMark.remaining/60).toFixed(1)}s`,x,ARENA.floor-85);c.restore();}
     for(const f of [...state.fighters].sort((a,b)=>(a.depth??0)-(b.depth??0))){
+      trails[f.id]??=[];
       if(f.replacement){const r=f.replacement,y=ARENA.floor+(r.depth??0)*.65-r.y;c.fillStyle='#96663c';c.fillRect(r.x-15,y-70,30,65);circle(r.x,y-70,15,'#c09361');line(r.x-8,y-62,r.x-8,y-12,'#d2a176',3);for(let i=0;i<3;i++)circle(r.x-28+i*27,y-60-i*15,15,'#cadde74a');}
       if(!reducedMotion.matches&&(f.dash||f.action&&MOVES[f.action.move]?.dash)){const history=trails[f.id];if(!history.length||state.tick-history.at(-1).tick>=2)history.push({tick:state.tick,f:{...f,action:f.action?{...f.action}:null}});while(history.length>3)history.shift();for(const entry of history){c.save();c.globalAlpha=.25*(1-(state.tick-entry.tick)/12);if(c.globalAlpha>0)ninja(entry.f,state,true);c.restore();}}else trails[f.id].splice(0);
       ninja(f,state);
