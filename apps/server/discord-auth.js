@@ -5,7 +5,8 @@ const digest=value=>createHash('sha256').update(value).digest('base64url');
 const equal=(a,b)=>a.length===b.length&&timingSafeEqual(Buffer.from(a),Buffer.from(b));
 const valid=value=>typeof value==='string'&&/^[A-Za-z0-9_-]{43}$/.test(value);
 const json=value=>JSON.stringify(value).replaceAll('<','\\u003c');
-export function createDiscordAuth({clientId=process.env.DISCORD_CLIENT_ID,clientSecret=process.env.DISCORD_CLIENT_SECRET,publicOrigin=process.env.PUBLIC_ORIGIN,allowedOrigins=[],request=fetch,now=()=>Date.now()}={}){
+const userAgent='DiscordBot (https://github.com/Driaque/shinobi-arena, 1.0)';
+export function createDiscordAuth({clientId=process.env.DISCORD_CLIENT_ID,clientSecret=process.env.DISCORD_CLIENT_SECRET,publicOrigin=process.env.PUBLIC_ORIGIN,allowedOrigins=[],request=fetch,now=()=>Date.now(),onFailure=()=>{}}={}){
  let origin;
  try{const u=new URL(publicOrigin);if(u.origin!==publicOrigin||u.username||u.password||!(u.protocol==='https:'||u.protocol==='http:'&&['localhost','127.0.0.1'].includes(u.hostname)))throw Error();origin=u.origin;}catch{}
  const trustedOrigins=new Set([origin,...allowedOrigins]);
@@ -39,14 +40,14 @@ export function createDiscordAuth({clientId=process.env.DISCORD_CLIENT_ID,client
   if(params.has('error'))return {cookie:clear,html:completion(f.returnOrigin,{type:'fabled-discord',flow,error:'Discord authorization was cancelled. Your profile was not changed.'})};
   if(params.get('iss')!=='https://discord.com'||!params.get('code')||params.get('code').length>2048)throw new AccountError('Invalid Discord authorization response.');
   const form=new URLSearchParams({client_id:clientId,client_secret:clientSecret,grant_type:'authorization_code',code:params.get('code'),redirect_uri:origin+'/auth/discord/callback',code_verifier:f.verifier});
-  let user;
+  let user,stage='token_request',status=null;
   try{
-   const response=await request('https://discord.com/api/oauth2/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:form,signal:AbortSignal.timeout(15000)});
-   if(!response.ok)throw Error();const token=await response.json();
+   const response=await request('https://discord.com/api/oauth2/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','User-Agent':userAgent},body:form,signal:AbortSignal.timeout(15000)});
+   status=response.status??null;if(!response.ok)throw Error();stage='token_response';const token=await response.json();
    if(token.token_type?.toLowerCase()!=='bearer'||typeof token.access_token!=='string'||!token.scope?.split(' ').includes('identify'))throw Error();
-   const result=await request('https://discord.com/api/v10/users/@me',{headers:{Authorization:'Bearer '+token.access_token},signal:AbortSignal.timeout(15000)});
-   if(!result.ok)throw Error();user=await result.json();if(!/^\d{5,25}$/.test(user?.id??''))throw Error();
-  }catch{throw new AccountError('Discord could not verify this sign-in. Your profile was not changed. Try again.',502);}
+   stage='profile_request';status=null;const result=await request('https://discord.com/api/v10/users/@me',{headers:{Authorization:'Bearer '+token.access_token,'User-Agent':userAgent},signal:AbortSignal.timeout(15000)});
+   status=result.status??null;if(!result.ok)throw Error();stage='profile_response';user=await result.json();if(!/^\d{5,25}$/.test(user?.id??''))throw Error();
+  }catch(error){onFailure({stage,status:Number.isInteger(status)?status:null,timeout:error?.name==='TimeoutError'});throw new AccountError('Discord could not verify this sign-in. Your profile was not changed. Try again.',502);}
   const proof=nonce();grants.set(digest(proof),{...f,flow,user:{id:user.id,username:String(user.username??'').slice(0,80),global_name:String(user.global_name??'').slice(0,80)},expires:now()+60000});
   return {cookie:clear,html:completion(f.returnOrigin,{type:'fabled-discord',flow,proof})};
  }

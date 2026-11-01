@@ -1,4 +1,4 @@
-> **v0.29.1: Save loadout stays visible on every loadout tab.** [Release notes](docs/releases/0.29.1.md).
+> **v0.29.2: Save loadout stays visible on every loadout tab.** [Release notes](docs/releases/0.29.2.md).
 
 # Fabled Rivals
 
