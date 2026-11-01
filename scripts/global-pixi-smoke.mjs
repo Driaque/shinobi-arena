@@ -37,6 +37,14 @@ try{
   assert.equal(await p.locator('#character0 [data-animated-portrait]').count(),0,'failed Pixi module retains static portraits');
   await p.locator('#character0 input[value=silent]').check();
   assert.equal(await p.locator('#character0 input:checked').inputValue(),'silent','static fallback keeps selection usable');
+  assert.deepEqual(errors,[]);
+  await p.goto('http://127.0.0.1:4202/animation-review.html');
+  await p.selectOption('#sequence','combo');await p.check('#joints');await p.click('#pause');
+  const reviewTick=Number(await p.locator('#review').getAttribute('data-tick'));
+  await p.click('#step');assert.equal(Number(await p.locator('#review').getAttribute('data-tick')),reviewTick+1);
+  await p.check('#mirror');await p.selectOption('#sequence','jump');await p.click('#step');
+  assert.match(await p.locator('#readout').innerText(),/Aren: Rise/);
+  await p.emulateMedia({reducedMotion:'reduce'});assert.equal(await p.locator('#pause').innerText(),'Play');
   assert.deepEqual(errors,[]);await context.close();
  }
  console.log('Global Pixi/original roster passed: 10 originals and stories, explicit anime opt-in/reset, CPU/local/Training/online presentation, selected fighter identity, native WebGL, global Canvas choice, context loss/retry, portrait and desktop.');
