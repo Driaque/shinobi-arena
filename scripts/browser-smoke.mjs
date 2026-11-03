@@ -1,3 +1,4 @@
+import {prepareStep} from './loadout-helper.mjs';
 import {legacyRoster} from './loadout-helper.mjs';
 import {equip} from './loadout-helper.mjs';
 import { chromium } from 'playwright';
@@ -29,36 +30,36 @@ try {
  assert.equal(await page.locator('#character0 input[type=radio]').count(),35);
  assert.equal(await page.locator('#character1 input[type=radio]').count(),35);
  await page.selectOption('#roster-era','Original');assert.equal(await page.locator('.character-card:not([hidden])').count(),20);
- await page.locator('#character0 input[value="silent"]').check();await page.locator('#character1 input[value="winta"]').check();
+ await prepareStep(page,0);await page.locator('#character0 input[value="silent"]').check();await prepareStep(page,0);await page.locator('#character1 input[value="winta"]').check();
  for(const portrait of await page.locator('.concept-portrait').all())assert.ok(await portrait.evaluate(async el=>{if(el instanceof HTMLImageElement){await el.decode();return el.naturalWidth>0;}return Boolean(el.dataset.animatedPortrait)&&el.getContext('2d').getImageData(0,0,el.width,el.height).data.some((n,i)=>i%4===3&&n>0);}),'concept portrait rendered');
  assert.match(await page.locator('#kit0').innerText(),/Cold Metal Ascendant.*proposed/);
  await page.screenshot({path:'test-results/originals-roster.png'});
  await page.selectOption('#roster-era','all');
  await page.locator('#roster-search').fill('Boruto');assert.equal(await page.locator('.character-card:not([hidden])').count(),2);
  await page.locator('#roster-search').fill('');await page.selectOption('#roster-era','Boruto');assert.equal(await page.locator('.character-card:not([hidden])').count(),8);
- await page.locator('#character0 input[value="boruto"]').check();await page.locator('#character1 input[value="kawaki"]').check();
+ await prepareStep(page,0);await page.locator('#character0 input[value="boruto"]').check();await prepareStep(page,0);await page.locator('#character1 input[value="kawaki"]').check();
  assert.equal(await page.locator('#selected0').innerText(),'Boruto');assert.equal(await page.locator('#selected1').innerText(),'Kawaki');
- await page.selectOption('#roster-era','all');await page.locator('#character1 input[value="sasuke"]').check();
- await page.locator('#character0 input[value="hinata"]').check();
+ await page.selectOption('#roster-era','all');await prepareStep(page,0);await page.locator('#character1 input[value="sasuke"]').check();
+ await prepareStep(page,0);await page.locator('#character0 input[value="hinata"]').check();
  assert.equal(await page.locator('#selected0').innerText(),'Hinata');
  assert.equal(await page.locator('#character1 input:checked').inputValue(),'sasuke','P1 selection does not change opponent');
- await page.locator('#character0 input[value="naruto"]').check();
+ await prepareStep(page,0);await page.locator('#character0 input[value="naruto"]').check();
  await page.locator('#character0 input:checked').focus();await page.keyboard.press('ArrowRight');
  assert.equal(await page.locator('#selected0').innerText(),'Sasuke','native keyboard navigation selects a character');
  assert.equal(await page.locator('#character1 input:checked').inputValue(),'sasuke');
- await page.locator('#character0 input[value="naruto"]').check();
+ await prepareStep(page,0);await page.locator('#character0 input[value="naruto"]').check();
  await page.selectOption('#mode','local');
  assert.equal(await page.locator('#opponent-label').innerText(),'PLAYER TWO');
  assert.equal(await page.locator('#difficulty').isDisabled(),true,'local P2 ignores CPU difficulty');
  assert.equal(await page.locator('#character1 .pick-mark').first().innerText(),'P2');
- await page.click('#play');
+ await prepareStep(page,2);await page.click('#play');
  await page.keyboard.down('KeyD');await page.clock.runFor(1700);await page.keyboard.up('KeyD');
  await page.keyboard.down('KeyJ');await page.clock.runFor(40);await page.keyboard.up('KeyJ');await page.clock.runFor(200);
  assert.equal(await page.locator('#hp1').innerText(),'935','basic attack damages opponent');
  await page.keyboard.press('KeyP');assert.equal(await page.locator('#play').innerText(),'Resume match');
  const timer=await page.locator('#timer').innerText();await page.clock.runFor(3000);
  assert.equal(await page.locator('#timer').innerText(),timer,'pause freezes timer');
- await page.click('#play');
+ await prepareStep(page,2);await page.click('#play');
  // Timed basic taps form a visible hit-confirm chain.
  await page.clock.runFor(500);
  await page.keyboard.down('KeyD');await page.clock.runFor(200);await page.keyboard.up('KeyD');
@@ -77,29 +78,29 @@ try {
    assert.match(await page.locator('#overlay-title').innerText(),/Naruto wins/);
    const coach=page.locator('#match-coach');assert.ok((await coach.boundingBox()).height<=101,'post-fight tip stays compact');assert.equal(await coach.locator('details').getAttribute('open'),null);await coach.locator('summary').click();assert.match(await coach.innerText(),/Direct damage dealt/);await coach.locator('summary').click();
    assert.equal(await page.locator('#play').innerText(),round===0?'Next round':'Rematch');
-   await page.click('#play');
+   await prepareStep(page,2);await page.click('#play');
  }
  await page.clock.runFor(180);
  assert.equal(await page.locator('#hp0').innerText(),'1000');assert.equal(await page.locator('#hp1').innerText(),'1000');
  await page.screenshot({path:'test-results/desktop.png'});
  // Pre-battle choices are used by the simulation and action HUD.
- await page.selectOption('#mode','cpu');await page.locator('#character0 input[value="hinata"]').check();await equip(page,'#weapon0','katana');
- await page.locator('#character1 input[value="orochimaru"]').check();await equip(page,'#weapon1','shuriken');
- await page.screenshot({path:'test-results/loadouts.png'});await page.click('#play');await page.clock.runFor(32);
+ await page.selectOption('#mode','cpu');await prepareStep(page,0);await page.locator('#character0 input[value="hinata"]').check();await equip(page,'#weapon0','katana');
+ await prepareStep(page,0);await page.locator('#character1 input[value="orochimaru"]').check();await equip(page,'#weapon1','shuriken');
+ await page.screenshot({path:'test-results/loadouts.png'});await prepareStep(page,2);await page.click('#play');await page.clock.runFor(32);
  assert.equal(await page.locator('#name0').innerText(),'HINATA');assert.equal(await page.locator('#name1').innerText(),'OROCHIMARU');
  assert.match(await page.locator('#weapon-label').innerText(),/KATANA/);assert.equal(await page.locator('#bl-name').innerText(),'BYAKUGAN');
  await page.keyboard.down('KeyO');await page.clock.runFor(180);await page.keyboard.up('KeyO');
  assert.match(await page.locator('#effects0').innerText(),/BYAKUGAN/);
  await page.keyboard.down('KeyR');await page.clock.runFor(32);await page.keyboard.up('KeyR');
  assert.match(await page.locator('#replacement-cd').innerText(),/s/);
- await page.selectOption('#mode','local');await page.locator('#character0 input[value="naruto"]').check();await equip(page,'#weapon0','kunai');
- await page.locator('#character1 input[value="sasuke"]').check();await equip(page,'#weapon1','kunai');
+ await page.selectOption('#mode','local');await prepareStep(page,0);await page.locator('#character0 input[value="naruto"]').check();await equip(page,'#weapon0','kunai');
+ await prepareStep(page,0);await page.locator('#character1 input[value="sasuke"]').check();await equip(page,'#weapon1','kunai');
  // CPU actually wins a round against an idle player, using the full browser loop.
- await page.selectOption('#mode','cpu');await page.selectOption('#difficulty','xtreme');await page.click('#play');await page.clock.runFor(25000);
+ await page.selectOption('#mode','cpu');await page.selectOption('#difficulty','xtreme');await prepareStep(page,2);await page.click('#play');await page.clock.runFor(25000);
  assert.equal(await page.locator('#overlay').isVisible(),true);
  assert.match(await page.locator('#overlay-title').innerText(),/Sasuke wins/);
  // Actual damage from seven basic hits charges Naruto's form; no debug state injection.
- await page.selectOption('#mode','local');await page.click('#play');
+ await page.selectOption('#mode','local');await prepareStep(page,2);await page.click('#play');
  await page.keyboard.down('ArrowLeft');await page.clock.runFor(1700);await page.keyboard.up('ArrowLeft');
  for(let n=0;n<7;n++){
    await page.keyboard.down('ArrowLeft');await page.clock.runFor(120);await page.keyboard.up('ArrowLeft');
@@ -113,8 +114,8 @@ try {
  assert.equal(await page.locator('#awakening-label0').innerText(),'AWAKENING USED');assert.equal(await page.locator('#s1-name').innerText(),'RASENGAN');
  // Original fighters use their selected weapons, signatures and bloodlines in live gameplay.
  await page.selectOption('#mode','cpu');await page.selectOption('#mode','local');
- await page.selectOption('#roster-era','Original');await page.locator('#character0 input[value="silent"]').check();await page.locator('#character1 input[value="winta"]').check();
- await equip(page,'#weapon0','tachi');await equip(page,'#weapon1','kaiken');await page.click('#play');await page.clock.runFor(32);
+ await page.selectOption('#roster-era','Original');await prepareStep(page,0);await page.locator('#character0 input[value="silent"]').check();await prepareStep(page,0);await page.locator('#character1 input[value="winta"]').check();
+ await equip(page,'#weapon0','tachi');await equip(page,'#weapon1','kaiken');await prepareStep(page,2);await page.click('#play');await page.clock.runFor(32);
  assert.equal(await page.locator('#name0').innerText(),'SILENT');assert.equal(await page.locator('#name1').innerText(),'WINTA');
  assert.equal(await page.locator('#bl-name').innerText(),'TETSUGAN');assert.match(await page.locator('#weapon-label').innerText(),/TACHI/);
  await page.keyboard.down('KeyO');await page.clock.runFor(450);await page.keyboard.up('KeyO');assert.match(await page.locator('#effects0').innerText(),/TETSUGAN GUARD/);
@@ -126,7 +127,7 @@ try {
  const context=await browser.newContext({viewport:{width:844,height:390},isMobile:true,hasTouch:true});
  const mobile=await context.newPage();const mobileErrors=[];mobile.on('pageerror',e=>mobileErrors.push(e.message));
  await mobile.clock.install({time:new Date('2030-01-01T00:00:00Z')});await mobile.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));await mobile.goto('http://127.0.0.1:4183');await legacyRoster(mobile);await mobile.screenshot({path:'test-results/mobile-loadouts.png'});
- await mobile.selectOption('#roster-era','Original');await mobile.locator('#character0 input[value="silent"]').check();await mobile.locator('#character1 input[value="winta"]').check();
+ await mobile.selectOption('#roster-era','Original');await prepareStep(mobile,0);await mobile.locator('#character0 input[value="silent"]').check();await prepareStep(mobile,0);await mobile.locator('#character1 input[value="winta"]').check();
  await mobile.screenshot({path:'test-results/mobile-originals.png'});await mobile.selectOption('#roster-era','all');
  await mobile.setViewportSize({width:667,height:375});await mobile.clock.runFor(32);
  await mobile.screenshot({path:'test-results/small-mobile-roster.png'});
@@ -134,13 +135,13 @@ try {
    const r=await card.boundingBox();assert.ok(r.x>=0&&r.x+r.width<=667&&r.height>=48,'roster cards fit a small landscape phone');
  }
  await mobile.setViewportSize({width:844,height:390});await mobile.clock.runFor(32);
- await mobile.locator('#character0 input[value="sasuke"]').check();await mobile.locator('#character1 input[value="sasuke"]').check();
+ await prepareStep(mobile,0);await mobile.locator('#character0 input[value="sasuke"]').check();await prepareStep(mobile,0);await mobile.locator('#character1 input[value="sasuke"]').check();
  assert.equal(await mobile.locator('#selected0').innerText(),'Sasuke');assert.equal(await mobile.locator('#selected1').innerText(),'Sasuke');
- await mobile.locator('#character0 input[value="naruto"]').check();await mobile.click('#play');
+ await prepareStep(mobile,0);await mobile.locator('#character0 input[value="naruto"]').check();await prepareStep(mobile,2);await mobile.click('#play');
  assert.equal(await mobile.locator('#difficulty').inputValue(),'easy');
  await mobile.clock.runFor(500);assert.equal(await mobile.locator('#hp0').innerText(),'1000','Easy opening leaves room to learn');
  await mobile.selectOption('#difficulty','medium');await mobile.clock.runFor(32);assert.equal(await mobile.locator('#play').innerText(),'Resume match');
- const keptHp=await mobile.locator('#hp0').innerText();await mobile.selectOption('#difficulty','easy');await mobile.click('#play');await mobile.clock.runFor(32);assert.equal(await mobile.locator('#hp0').innerText(),keptHp,'difficulty change preserves the fight');
+ const keptHp=await mobile.locator('#hp0').innerText();await mobile.selectOption('#difficulty','easy');await prepareStep(mobile,2);await mobile.click('#play');await mobile.clock.runFor(32);assert.equal(await mobile.locator('#hp0').innerText(),keptHp,'difficulty change preserves the fight');
  await mobile.screenshot({path:'test-results/mobile-difficulty.png'});
  const cdp=await context.newCDPSession(mobile);
  const box1=await mobile.locator('#joystick').boundingBox(),box2=await mobile.locator('[data-action=attack]').boundingBox();
@@ -218,7 +219,7 @@ try {
  await mobile.reload();await mobile.clock.runFor(32);
  assert.equal(Math.round((await mobile.locator('[data-control=attack]').boundingBox()).width),68);
  assert.equal(await mobile.locator('[data-action=jump] small').innerText(),'Space');assert.equal(await mobile.locator('.arena').evaluate(el=>el.style.getPropertyValue('--control-opacity')),'0.35');
- await mobile.click('#play');await mobile.keyboard.down('KeyW');await mobile.clock.runFor(32);
+ await prepareStep(mobile,2);await mobile.click('#play');await mobile.keyboard.down('KeyW');await mobile.clock.runFor(32);
  assert.ok(!(await mobile.locator('[data-action=jump]').getAttribute('class')??'').includes('active'));await mobile.keyboard.up('KeyW');
  await mobile.keyboard.down('Space');await mobile.clock.runFor(32);
  assert.ok((await mobile.locator('[data-action=jump]').getAttribute('class')??'').includes('active'));await mobile.keyboard.up('Space');
@@ -231,7 +232,7 @@ try {
  await mobile.locator('#control-opacity').evaluate(el=>{el.value='90';el.dispatchEvent(new Event('input',{bubbles:true}));});
  await mobile.click('#reset-layout');await mobile.click('#cancel-controls');
  assert.equal(await mobile.evaluate(()=>localStorage.getItem('shinobi-arena.controls.v1')),saved,'cancel discards layout reset');
- await mobile.click('#play');await mobile.clock.runFor(32);
+ await prepareStep(mobile,2);await mobile.click('#play');await mobile.clock.runFor(32);
  for(const button of await mobile.locator('[data-action]:visible').all()){
   const box=await button.boundingBox();assert.ok(box.width>=48&&box.height>=48,'touch targets are at least 48px');
   assert.ok(box.x>=0&&box.x+box.width<=844&&box.y>=0&&box.y+box.height<=390,'touch targets fit landscape viewport');

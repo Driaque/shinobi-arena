@@ -1,5 +1,10 @@
 # Release notes
 
+## 0.34.0
+
+- Prepare in three steps: Fighter, Loadout, Battlefield & Ready. Keep builds when navigating back.
+- Casual online opponents must agree on a stage; ranked and events use server-selected stages. Local versus requires player-two stage confirmation. [Release notes](docs/releases/0.34.0.md).
+
 ## 0.33.0
 
 - Added Adventures with Northern Echoes, a three-encounter Silent/Winta story chapter with dialogue, an ending and device checkpoints.

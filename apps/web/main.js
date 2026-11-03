@@ -1,3 +1,5 @@
+import {stageFor} from './packages/engine/stages.js';
+import {createPreparation} from './prepare.js';
 import {createSocialUI} from './social.js';
 import {createStagePicker} from './stage-picker.js';
 import {DEFAULT_FIGHTERS,isOriginalFighter} from './packages/engine/originals.js';
@@ -28,7 +30,7 @@ const inputs=[createInput(),createInput()];
 const buttons=[...document.querySelectorAll('[data-action]')];
 const render=createPracticeRenderer($('#canvas'),{getMode:()=>mode,onSettings:()=>{clearInputs();pause();}});
 const portrait=matchMedia('(orientation: portrait)'), touch=matchMedia('(any-pointer: coarse)');
-let controls,trainingUI,online,loadoutUI,techniqueTray;
+let controls,trainingUI,online,loadoutUI,techniqueTray,preparation;let prepareRequested=true;
 let onlinePlayers=[],onlineScreen='',activeTournament=null;
 let difficulty='easy';
 try{difficulty=difficultyFor(localStorage.getItem('shinobi-arena.difficulty.v1')).id;}catch{}
@@ -88,7 +90,7 @@ function dialog(kicker,title,description,button){
   $('#overlay-kicker').textContent=kicker;$('#overlay-title').textContent=title;
   $('#overlay-description').textContent=description;$('#play').textContent=button;
   $('#overlay-hint').textContent=mode==='cpu'?`${difficultyFor(difficulty).name} · ${difficultyFor(difficulty).description}`:'P2 arrows · N basic · B weapon · M guard · , / . signatures · / bloodline · V replace';
-  $('#loadout-panel').hidden=started&&state.status!=='matchOver';
+  $('#loadout-panel').hidden=preparation?true:started&&state.status!=='matchOver';
   if(mode==='training')$('#overlay-hint').textContent='Practice configures your dummy and challenges · Reset returns both fighters to position';
   $('#overlay').hidden=false;$('#play').hidden=false;if(mode==='online')$('#online-lobby').hidden=false;
 }
@@ -116,7 +118,9 @@ function finish(){
 }
 $('#play').addEventListener('click',()=>{
   if(!$('#rotate').hidden)return;coach.hidden=true;
+  if(!activeTournament&&!prepareRequested&&(started&&state.status==='matchOver'||mode==='online'&&online.phase==='idle')){prepareRequested=true;started=false;preparation.reset();return;}
   if(mode==='online'){if(activeTournament&&(!started||state.status==='matchOver')){arenaHub.open('tournaments');return;}if(online.phase==='roundOver'){online.ready();$('#play').disabled=true;$('#play').textContent='Waiting for opponent…';}else {if(online.busy)return;online.reset();online.join();}return;}
+  prepareRequested=false;
   if(!started||state.status==='matchOver')state=newMatch(readLoadouts());
   else if(state.status==='roundOver')nextRound(state);
   clearInputs();paused=false;started=true;accumulator=0;lastTime=performance.now();$('#overlay').hidden=true;$('#play').blur();$('#feedback').textContent='';
@@ -129,7 +133,7 @@ $('#difficulty').addEventListener('change',event=>{
 });
 
 $('#mode').addEventListener('change',event=>{
-  activeTournament=null;prediction.reset();coach.hidden=true;online?.reset();for(const el of document.querySelectorAll('#character0 input,#weapon0,#weapon-secondary0,#item0-0,#item0-1,#item0-2,#item0-3'))el.disabled=false;onlineScreen='';mode=event.target.value;document.body.classList.toggle('online-mode',mode==='online');$('#online-lobby').hidden=mode!=='online';$('#play').disabled=false;$('#difficulty').disabled=mode!=='cpu';$('.difficulty-label').hidden=mode==='training'||mode==='online';state=newMatch();paused=true;started=false;clearInputs();
+  prepareRequested=true;activeTournament=null;prediction.reset();coach.hidden=true;online?.reset();for(const el of document.querySelectorAll('#character0 input,#weapon0,#weapon-secondary0,#item0-0,#item0-1,#item0-2,#item0-3'))el.disabled=false;onlineScreen='';mode=event.target.value;document.body.classList.toggle('online-mode',mode==='online');$('#online-lobby').hidden=mode!=='online';$('#play').disabled=false;$('#difficulty').disabled=mode!=='cpu';$('.difficulty-label').hidden=mode==='training'||mode==='online';state=newMatch();paused=true;started=false;clearInputs();
   $('#mode-name').textContent=mode==='training'?'TRAINING':mode==='cpu'?`CPU · ${difficultyFor(difficulty).name.toUpperCase()}`:mode==='online'?`ONLINE · P${(online?.slot??0)+1}${online?.latency!==null?' · '+online.latency+'ms':''}`:'LOCAL TWO PLAYER';
   $('#opponent-label').textContent=mode==='training'?'TRAINING DUMMY':mode==='cpu'?'COMPUTER':'PLAYER TWO';
   document.querySelectorAll('#character1 .pick-mark').forEach(mark=>mark.textContent=mode==='training'?'DUMMY':mode==='cpu'?'CPU':'P2');
@@ -150,15 +154,22 @@ const socialUI=createSocialUI({getOnline:()=>online});
 online=createOnline({onSocial:socialUI.update,onPhase:socialUI.phase,getProfile:()=>({...readLoadouts()[0],stage:stages.value()}),onStatus:()=>{
  if(mode==='online'){for(const el of document.querySelectorAll('#character0 input,#weapon0,#weapon-secondary0,#item0-0,#item0-1,#item0-2,#item0-3'))el.disabled=online?.busy??false;$('#play').disabled=online?.busy??false;$('#play').textContent=online?.busy?'Finding opponent…':activeTournament?'View tournament bracket':'Find opponent';}
 },onEnd:message=>{
- if(mode!=='online')return;clearInputs();started=false;paused=true;onlineScreen='';
+ if(mode!=='online')return;prepareRequested=false;if($('#online-stage-agreement'))$('#online-stage-agreement').hidden=true;clearInputs();started=false;paused=true;onlineScreen='';
  dialog('ONLINE ARENA',activeTournament?'Tournament update':'Return to the lobby',message,activeTournament?'View tournament bracket':'Find opponent');$('#play').disabled=false;
 },onState:(message,slot)=>{
- if(mode!=='online')return;if(message.tournament)activeTournament=message.tournament.id;if(message.players)onlinePlayers=message.players;
+ if(mode!=='online')return;prepareRequested=false;if($('#online-stage-agreement'))$('#online-stage-agreement').hidden=message.phase!=='preparing';if(message.tournament)activeTournament=message.tournament.id;if(message.players)onlinePlayers=message.players;
  prediction.reconcile(message,slot);state=message.state;started=true;paused=false;
  const key=`${message.phase}:${state.round}`;
  $('#mode-name').textContent=`ONLINE · YOU ARE P${slot+1}`;
  if(message.phase==='playing'){$('#overlay').hidden=true;onlineScreen=key;}
- else if(message.phase==='countdown'){
+ else if(message.phase==='preparing'){
+  $('#loadout-panel').hidden=true;$('#online-lobby').hidden=true;$('#overlay').hidden=false;$('#play').hidden=true;
+  $('#overlay-kicker').textContent='BATTLEFIELD & READY';$('#overlay-title').textContent='Agree on a stage';
+  $('#overlay-description').textContent=`Both builds are locked. Accept the same option to begin. ${message.countdown}s remaining.`;
+  let choices=$('#online-stage-agreement');if(!choices){choices=document.createElement('section');choices.id='online-stage-agreement';$('.prepare-actions').before(choices);}choices.hidden=false;const signature=JSON.stringify(message.preparation);if(choices.dataset.signature!==signature){choices.dataset.signature=signature;choices.replaceChildren();
+  for(const id of [...message.preparation.choices,...(message.preparation.choices.length>1?['between']:[])]){const b=document.createElement('button');b.type='button';b.textContent=id==='between'?'Random between our choices':id==='random'?'Random stage':stageFor(id).name;b.setAttribute('aria-pressed',String(message.preparation.votes[slot]===id));b.onclick=()=>online.social({type:'stageVote',choice:id});choices.append(b);}
+  const status=document.createElement('p');status.textContent=message.preparation.votes[1-slot]?'Opponent accepted: '+(message.preparation.votes[1-slot]==='between'?'Random between our choices':message.preparation.votes[1-slot]==='random'?'Random stage':stageFor(message.preparation.votes[1-slot]).name):'Waiting for opponent confirmation';choices.append(status);}onlineScreen=key;
+ }else if(message.phase==='countdown'){
   $('#loadout-panel').hidden=true;$('#overlay').hidden=false;$('#online-lobby').hidden=true;
   $('#overlay-kicker').textContent='OPPONENT FOUND';$('#overlay-title').textContent=`${onlinePlayers[0].name} vs ${onlinePlayers[1].name}`;
   $('#overlay-description').textContent=`You control P${slot+1} · ${state.fighters[slot].name}. Fight in ${message.countdown}…`;
@@ -167,7 +178,7 @@ online=createOnline({onSocial:socialUI.update,onPhase:socialUI.phase,getProfile:
   clearInputs();const result=state.result==='draw'?'Draw':`${onlinePlayers[state.result==='player1'?0:1].name} wins`;
   const cheer=state.result!=='draw'&&state.fighters[state.result==='player1'?0:1].character==='dora'?'Yaaay! · ':'';
   dialog('ONLINE ARENA',result,`${cheer}${state.wins[0]} — ${state.wins[1]} · ${message.phase==='roundOver'?'Both players must be ready for the next round.':activeTournament?'Open the tournament bracket for your next pairing and rewards.':'Match complete. Search again for another opponent.'}`,message.phase==='roundOver'?'Ready for next round':activeTournament?'View tournament bracket':'Find opponent');
-  $('#online-lobby').hidden=message.phase==='roundOver';$('#loadout-panel').hidden=message.phase==='roundOver';$('#play').hidden=false;$('#play').disabled=false;onlineScreen=key;
+  $('#online-lobby').hidden=message.phase==='roundOver';$('#loadout-panel').hidden=true;$('#play').hidden=false;$('#play').disabled=false;onlineScreen=key;
  }
  if(message.phase==='playing')$('#play').hidden=false;
  if(message.phase==='matchOver')showCoach(slot);
@@ -175,8 +186,9 @@ online=createOnline({onSocial:socialUI.update,onPhase:socialUI.phase,getProfile:
 }});
 
 createExperience({onOpen:()=>{clearInputs();pause();},onChange:()=>window.dispatchEvent(new Event('arena:experience'))});
+preparation=createPreparation({getMode:()=>mode,getLoadouts:readLoadouts,isPreparing:()=>prepareRequested&&!$('#overlay').hidden&&(!started||state.status==='matchOver')&&!(mode==='online'&&['connecting','queued','preparing','countdown','playing','roundOver','lounge'].includes(online.phase)),stages});
 const netLabel=document.createElement('span');netLabel.id='network-quality';document.querySelector('.topbar').after(netLabel);
-const arenaHub=createArenaHub({onFight:id=>{online.reset();$('#mode').value='online';$('#mode').dispatchEvent(new Event('change'));activeTournament=id;online.join({tournamentId:id});},onTakeover:next=>{online.reset();$('#mode').value='training';$('#mode').dispatchEvent(new Event('change'));next.status='playing';next.result=null;next.training={drill:'free',dummy:'attack',unlimitedResources:false,refillHealth:true,instantCooldowns:false,showRanges:true,step:0,completed:false,feedback:'Replay takeover: practice from the preceding recorded sample as P1.',feedbackUntil:next.tick+240,stats:{damage:0,hits:0,bestCombo:0}};for(const f of next.fighters)f.hp=Math.max(1,f.hp);useTrainingState(next);$('#overlay').hidden=true;paused=false;started=true;clearInputs();},onOpen:()=>{clearInputs();pause();},isBusy:()=>mode==='online'&&['connecting','queued','playing','countdown','roundOver','lounge'].includes(online.phase)});
+const arenaHub=createArenaHub({onFight:id=>{online.reset();$('#mode').value='online';$('#mode').dispatchEvent(new Event('change'));activeTournament=id;online.join({tournamentId:id});},onTakeover:next=>{online.reset();$('#mode').value='training';$('#mode').dispatchEvent(new Event('change'));next.status='playing';next.result=null;next.training={drill:'free',dummy:'attack',unlimitedResources:false,refillHealth:true,instantCooldowns:false,showRanges:true,step:0,completed:false,feedback:'Replay takeover: practice from the preceding recorded sample as P1.',feedbackUntil:next.tick+240,stats:{damage:0,hits:0,bestCombo:0}};for(const f of next.fighters)f.hp=Math.max(1,f.hp);useTrainingState(next);$('#overlay').hidden=true;paused=false;started=true;clearInputs();},onOpen:()=>{clearInputs();pause();},isBusy:()=>mode==='online'&&['connecting','queued','preparing','playing','countdown','roundOver','lounge'].includes(online.phase)});
 techniqueTray=createTechniqueTray({input:inputs[0],getPlayer:()=>state.fighters[mode==='online'?online.slot:0],isPlaying:()=>started&&!paused&&!controls?.editing&&$('#rotate').hidden&&state.status==='playing'&&(mode!=='online'||online.phase==='playing'),binding:key=>controls.binding(0,key),visible:key=>controls.visible(key)});
 window.addEventListener('blur',()=>{clearInputs();pause();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){clearInputs();pause();}});

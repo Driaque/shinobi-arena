@@ -1,3 +1,4 @@
+import {prepareStep} from './loadout-helper.mjs';
 import {chromium} from 'playwright';
 import {spawn} from 'node:child_process';
 import assert from 'node:assert/strict';
@@ -31,7 +32,7 @@ try{
     await page.evaluate(()=>{window.art.backend.destroy();window.art.host.remove();});
     await page.evaluate(()=>localStorage.setItem('fabled.fighter.style.v1','painted'));await page.reload();await page.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-pixi');
     await page.route('**/assets/originals/nyra.webp*',route=>route.abort());
-    await page.selectOption('#mode','training');await page.locator('#character0 input[value=nyra]').check();await page.click('#play');
+    await page.selectOption('#mode','training');await prepareStep(page,0);await page.locator('#character0 input[value=nyra]').check();await prepareStep(page,2);await page.click('#play');
     await page.waitForFunction(()=>document.querySelector('#practice-graphics-status').textContent.includes('nyra'));
     await page.unroute('**/assets/originals/nyra.webp*');
     const tick=await page.locator('#canvas').getAttribute('data-render-tick');

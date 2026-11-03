@@ -39,7 +39,7 @@ export function createOnline({getProfile,onState,onEnd,onStatus,onSocial,onPhase
  function leave(){cleanup();phase='idle';onEnd('You left online play.');notify('Choose your fighter and find another opponent.');}
  function fail(text){cleanup();phase='idle';onEnd(text);notify(text);}
  async function join({tournamentId=null,lounge=false}={}){
-  if(['connecting','queued','countdown','playing','roundOver'].includes(phase))return;
+  if(['connecting','queued','preparing','countdown','playing','roundOver'].includes(phase))return;
   let profile,url;
   try{profile=playerProfile({...getProfile(),name:$('#player-name').value});url=serverURL();}catch(e){notify(e.message);return;}
   const queue=$('#online-queue')?.value??'casual';
@@ -65,14 +65,14 @@ export function createOnline({getProfile,onState,onEnd,onStatus,onSocial,onPhase
    if(msg.type==='hello'){
     if(msg.protocol!==PROTOCOL_VERSION||msg.rules!==RULES_VERSION){cleanup();phase='idle';notify('Server and game versions differ. Refresh the game.');onEnd('Version mismatch.');return;}
     ws.send(JSON.stringify({type:lounge?'lounge':'join',protocol:PROTOCOL_VERSION,rules:RULES_VERSION,profile,token,tournamentId,queue}));
-   }else if(msg.type==='presence'){clearTimeout(timeout);if(!['countdown','playing','roundOver','matchOver'].includes(phase)){phase='lounge';notify('You are in the player lounge. Challenge an available rival.');}onSocial?.(msg);}
+   }else if(msg.type==='presence'){clearTimeout(timeout);if(!['preparing','countdown','playing','roundOver','matchOver'].includes(phase)){phase='lounge';notify('You are in the player lounge. Challenge an available rival.');}onSocial?.(msg);}
    else if(['challenge','challengeClosed','gesture'].includes(msg.type)){onSocial?.(msg);}
    else if(msg.type==='socialError'){onSocial?.(msg);status.textContent=msg.message;}
    else if(msg.type==='queued'){clearTimeout(timeout);phase='queued';notify(msg.mode==='tournament'?'Waiting for your bracket opponent to check in. Open the bracket to see the pairing.':`Waiting for an opponent… Queue position ${msg.position}. You can cancel any time.`);}
    else if(msg.type==='matched'){clearTimeout(timeout);slot=msg.slot;phase=msg.phase;onPhase?.(phase);$('#online-cancel').hidden=true;$('#online-leave').hidden=false;onState(msg,slot);}
    else if(msg.type==='snapshot'){if(phase==='matchOver'&&msg.phase==='matchOver')return;phase=msg.phase;onPhase?.(phase);onState(msg,slot);}
    else if(msg.type==='pong'&&Number.isFinite(msg.sent)&&msg.sent>=0&&msg.sent<=now()){latency=Math.round(now()-msg.sent);samples.push(latency);if(samples.length>12)samples.shift();}
-   else if(msg.type==='ended'){const text=msg.reason==='tournament-updated'?'Tournament bracket updated. Open Arena → Tournaments.':msg.reason==='opponent-disconnected'||msg.reason==='opponent-left'?'Opponent left. You win by forfeit.':msg.reason==='server-shutdown'?'Server is restarting. Join again shortly.':msg.reason==='match-complete'?'Match complete. Find another opponent.':'Room expired. Join the queue again.';cleanup();phase='idle';onEnd(text);notify(text);}
+   else if(msg.type==='ended'){const text=msg.reason==='preparation-cancelled'?'Opponent left preparation. No match result was recorded.':msg.reason==='preparation-expired'?'Stage agreement timed out. No match result was recorded.':msg.reason==='tournament-updated'?'Tournament bracket updated. Open Arena → Tournaments.':msg.reason==='opponent-disconnected'||msg.reason==='opponent-left'?'Opponent left. You win by forfeit.':msg.reason==='server-shutdown'?'Server is restarting. Join again shortly.':msg.reason==='match-complete'?'Match complete. Find another opponent.':'Room expired. Join the queue again.';cleanup();phase='idle';onEnd(text);notify(text);}
    else if(msg.type==='error'){cleanup();phase='idle';onEnd(msg.message);notify(msg.message);}
   });
   ws.addEventListener('error',()=>{if(current===generation)fail('Could not reach the arena. Check your connection and try again.');});

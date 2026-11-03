@@ -1,4 +1,4 @@
-> **v0.29.2: Save loadout stays visible on every loadout tab.** [Release notes](docs/releases/0.29.2.md).
+> **v0.34.0: Three-step preparation and mutual stage agreement.** [Release notes](docs/releases/0.34.0.md).
 
 # Fabled Rivals
 

@@ -1,3 +1,4 @@
+import {acceptStage} from './accept-stage.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {STAGES,stageFor,resolveStage} from '../packages/engine/stages.js';
@@ -25,7 +26,34 @@ test('all stage scenery is finite, distinct and stateless',()=>{
 test('server chooses P1 stage once for both players, spectator snapshots and recorded frames',()=>{
  let record;const arena=createArena({countdownTicks:1,onResult:r=>record=r}),messages=[[],[],[]],clients=messages.map(list=>arena.connect(m=>list.push(structuredClone(m))));
  for(let i=0;i<2;i++)arena.message(clients[i],{type:'join',protocol:PROTOCOL_VERSION,rules:RULES_VERSION,profile:profile(i?'Winta':'Silent',i?'forge':'frost')});
- const match=messages[0].find(m=>m.type==='matched');assert.equal(match.state.stage,'frost');assert.equal(messages[1].find(m=>m.type==='matched').state.stage,'frost');
+ acceptStage(arena,clients[0],'frost');const match=messages[0].find(m=>m.type==='matched');assert.equal(match.state.stage,'frost');assert.equal(messages[1].find(m=>m.type==='matched').state.stage,'frost');
  arena.message(clients[2],{type:'watch',id:match.id,protocol:PROTOCOL_VERSION,rules:RULES_VERSION});assert.equal(messages[2].find(m=>m.type==='watching').state.stage,'frost');
  arena.advance();arena.advance();arena.disconnect(clients[0]);assert.ok(record.replay.frames.every(f=>f.state.stage==='frost'));arena.close();
+});
+
+test('casual stage agreement requires two matching votes, freezes combat and cancels on timeout',()=>{
+ const records=[],arena=createArena({countdownTicks:1,onResult:r=>records.push(r)}),messages=[[],[]],clients=messages.map(list=>arena.connect(m=>list.push(structuredClone(m))));
+ for(let i=0;i<2;i++)arena.message(clients[i],{type:'join',preparation:true,protocol:PROTOCOL_VERSION,rules:RULES_VERSION,profile:profile(i?'Winta':'Silent',i?'forge':'frost')});
+ assert.equal(clients[0].match.phase,'preparing');const initial=structuredClone(clients[0].match.state);
+ arena.message(clients[0],{type:'stageVote',choice:'frost'});arena.message(clients[1],{type:'stageVote',choice:'forge'});
+ for(let i=0;i<30;i++)arena.advance();assert.deepEqual(clients[0].match.state,initial);assert.equal(clients[0].match.phase,'preparing');
+ arena.message(clients[1],{type:'stageVote',choice:'frost'});assert.equal(clients[0].match.phase,'countdown');assert.equal(clients[1].match.state.stage,'frost');arena.close();
+ const timed=createArena({onResult:r=>records.push(r)}),a=timed.connect(()=>{}),b=timed.connect(()=>{});
+ for(const [i,c]of [a,b].entries())timed.message(c,{type:'join',preparation:true,protocol:PROTOCOL_VERSION,rules:RULES_VERSION,profile:profile(i?'Winta':'Silent','frost')});
+ for(let i=0;i<3600;i++)timed.advance();assert.equal(a.match,null);assert.equal(records.at(-1).reason,'cancelled');assert.equal(records.at(-1).playedTicks,0);timed.close();
+});
+test('ranked and tournament stages are selected by the system rather than P1 preference',()=>{
+ const arena=createArena(),a=arena.connect(()=>{}),b=arena.connect(()=>{});a.playerId='one';b.playerId='two';
+ for(const [i,c]of [a,b].entries())arena.message(c,{type:'join',queue:'ranked',preparation:true,protocol:PROTOCOL_VERSION,rules:RULES_VERSION,profile:profile(i?'Winta':'Silent','frost')});
+ assert.equal(a.match.phase,'countdown');assert.ok(STAGES.some(s=>s.id===a.match.state.stage));arena.close();
+});
+test('disconnect during stage preparation cancels without a misleading win or forfeit',()=>{
+ const records=[],messages=[],arena=createArena({onResult:r=>records.push(r)}),a=arena.connect(m=>messages.push(m)),b=arena.connect(()=>{});
+ for(const [i,c]of [a,b].entries())arena.message(c,{type:'join',protocol:PROTOCOL_VERSION,rules:RULES_VERSION,profile:profile(i?'Winta':'Silent','frost')});
+ arena.disconnect(b);assert.equal(records[0].reason,'cancelled');assert.equal(records[0].winner,null);assert.equal(messages.at(-1).reason,'preparation-cancelled');assert.equal(messages.at(-1).winner,null);arena.close();
+});
+test('expired preparation frees capacity for the next queued pair',()=>{
+ const arena=createArena({maxMatches:1}),clients=Array.from({length:4},()=>arena.connect(()=>{}));
+ for(const [i,c]of clients.entries())arena.message(c,{type:'join',protocol:PROTOCOL_VERSION,rules:RULES_VERSION,profile:profile('Player '+i,'frost')});
+ assert.equal(arena.stats().queued,2);for(let i=0;i<3600;i++)arena.advance();assert.equal(clients[0].match,null);assert.equal(clients[2].match.phase,'preparing');assert.equal(arena.stats().queued,0);arena.close();
 });

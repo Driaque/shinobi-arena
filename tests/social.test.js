@@ -1,3 +1,4 @@
+import {acceptStage} from './accept-stage.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createArena} from '../apps/server/arena.js';
@@ -19,7 +20,7 @@ test('challenge spam, decline, expiry, busy targets and disconnect are handled',
 });
 test('gestures reach only opponents before and after fights; active combat and unknown gestures are rejected',()=>{
  const {a,make}=setup(),p=make('Silent'),q=make('Winta'),r=make('Other');a.message(p.c,{type:'challenge',target:q.c.id});a.message(q.c,{type:'challengeReply',id:q.last('challenge').id,accept:true});
- a.message(p.c,{type:'gesture',gesture:'invalid'});assert.match(p.last('socialError').message,/Unknown/);
+ acceptStage(a,p.c);a.message(p.c,{type:'gesture',gesture:'invalid'});assert.match(p.last('socialError').message,/Unknown/);
  a.message(p.c,{type:'gesture',gesture:'bow'});assert.equal(q.last('gesture').gesture,'bow');assert.equal(r.last('gesture'),undefined);
  a.message(p.c,{type:'gesture',gesture:'wave'});assert.match(p.last('socialError').message,/Wait/);
  for(let i=0;i<180;i++)a.advance();a.message(q.c,{type:'gesture',gesture:'bow'});assert.match(q.last('socialError').message,/before and after/);
