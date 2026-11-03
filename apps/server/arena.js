@@ -1,3 +1,5 @@
+import {stageChoices,agreeStage} from '../../packages/network/stage-agreement.js';
+import {resolveStage} from '../../packages/engine/stages.js';
 import {createCoopMatch,stepCoop} from '../../packages/engine/coop.js';
 import {randomUUID} from 'node:crypto';
 import {createMatch,stepMatch,nextRound,TICK_RATE,CHARACTERS,MOVES,AWAKENINGS} from '../../packages/engine/index.js';
@@ -10,8 +12,9 @@ export function createArena({countdownTicks=180,roundBreakTicks=180,maxClients=2
  function clearChallenges(c,reason='unavailable'){for(const [id,ch]of challenges)if(ch.from===c||ch.to===c){challenges.delete(id);for(const p of [ch.from,ch.to])send(p,{type:'challengeClosed',id,reason});}}
  function startMatch(players,mode){
   for(const p of players)clearChallenges(p);
-  const state=(mode==='coop'?createCoopMatch:createMatch)(players.map(c=>c.profile),{stage:players[0].profile.stage??'skyglass'}),id=players[0].tournament?.matchId??randomUUID(),createdAt=now();
+  const state=(mode==='coop'?createCoopMatch:createMatch)(players.map(c=>c.profile),{stage:mode==='coop'?'skyglass':resolveStage(mode==='casual'?(players[0].profile.stage??'skyglass'):'random')}),id=players[0].tournament?.matchId??randomUUID(),createdAt=now();
   const m={tournament:players[0].tournament?structuredClone(players[0].tournament):null,id,createdAt,mode,players,state,spectators:new Set(),phase:'countdown',remaining:countdownTicks,startedTick:tick,playedTicks:0,recorded:false,replay:{schema:1,id,rules:RULES_VERSION,tickRate:TICK_RATE,createdAt,mode,players:players.map(c=>({...c.profile,playerId:c.playerId??null})),catalog:{characters:CHARACTERS,moves:MOVES,awakenings:AWAKENINGS},loadouts:structuredClone(state.loadouts),frames:[],inputs:[],rounds:[],truncated:false}};
+  if(mode==='casual'){m.phase='preparing';m.remaining=60*TICK_RATE;m.preferences=players.map(p=>p.profile.stage??'skyglass');m.votes=[null,null];}
   matches.add(m);frame(m);players.forEach((c,slot)=>{c.match=m;c.slot=slot;c.ready=false;c.lastSeq=-1;c.input={};c.pending=[];send(c,{...snapshot(m),type:'matched',slot});});broadcastPresence();
  }
 
@@ -20,7 +23,7 @@ export function createArena({countdownTicks=180,roundBreakTicks=180,maxClients=2
  function removeQueued(c){const i=queue.indexOf(c);if(i>=0){queue.splice(i,1);queueStatus();}}
  function unwatch(c){if(c.spectating){c.spectating.spectators.delete(c);c.spectating=null;}}
  const publicPlayers=m=>m.players.map(p=>({...p.profile,playerId:p.playerId??null}));
- const snapshot=m=>({type:'snapshot',id:m.id,players:publicPlayers(m),state:m.state,phase:m.phase,mode:m.mode,tournament:m.tournament?{id:m.tournament.id,pairId:m.tournament.pairId}:null,acks:m.players.map(c=>c.appliedSeq??-1),countdown:Math.ceil(m.remaining/TICK_RATE)});
+ const snapshot=m=>({type:'snapshot',id:m.id,players:publicPlayers(m),state:m.state,phase:m.phase,mode:m.mode,tournament:m.tournament?{id:m.tournament.id,pairId:m.tournament.pairId}:null,acks:m.players.map(c=>c.appliedSeq??-1),countdown:Math.ceil(m.remaining/TICK_RATE),preparation:m.phase==='preparing'?{choices:stageChoices(m.preferences),votes:m.votes,preferences:m.preferences}:null});
  function frame(m){if(m.mode==='coop')return;const frames=m.replay.frames;if(frames.length>=4500){m.replay.truncated=true;return;}frames.push({at:tick-m.startedTick,phase:m.phase,state:structuredClone(m.state)});}
  function record(m,reason,winner){
   if(m.recorded)return;m.recorded=true;frame(m);
@@ -30,6 +33,7 @@ export function createArena({countdownTicks=180,roundBreakTicks=180,maxClients=2
  }
  function end(m,reason,leaver=null){
   if(!matches.delete(m))return;
+  if(m.phase==='preparing'&&['opponent-left','opponent-disconnected'].includes(reason)){reason='preparation-cancelled';leaver=null;}
   if(!m.recorded)record(m,leaver&&(m.playedTicks>0||m.tournament)?reason:'cancelled',leaver&&(m.playedTicks>0||m.tournament)?(m.players.indexOf(leaver)===0?1:0):null);
   for(const c of m.spectators){c.spectating=null;send(c,{type:'ended',reason,id:m.id});}m.spectators.clear();
   for(const c of m.players){c.match=null;c.input={};c.pending=[];c.ready=false;send(c,{type:'ended',reason,winner:leaver?m.players.indexOf(leaver)===0?1:0:null,id:m.id});}
@@ -97,6 +101,12 @@ export function createArena({countdownTicks=180,roundBreakTicks=180,maxClients=2
    }else if(msg.type==='input'){
     if(!c.match||c.match.phase!=='playing'||c.match.state.status!=='playing')return;
     if(!Number.isSafeInteger(msg.seq)||msg.seq<=c.lastSeq)return;c.lastSeq=msg.seq;c.lastInput=tick;const input=cleanInput(msg.input);c.pending.push({...input,_seq:msg.seq});if(c.pending.length>8)c.pending.shift();
+   }else if(msg.type==='stageVote'){
+    const m=c.match;if(!m||m.phase!=='preparing')return;
+    const choices=stageChoices(m.preferences);if(!choices.includes(msg.choice)&&!(choices.length>1&&msg.choice==='between'))throw new Error('Choose one of the proposed stages.');
+    m.votes[c.slot]=msg.choice;const stage=agreeStage(m.preferences,m.votes);
+    if(stage){m.state.stage=stage;m.phase='countdown';m.remaining=countdownTicks;m.replay.frames=[];frame(m);}
+    for(const p of m.players)send(p,snapshot(m));
    }else if(msg.type==='ready'){
     const m=c.match;if(!m||m.phase!=='roundOver')return;c.ready=true;
     if(m.players.every(p=>p.ready)){nextRound(m.state);m.phase='countdown';m.remaining=countdownTicks;m.replay.rounds.push({at:tick-m.startedTick,state:structuredClone(m.state)});frame(m);for(const p of m.players){p.input={};p.pending=[];p.ready=false;}}
@@ -109,7 +119,8 @@ export function createArena({countdownTicks=180,roundBreakTicks=180,maxClients=2
   for(const [id,ch]of challenges)if(ch.expires<=tick){challenges.delete(id);for(const c of [ch.from,ch.to])send(c,{type:'challengeClosed',id,reason:'expired'});}
   if(tick%120===0)broadcastPresence();
   for(const m of matches){
-   if(m.phase==='countdown'){if(--m.remaining<=0)m.phase='playing';}
+   if(m.phase==='preparing'){if(--m.remaining<=0){end(m,'preparation-expired');continue;}}
+   else if(m.phase==='countdown'){if(--m.remaining<=0)m.phase='playing';}
    else if(m.phase==='playing'){
     const inputs=m.players.map(c=>{if(tick-c.lastInput>30){c.input={};c.pending=[];}const latest=c.pending.at(-1);if(c.pending.length)c.input=c.pending.shift();c.appliedSeq=c.input._seq??c.appliedSeq;const value=latest?{...c.input,moveX:latest.moveX,moveZ:latest.moveZ,left:latest.left,right:latest.right}:c.input;delete value._seq;c.input={...value,pressedActions:[]};delete c.input.dashDirection;return value;});
     if(m.mode!=='coop'&&m.replay.inputs.length<40000){const key=JSON.stringify(inputs),last=m.replay.inputs.at(-1);if(last&&m.lastInputKey===key)last.count++;else m.replay.inputs.push({tick:m.state.tick+1,count:1,inputs:structuredClone(inputs)});m.lastInputKey=key;}else m.replay.truncated=true;

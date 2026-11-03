@@ -1,3 +1,4 @@
+import {prepareStep} from './loadout-helper.mjs';
 import {legacyRoster} from './loadout-helper.mjs';
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
@@ -69,8 +70,8 @@ try {
     await p.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-pixi');
     assert.ok(requests.some(u=>u.includes('/practice-pixi.js')),'all-mode Pixi graphics load on the main game');
     await p.selectOption("#mode", "training");
-    await p.locator("#character0 input[value=silent]").check();
-    await p.click("#edit-loadout0");
+    await prepareStep(p,0);await p.locator("#character0 input[value=silent]").check();
+    await prepareStep(p,1);await p.click("#edit-loadout0");
     for (const [i, id] of [
       "risingGale",
       "skyCleave",
@@ -84,7 +85,7 @@ try {
       await p.locator('[data-pick-id="' + id + '"]').click();
     }
     await p.click("#loadout-save");
-    await p.click("#play");
+    await prepareStep(p,2);await p.click("#play");
     await p.clock.runFor(32);
     await p.click("#training-settings");
     const before = await p.locator("#canvas").getAttribute("data-render-tick"),
@@ -137,7 +138,7 @@ try {
       await p.click("#training-settings");
       await p.click("#training-charge");
       await p.click("#training-close");
-      await p.click("#play");
+      await prepareStep(p,2);await p.click("#play");
       await p.clock.runFor(600);
       await press("KeyT", 100);
       assert.match(
@@ -249,7 +250,7 @@ try {
   });
   await f.goto("http://127.0.0.1:4199");await legacyRoster(f);
   await f.selectOption("#mode", "training");
-  await f.click("#play");
+  await prepareStep(f,2);await f.click("#play");
   await f.waitForFunction(
     () =>
       document.querySelector("#canvas").dataset.presentation === "aren-canvas",
@@ -267,7 +268,7 @@ try {
   );
   await r.goto("http://127.0.0.1:4199");await legacyRoster(r);
   await r.selectOption("#mode", "training");
-  await r.click("#play");
+  await prepareStep(r,2);await r.click("#play");
   await r.click("#training-settings");
   await r.selectOption("#practice-renderer", "pixi");
   await r.waitForFunction(() =>

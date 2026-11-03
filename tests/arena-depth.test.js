@@ -1,3 +1,4 @@
+import {acceptStage} from './accept-stage.js';
 import test from 'node:test';import assert from 'node:assert/strict';
 import {createMatch,stepMatch,computerInput,CHARACTERS,JUTSUS,DEPTH_LIMIT} from '../packages/engine/index.js';
 import {createInput} from '../packages/input/index.js';import {cleanInput} from '../packages/network/protocol.js';
@@ -15,7 +16,7 @@ test('lane movement cannot recharge chakra or bypass bind, and accepted depth in
 
 test('server coalesces stale movement but preserves action pulses and recorded replay determinism',async()=>{
  const {createArena}=await import('../apps/server/arena.js'),{PROTOCOL_VERSION,RULES_VERSION}=await import('../packages/network/protocol.js');const records=[],arena=createArena({countdownTicks:1,onResult:r=>records.push(structuredClone(r))}),messages=[];
- const a=arena.connect(m=>messages.push(structuredClone(m))),b=arena.connect(()=>{});for(const [c,name]of [[a,'Depth One'],[b,'Depth Two']])arena.message(c,{type:'join',protocol:PROTOCOL_VERSION,rules:RULES_VERSION,profile:{name,character:'pain',weapon:'kunai'}});arena.advance();
+ const a=arena.connect(m=>messages.push(structuredClone(m))),b=arena.connect(()=>{});for(const [c,name]of [[a,'Depth One'],[b,'Depth Two']])arena.message(c,{type:'join',protocol:PROTOCOL_VERSION,rules:RULES_VERSION,profile:{name,character:'pain',weapon:'kunai'}});acceptStage(arena,a);arena.advance();
  arena.message(a,{type:'input',seq:1,input:{right:true,moveZ:1,attack:true,pressedActions:['attack']}});arena.message(a,{type:'input',seq:2,input:{moveZ:0}});arena.advance();assert.equal(a.match.state.fighters[0].x,360);assert.equal(a.match.state.fighters[0].depth,0);assert.equal(a.match.state.fighters[0].action.source,'attack');
  for(let t=0;t<65;t++){arena.message(a,{type:'input',seq:t+3,input:{moveZ:t<45?1:0}});arena.advance();}assert.ok(a.match.state.fighters[0].depth>0);const final=structuredClone(a.match.state);arena.disconnect(b);const replay=records[0].replay,rebuild=createMatch(replay.loadouts);for(const part of replay.inputs)for(let n=0;n<part.count;n++)stepMatch(rebuild,part.inputs);assert.deepEqual(rebuild,final);arena.close();
 });

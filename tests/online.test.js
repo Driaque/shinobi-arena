@@ -1,3 +1,4 @@
+import {acceptStage} from './accept-stage.js';
 import {mkdtemp,writeFile,mkdir,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join as joinPath} from 'node:path';
@@ -10,7 +11,7 @@ import {WebSocket} from 'ws';
 const profile=(name='Silent')=>({name,character:'silent',weapon:'tachi'});
 const join=(a,c,name)=>a.message(c,{type:'join',protocol:PROTOCOL_VERSION,rules:RULES_VERSION,profile:profile(name)});
 function fixture(options={}){const a=createArena({countdownTicks:1,...options});const make=()=>{const messages=[];const c=a.connect(msg=>messages.push(structuredClone(msg)));return {c,messages,last:type=>messages.findLast(m=>m.type===type)};};return {a,make};}
-function paired(){const f=fixture(),p=f.make(),q=f.make();join(f.a,p.c,'Silent');join(f.a,q.c,'Winta');f.a.advance();return {...f,p,q};}
+function paired(){const f=fixture(),p=f.make(),q=f.make();join(f.a,p.c,'Silent');join(f.a,q.c,'Winta');acceptStage(f.a,p.c);f.a.advance();return {...f,p,q};}
 test('online profiles validate names and catalog values without accepting inherited keys',()=>{
  assert.equal(playerProfile(profile('  Éowyn  2 ')).name,'Éowyn 2');
  for(const name of ['x','<script>','a'.repeat(21),'a\n\0b'])assert.throws(()=>playerProfile(profile(name)));
@@ -26,7 +27,7 @@ test('server rejects wrong versions and malformed profiles without taking a queu
  const {a,make}=fixture(),p=make();a.message(p.c,{type:'join',profile:profile(),protocol:0});assert.match(p.last('error').message,/version/);assert.equal(a.stats().queued,0);join(a,p.c,'<bad>');assert.equal(a.stats().queued,0);a.close();
 });
 test('countdown freezes combat; only valid sequenced input moves the owning fighter',()=>{
- const {a,make}=fixture({countdownTicks:6}),p=make(),q=make();join(a,p.c,'One');join(a,q.c,'Two');const m=p.c.match;
+ const {a,make}=fixture({countdownTicks:6}),p=make(),q=make();join(a,p.c,'One');join(a,q.c,'Two');acceptStage(a,p.c);const m=p.c.match;
  a.message(p.c,{type:'input',seq:1,input:{moveX:1,hp:9999}});for(let i=0;i<6;i++)a.advance();assert.equal(m.state.tick,0);
  a.message(q.c,{type:'input',seq:1,input:{moveX:-1,hp:9999}});a.advance();assert.equal(m.state.fighters[0].x,360);assert.ok(m.state.fighters[1].x<920);assert.equal(m.state.fighters[1].hp,1000);
  const previousX=m.state.fighters[1].x;a.message(q.c,{type:'input',seq:1,input:{moveX:1}});a.advance();assert.ok(m.state.fighters[1].x<previousX);a.close();

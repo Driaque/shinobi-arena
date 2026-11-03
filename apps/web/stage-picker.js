@@ -3,7 +3,7 @@ import {stageShapes} from './packages/presentation/stages.js';
 export const STAGE_KEY='fabled.stage.v1';
 export function createStagePicker(onChange){
  let selected='skyglass';try{const saved=localStorage.getItem(STAGE_KEY);if(saved==='random'||STAGES.some(s=>s.id===saved))selected=saved;}catch{}
- const section=document.createElement('section');section.className='stage-selection';section.setAttribute('aria-labelledby','stage-heading');section.innerHTML='<h2 id="stage-heading">Select battle stage</h2><p>Choose your arena before starting a fight. Stages share the same combat layout. Online: the first queued player’s selection sets the stage for both players.</p><div class="stage-grid" role="group" aria-label="Battle stage"></div><p id="stage-current" role="status"></p>';
+ const section=document.createElement('section');section.className='stage-selection';section.setAttribute('aria-labelledby','stage-heading');section.innerHTML='<h2 id="stage-heading">Select battle stage</h2><p>Choose your arena before starting a fight. Stages share the same combat layout. Online casual: choose a preference, then agree with your opponent after pairing. Ranked and events use server-selected stages.</p><div class="stage-grid" role="group" aria-label="Battle stage"></div><p id="stage-current" role="status"></p>';
  document.querySelector('.arena').before(section);
  const buttons=[];
  for(const s of [...STAGES,{id:'random',name:'Random stage',description:'Let the arena choose.'}]){
@@ -17,5 +17,5 @@ export function createStagePicker(onChange){
   const title=document.createElement('strong'),desc=document.createElement('span');title.textContent=s.name;desc.textContent=s.description;b.append(thumb,title,desc);b.onclick=()=>{selected=s.id;try{localStorage.setItem(STAGE_KEY,selected);}catch{}sync();onChange();};section.querySelector('.stage-grid').append(b);buttons.push(b);
  }
  function sync(){for(const b of buttons)b.setAttribute('aria-pressed',String(b.dataset.stage===selected));section.querySelector('#stage-current').textContent='Next fight: '+(selected==='random'?'Random stage':stageFor(selected).name);}
- sync();return {value:()=>selected,resolve:()=>resolveStage(selected),lock:locked=>buttons.forEach(b=>{if(b.disabled!==locked)b.disabled=locked;})};
+ sync();return {refresh:sync,element:section,value:()=>selected,resolve:()=>resolveStage(selected),lock:locked=>buttons.forEach(b=>{if(b.disabled!==locked)b.disabled=locked;})};
 }
