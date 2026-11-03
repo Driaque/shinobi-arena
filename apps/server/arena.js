@@ -119,7 +119,7 @@ export function createArena({countdownTicks=180,roundBreakTicks=180,maxClients=2
   for(const [id,ch]of challenges)if(ch.expires<=tick){challenges.delete(id);for(const c of [ch.from,ch.to])send(c,{type:'challengeClosed',id,reason:'expired'});}
   if(tick%120===0)broadcastPresence();
   for(const m of matches){
-   if(m.phase==='preparing'){if(--m.remaining<=0){end(m,'preparation-expired');continue;}}
+   if(m.phase==='preparing'){if(--m.remaining<=0){end(m,'preparation-expired');pair();continue;}}
    else if(m.phase==='countdown'){if(--m.remaining<=0)m.phase='playing';}
    else if(m.phase==='playing'){
     const inputs=m.players.map(c=>{if(tick-c.lastInput>30){c.input={};c.pending=[];}const latest=c.pending.at(-1);if(c.pending.length)c.input=c.pending.shift();c.appliedSeq=c.input._seq??c.appliedSeq;const value=latest?{...c.input,moveX:latest.moveX,moveZ:latest.moveZ,left:latest.left,right:latest.right}:c.input;delete value._seq;c.input={...value,pressedActions:[]};delete c.input.dashDirection;return value;});

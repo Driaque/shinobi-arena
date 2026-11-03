@@ -52,3 +52,8 @@ test('disconnect during stage preparation cancels without a misleading win or fo
  for(const [i,c]of [a,b].entries())arena.message(c,{type:'join',protocol:PROTOCOL_VERSION,rules:RULES_VERSION,profile:profile(i?'Winta':'Silent','frost')});
  arena.disconnect(b);assert.equal(records[0].reason,'cancelled');assert.equal(records[0].winner,null);assert.equal(messages.at(-1).reason,'preparation-cancelled');assert.equal(messages.at(-1).winner,null);arena.close();
 });
+test('expired preparation frees capacity for the next queued pair',()=>{
+ const arena=createArena({maxMatches:1}),clients=Array.from({length:4},()=>arena.connect(()=>{}));
+ for(const [i,c]of clients.entries())arena.message(c,{type:'join',protocol:PROTOCOL_VERSION,rules:RULES_VERSION,profile:profile('Player '+i,'frost')});
+ assert.equal(arena.stats().queued,2);for(let i=0;i<3600;i++)arena.advance();assert.equal(clients[0].match,null);assert.equal(clients[2].match.phase,'preparing');assert.equal(arena.stats().queued,0);arena.close();
+});
