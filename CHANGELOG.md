@@ -1,5 +1,11 @@
 # Release notes
 
+## 0.33.0
+
+- Added Adventures with Northern Echoes, a three-encounter Silent/Winta story chapter with dialogue, an ending and device checkpoints.
+- Added private two-player online co-op survival, three enemy waves, team-safe targeting, shared outcomes and between-wave recovery.
+- Co-op is separate from PvP history, rating and rewards. Existing arcade and multiplayer remain available.
+
 ## 0.32.0
 
 - Added the player lounge, accepted casual duels, pre/post-fight gestures and profile editing.

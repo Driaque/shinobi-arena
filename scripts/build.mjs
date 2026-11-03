@@ -13,6 +13,7 @@ for(const entry of ['visual-lab','practice-pixi','roster-pixi']){const result=aw
 await versionModules('dist');
 const reviewHtml=await readFile('dist/animation-review.html','utf8');await writeFile('dist/animation-review.html',reviewHtml.replace('./animation-review.js"',`./animation-review.js?v=${version}"`));
 const labHtml=await readFile('dist/visual-lab.html','utf8');await writeFile('dist/visual-lab.html',labHtml.replace('./visual-lab.js"',`./visual-lab.js?v=${version}"`).replace('./visual-lab.css"',`./visual-lab.css?v=${version}"`));
+const adventures=await readFile('dist/adventures.html','utf8');await writeFile('dist/adventures.html',adventures.replace('./adventures.js"',`./adventures.js?v=${version}"`).replace('./adventures.css"',`./adventures.css?v=${version}"`));
 const html=await readFile('dist/index.html','utf8');await writeFile('dist/index.html',html.replace('./main.js"',`./main.js?v=${version}"`).replace('./startup.js"',`./startup.js?v=${version}"`).replace('./styles.css"',`./styles.css?v=${version}"`).replace('./icons.css"',`./icons.css?v=${version}"`));
 const escape=s=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 const inline=s=>escape(s).replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/`([^`]+)`/g,'<code>$1</code>');
