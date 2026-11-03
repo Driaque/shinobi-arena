@@ -1,5 +1,10 @@
 # Release notes
 
+## 0.32.0
+
+- Added the player lounge, accepted casual duels, pre/post-fight gestures and profile editing.
+- Preserves battle-stage selection, progression titles and existing release history.
+
 ## 0.31.0
 
 - Add pre-fight stage selection: Skyglass Terrace, Frostbound Pass, Ember Forge, Moonlit Grove, Sunken Court and Random.
