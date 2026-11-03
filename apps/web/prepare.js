@@ -11,7 +11,7 @@ export function createPreparation({getMode,getLoadouts,isPreparing,stages}){
  function draw(){
   const active=isPreparing(),mode=getMode();dialog.dataset.prepare=active?String(step):'off';nav.hidden=!active;actions.hidden=false;$('#prepare-back').hidden=!active;$('#prepare-next').hidden=!active;review.hidden=!active||step!==2;
   stages.element.hidden=!active||step!==2;consent.hidden=mode!=='local';
-  if(!active)return;
+  if(!active){panel.hidden=true;return;}
   stages.refresh();const automatic=mode==='online'&&$('#online-queue').value==='ranked';stages.element.querySelector('.stage-grid').hidden=automatic;
   if(automatic)$('#stage-current').textContent='Ranked: server randomly selects from the competitive stage pool.';
   nav.querySelectorAll('button').forEach((b,i)=>{b.setAttribute('aria-current',i===step?'step':'false');});
@@ -27,5 +27,5 @@ export function createPreparation({getMode,getLoadouts,isPreparing,stages}){
  $('#mode').addEventListener('change',()=>{step=0;confirmed=false;consent.querySelector('input').checked=false;draw();});
  // Existing render callbacks control the overlay; redraw only when its preparation state changes.
  let activeLast;new MutationObserver(()=>{const active=isPreparing();if(active!==activeLast){activeLast=active;if(active)step=0;draw();}}).observe($('#overlay'),{attributes:true,subtree:true,attributeFilter:['hidden']});
- draw();return {draw,reset:()=>go(0)};
+ draw();return {draw,reset:()=>{confirmed=false;consent.querySelector('input').checked=false;go(0);}};
 }

@@ -90,7 +90,7 @@ function dialog(kicker,title,description,button){
   $('#overlay-kicker').textContent=kicker;$('#overlay-title').textContent=title;
   $('#overlay-description').textContent=description;$('#play').textContent=button;
   $('#overlay-hint').textContent=mode==='cpu'?`${difficultyFor(difficulty).name} · ${difficultyFor(difficulty).description}`:'P2 arrows · N basic · B weapon · M guard · , / . signatures · / bloodline · V replace';
-  $('#loadout-panel').hidden=started&&state.status!=='matchOver';
+  $('#loadout-panel').hidden=preparation?true:started&&state.status!=='matchOver';
   if(mode==='training')$('#overlay-hint').textContent='Practice configures your dummy and challenges · Reset returns both fighters to position';
   $('#overlay').hidden=false;$('#play').hidden=false;if(mode==='online')$('#online-lobby').hidden=false;
 }
@@ -118,7 +118,7 @@ function finish(){
 }
 $('#play').addEventListener('click',()=>{
   if(!$('#rotate').hidden)return;coach.hidden=true;
-  if(started&&state.status==='matchOver'&&!prepareRequested){prepareRequested=true;started=false;preparation.reset();return;}
+  if(!activeTournament&&!prepareRequested&&(started&&state.status==='matchOver'||mode==='online'&&online.phase==='idle')){prepareRequested=true;started=false;preparation.reset();return;}
   if(mode==='online'){if(activeTournament&&(!started||state.status==='matchOver')){arenaHub.open('tournaments');return;}if(online.phase==='roundOver'){online.ready();$('#play').disabled=true;$('#play').textContent='Waiting for opponent…';}else {if(online.busy)return;online.reset();online.join();}return;}
   prepareRequested=false;
   if(!started||state.status==='matchOver')state=newMatch(readLoadouts());
@@ -154,7 +154,7 @@ const socialUI=createSocialUI({getOnline:()=>online});
 online=createOnline({onSocial:socialUI.update,onPhase:socialUI.phase,getProfile:()=>({...readLoadouts()[0],stage:stages.value()}),onStatus:()=>{
  if(mode==='online'){for(const el of document.querySelectorAll('#character0 input,#weapon0,#weapon-secondary0,#item0-0,#item0-1,#item0-2,#item0-3'))el.disabled=online?.busy??false;$('#play').disabled=online?.busy??false;$('#play').textContent=online?.busy?'Finding opponent…':activeTournament?'View tournament bracket':'Find opponent';}
 },onEnd:message=>{
- if(mode!=='online')return;prepareRequested=true;if($('#online-stage-agreement'))$('#online-stage-agreement').hidden=true;clearInputs();started=false;paused=true;onlineScreen='';
+ if(mode!=='online')return;prepareRequested=false;if($('#online-stage-agreement'))$('#online-stage-agreement').hidden=true;clearInputs();started=false;paused=true;onlineScreen='';
  dialog('ONLINE ARENA',activeTournament?'Tournament update':'Return to the lobby',message,activeTournament?'View tournament bracket':'Find opponent');$('#play').disabled=false;
 },onState:(message,slot)=>{
  if(mode!=='online')return;prepareRequested=false;if($('#online-stage-agreement'))$('#online-stage-agreement').hidden=message.phase!=='preparing';if(message.tournament)activeTournament=message.tournament.id;if(message.players)onlinePlayers=message.players;
@@ -178,7 +178,7 @@ online=createOnline({onSocial:socialUI.update,onPhase:socialUI.phase,getProfile:
   clearInputs();const result=state.result==='draw'?'Draw':`${onlinePlayers[state.result==='player1'?0:1].name} wins`;
   const cheer=state.result!=='draw'&&state.fighters[state.result==='player1'?0:1].character==='dora'?'Yaaay! · ':'';
   dialog('ONLINE ARENA',result,`${cheer}${state.wins[0]} — ${state.wins[1]} · ${message.phase==='roundOver'?'Both players must be ready for the next round.':activeTournament?'Open the tournament bracket for your next pairing and rewards.':'Match complete. Search again for another opponent.'}`,message.phase==='roundOver'?'Ready for next round':activeTournament?'View tournament bracket':'Find opponent');
-  $('#online-lobby').hidden=message.phase==='roundOver';$('#loadout-panel').hidden=message.phase==='roundOver';$('#play').hidden=false;$('#play').disabled=false;onlineScreen=key;
+  $('#online-lobby').hidden=message.phase==='roundOver';$('#loadout-panel').hidden=true;$('#play').hidden=false;$('#play').disabled=false;onlineScreen=key;
  }
  if(message.phase==='playing')$('#play').hidden=false;
  if(message.phase==='matchOver')showCoach(slot);
