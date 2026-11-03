@@ -18,7 +18,9 @@ export async function legacyRoster(page,{weapons=true}={}){
 }
 
 export async function prepareStep(page,step=2){
- const nav=page.locator('.prepare-progress');if(!await nav.count()||!await nav.isVisible())return;
+ const nav=page.locator('.prepare-progress');if(!await nav.count())return;
+ if(!await nav.isVisible()&&await page.locator('#overlay').isVisible()&&await page.locator('#play').isVisible()&&/^(Rematch|Find opponent)$/.test(await page.locator('#play').innerText()))await page.click('#play');
+ if(!await nav.isVisible())return;
  await nav.locator('button').nth(step).click();
  if(step===2&&await page.locator('#local-stage-agree').isVisible())await page.locator('#local-stage-agree').check();
 }
