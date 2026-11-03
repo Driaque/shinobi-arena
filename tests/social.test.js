@@ -6,9 +6,9 @@ function setup(){let at=0;const a=createArena({countdownTicks:180,now:()=>at++})
 test('presence exposes guests and availability without credentials; duels require target acceptance and stay casual',()=>{
  const {a,make}=setup(),p=make('Silent'),q=make('Winta'),r=make('Other');
  assert.equal(p.last('presence').players.length,3);assert.equal(p.last('presence').players[0].kind,'guest');assert.equal(a.stats().queued,0);
- a.message(p.c,{type:'challenge',target:q.c.id});const ch=q.last('challenge');assert.ok(ch.id);assert.equal(a.stats().matches,0);
+ p.c.profile.stage='frost';a.message(p.c,{type:'challenge',target:q.c.id});const ch=q.last('challenge');assert.ok(ch.id);assert.equal(a.stats().matches,0);
  a.message(r.c,{type:'challengeReply',id:ch.id,accept:true});assert.match(r.last('socialError').message,/not yours/);assert.equal(a.stats().matches,0);
- a.message(q.c,{type:'challengeReply',id:ch.id,accept:true});assert.equal(p.last('matched').id,q.last('matched').id);assert.equal(p.c.match.mode,'casual');assert.equal(r.last('presence').players.find(x=>x.id===p.c.id).status,'fighting');a.close();
+ a.message(q.c,{type:'challengeReply',id:ch.id,accept:true});assert.equal(p.last('matched').id,q.last('matched').id);assert.equal(p.c.match.mode,'casual');assert.equal(p.last('matched').state.stage,'frost');assert.equal(r.last('presence').players.find(x=>x.id===p.c.id).status,'fighting');a.close();
 });
 test('challenge spam, decline, expiry, busy targets and disconnect are handled',()=>{
  const {a,make}=setup(),p=make('Silent'),q=make('Winta');a.message(p.c,{type:'challenge',target:p.c.id});assert.match(p.last('socialError').message,/unavailable/);

@@ -1,0 +1,38 @@
+name: Set up Discord community
+on:
+  workflow_dispatch:
+    inputs:
+      guild_id:
+        description: Fabled Rivals Discord server ID
+        required: true
+        type: string
+      apply:
+        description: Create missing roles, channels and starter posts
+        default: false
+        type: boolean
+permissions:
+  contents: read
+concurrency:
+  group: discord-community-setup
+  cancel-in-progress: false
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .nvmrc
+      - name: Validate setup logic
+        run: node --test tests/discord-community.test.js
+      - name: Preview structure (no Discord requests)
+        run: node scripts/setup-discord-community.mjs
+      - name: Apply to Discord
+        if: inputs.apply
+        env:
+          DISCORD_GUILD_ID: ${{ inputs.guild_id }}
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_COMMUNITY_BOT_TOKEN }}
+        run: node scripts/setup-discord-community.mjs --apply

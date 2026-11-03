@@ -1,9 +1,25 @@
 # Release notes
 
+## 0.32.0
+
+- Added the player lounge, accepted casual duels, pre/post-fight gestures and profile editing.
+- Preserves battle-stage selection, progression titles and existing release history.
+
+## 0.31.0
+
+- Add pre-fight stage selection: Skyglass Terrace, Frostbound Pass, Ember Forge, Moonlit Grove, Sunken Court and Random.
+- Share stage identity across local rounds, online players, spectators and recorded replay frames, with matching Canvas/Pixi scenery. [Release notes](docs/releases/0.31.0.md).
+
+## 0.30.1
+
+- Added server-verified daily, weekly and permanent online challenges, cosmetic profile titles and a forgiving seven-day login track.
+- Arena → Challenges shows progress, reset times, login claims and title selection. Arcade progression, story and co-op remain planned.
+
 ## 0.30.0
 
-- Added a player lounge with online players and guests, availability, profile summaries and accepted casual duel challenges.
-- Added opponent gestures before and after fights, plus a profile card and saved display-name editing.
+- Author distinct Aren/Silent sword poses with joint-constrained arms and hand-attached moving blades.
+- Add hit/guard sparks, landing rings, dash streaks, charge cues and decaying impact shake.
+- Add Animation Review with slow playback, tick stepping, joint markers and mirrored poses. [Release notes](docs/releases/0.30.0.md).
 
 ## 0.29.3
 

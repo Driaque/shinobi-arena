@@ -6,8 +6,14 @@ try{
  for(const mobile of [false,true]){
   const context=await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1440,height:960},isMobile:mobile,hasTouch:mobile}),p=await context.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));
   await p.goto('http://127.0.0.1:4202');await p.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-pixi');
+  for(const stage of ['frost','forge','grove','court','skyglass']){
+   await p.click(`[data-stage=${stage}]`);
+   await p.waitForFunction(id=>document.querySelector('#canvas').dataset.stage===id,stage);
+  }
+  await p.reload();await p.waitForFunction(()=>document.querySelector('#canvas').dataset.stage==='skyglass');
   await p.waitForSelector('#character0 canvas[data-animated-portrait=aren]');
   const portrait=p.locator('#character0 canvas[data-animated-portrait=aren]');
+  await portrait.scrollIntoViewIfNeeded();
   const before=await portrait.evaluate(c=>c.toDataURL());
   await p.waitForTimeout(180);
   assert.notEqual(await portrait.evaluate(c=>c.toDataURL()),before,'Pixi portrait advances while visible');
@@ -37,6 +43,14 @@ try{
   assert.equal(await p.locator('#character0 [data-animated-portrait]').count(),0,'failed Pixi module retains static portraits');
   await p.locator('#character0 input[value=silent]').check();
   assert.equal(await p.locator('#character0 input:checked').inputValue(),'silent','static fallback keeps selection usable');
+  assert.deepEqual(errors,[]);
+  await p.goto('http://127.0.0.1:4202/animation-review.html');
+  await p.selectOption('#sequence','combo');await p.check('#joints');await p.click('#pause');
+  const reviewTick=Number(await p.locator('#review').getAttribute('data-tick'));
+  await p.click('#step');assert.equal(Number(await p.locator('#review').getAttribute('data-tick')),reviewTick+1);
+  await p.check('#mirror');await p.selectOption('#sequence','jump');await p.click('#step');
+  assert.match(await p.locator('#readout').innerText(),/Aren: Rise/);
+  await p.emulateMedia({reducedMotion:'reduce'});assert.equal(await p.locator('#pause').innerText(),'Play');
   assert.deepEqual(errors,[]);await context.close();
  }
  console.log('Global Pixi/original roster passed: 10 originals and stories, explicit anime opt-in/reset, CPU/local/Training/online presentation, selected fighter identity, native WebGL, global Canvas choice, context loss/retry, portrait and desktop.');

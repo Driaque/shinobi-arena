@@ -95,7 +95,16 @@ export function createOnlineServer({origins=[],port=Number(process.env.PORT||417
      const value=await body(req);let profile;try{profile=playerProfile({name:value.name,character:'silent',weapon:'tachi'});}catch(e){reply(res,400,{error:e.message});return;}
      await store.rename(player.id,profile.name);reply(res,200,{ok:true,name:profile.name});return;
     }
-    if(req.method==='GET'&&url.pathname==='/api/me'){const player=await store.identity(req.headers.authorization?.replace(/^Bearer /,''));if(!player){reply(res,401,{error:'Restore or create your player profile'});return;}reply(res,200,{player,auth:await store.accounts.info(req.headers.authorization?.replace(/^Bearer /,''),player.id),rewards:store.tournaments?await store.tournaments.rewards(player.id):{points:0,unlocks:[]},matches:await store.history({...paging(url),playerId:player.id})});return;}
+    if(url.pathname==='/api/progression'||url.pathname==='/api/progression/login'||url.pathname==='/api/progression/title'){
+     const player=await store.identity(req.headers.authorization?.replace(/^Bearer /,''));if(!player){reply(res,401,{error:'Create or restore your player profile.'});return;}
+     if(req.method==='GET'&&url.pathname==='/api/progression'){reply(res,200,await store.progression.get(player.id));return;}
+     if(req.method!=='POST'){reply(res,405,{error:'Use GET for progress or POST to claim/equip.'});return;}
+     if(!store.durable||!storageHealthy){reply(res,503,{error:'Rewards require healthy persistent storage.'});return;}
+     if(url.pathname==='/api/progression/login'){reply(res,200,await store.progression.login(player.id));return;}
+     if(url.pathname==='/api/progression/title'){const value=await body(req),progress=await store.progression.equip(player.id,value.title);reply(res,progress?200:400,progress??{error:'Unlock this title before equipping it.'});return;}
+     reply(res,404,{error:'Unknown progression action.'});return;
+    }
+    if(req.method==='GET'&&url.pathname==='/api/me'){const player=await store.identity(req.headers.authorization?.replace(/^Bearer /,''));if(!player){reply(res,401,{error:'Restore or create your player profile'});return;}reply(res,200,{player,progression:await store.progression.get(player.id),auth:await store.accounts.info(req.headers.authorization?.replace(/^Bearer /,''),player.id),rewards:store.tournaments?await store.tournaments.rewards(player.id):{points:0,unlocks:[]},matches:await store.history({...paging(url),playerId:player.id})});return;}
     reply(res,404,{error:'Unknown endpoint'});
    }catch(e){if(e instanceof TournamentError||e instanceof AccountError){reply(res,e.status,{error:e.message});return;}console.error('Arena API failed:',e.code??e.name);reply(res,e instanceof SyntaxError||e.message==='Request is too large'?400:503,{error:e instanceof SyntaxError?'Invalid JSON':'Service is temporarily unavailable'});}return;
   }

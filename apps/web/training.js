@@ -30,7 +30,7 @@ export function createTrainingUI({pause,clearInputs,getState,setState,getLoadout
  $('#training-settings').addEventListener('click',open);$('#training-close').addEventListener('click',close);
  dialog.addEventListener('cancel',event=>{event.preventDefault();close();});
  $('#training-drill').addEventListener('change',describe);
- $('#training-start').addEventListener('click',()=>{const next=createTraining(getLoadouts(),settings());next.training.sequence=structuredClone(getState().training?.sequence??[]);setState(next);dialog.close();clearInputs();start();});
+ $('#training-start').addEventListener('click',()=>{const next=createTraining(getLoadouts(),settings());next.stage=getState().stage;next.training.sequence=structuredClone(getState().training?.sequence??[]);setState(next);dialog.close();clearInputs();start();});
  $('#training-charge').addEventListener('click',()=>{if(chargeTrainingAwakening(getState()))$('#training-drill-help').textContent='Form charged. Close Practice, resume, then press Awaken.';});
  $('#training-reset').addEventListener('click',()=>{if(isTraining()){setState(resetTraining(getState()));clearInputs();$('#training-reset').blur();}});
  function draw(){

@@ -18,6 +18,15 @@ The following sequence supersedes the historical milestone order below. Planned 
 
 Track visit → ready → first match → completed match → rematch → return → friend invite, split by device/input. Verify actual hosting/database lifetime before wider playtests.
 
+## Approved expansion sequence
+
+1. Keep animation/combat readability and online reliability at P0; improve profiles, gestures, presence and duel invitations alongside these foundations.
+2. Challenges and cosmetic progression: v0.30.0 adds verified online daily/weekly/permanent objectives and cumulative login days. Next: validated arcade participation, richer cosmetic selection and character mastery. Never award combat advantages. Guest progress follows the saved player ID and existing Discord linking.
+3. Short Silent and Winta character story chapter: brothers, dialogue panels, a few encounters, rival fight and ending. Reuse arenas and combat; establish original lore before expanding the campaign.
+4. Two-player co-op survival: synchronized waves, readable enemy patterns and teammate assistance, followed by bosses. Validate AI, two-client authority, disconnects, mobile performance and reward eligibility before release.
+
+Story and co-op are approved future work, not shipped modes. The initial login track is seven cumulative claim days, without streak resets. Challenges use UTC day/Monday-week boundaries. Measure challenge participation, repeat visits and rematches before expanding reward volume.
+
 ## Historical milestones
 
 0.4.0 update: F07 keyboard rebinding is implemented, along with analog movement, a drag/resize

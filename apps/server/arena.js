@@ -9,7 +9,7 @@ export function createArena({countdownTicks=180,roundBreakTicks=180,maxClients=2
  function clearChallenges(c,reason='unavailable'){for(const [id,ch]of challenges)if(ch.from===c||ch.to===c){challenges.delete(id);for(const p of [ch.from,ch.to])send(p,{type:'challengeClosed',id,reason});}}
  function startMatch(players,mode){
   for(const p of players)clearChallenges(p);
-  const state=createMatch(players.map(c=>c.profile)),id=players[0].tournament?.matchId??randomUUID(),createdAt=now();
+  const state=createMatch(players.map(c=>c.profile),{stage:players[0].profile.stage??'skyglass'}),id=players[0].tournament?.matchId??randomUUID(),createdAt=now();
   const m={tournament:players[0].tournament?structuredClone(players[0].tournament):null,id,createdAt,mode,players,state,spectators:new Set(),phase:'countdown',remaining:countdownTicks,startedTick:tick,playedTicks:0,recorded:false,replay:{schema:1,id,rules:RULES_VERSION,tickRate:TICK_RATE,createdAt,mode,players:players.map(c=>({...c.profile,playerId:c.playerId??null})),catalog:{characters:CHARACTERS,moves:MOVES,awakenings:AWAKENINGS},loadouts:structuredClone(state.loadouts),frames:[],inputs:[],rounds:[],truncated:false}};
   matches.add(m);frame(m);players.forEach((c,slot)=>{c.match=m;c.slot=slot;c.ready=false;c.lastSeq=-1;c.input={};c.pending=[];send(c,{...snapshot(m),type:'matched',slot});});broadcastPresence();
  }
