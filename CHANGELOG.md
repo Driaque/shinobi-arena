@@ -1,10 +1,20 @@
 # Release notes
 
-## 0.31.0
+## 0.33.0
 
 - Added Adventures with Northern Echoes, a three-encounter Silent/Winta story chapter with dialogue, an ending and device checkpoints.
 - Added private two-player online co-op survival, three enemy waves, team-safe targeting, shared outcomes and between-wave recovery.
 - Co-op is separate from PvP history, rating and rewards. Existing arcade and multiplayer remain available.
+
+## 0.32.0
+
+- Added the player lounge, accepted casual duels, pre/post-fight gestures and profile editing.
+- Preserves battle-stage selection, progression titles and existing release history.
+
+## 0.31.0
+
+- Add pre-fight stage selection: Skyglass Terrace, Frostbound Pass, Ember Forge, Moonlit Grove, Sunken Court and Random.
+- Share stage identity across local rounds, online players, spectators and recorded replay frames, with matching Canvas/Pixi scenery. [Release notes](docs/releases/0.31.0.md).
 
 ## 0.30.1
 

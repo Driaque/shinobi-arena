@@ -1,3 +1,4 @@
+import {STAGES} from '../engine/stages.js';
 import {ACTIONS} from '../input/index.js';
 import {CHARACTERS,WEAPONS,validateLoadout,RULES_VERSION} from '../engine/index.js';
 export const PROTOCOL_VERSION=7;
@@ -7,7 +8,7 @@ export function playerProfile(value){
   const name=value.name.trim().replace(/\s+/gu,' ');
   if([...name].length<2||[...name].length>20||! /^[\p{L}\p{N} _.-]+$/u.test(name))throw new Error('Use 2–20 letters, numbers, spaces, dots, underscores or hyphens for your name.');
   if(!Object.hasOwn(CHARACTERS,value.character)||!Object.hasOwn(WEAPONS,value.weapon))throw new Error('Choose a valid fighter and weapon.');
-  return {name,...validateLoadout(value)};
+  return {name,...validateLoadout(value),...((value.stage==='random'||STAGES.some(s=>s.id===value.stage))?{stage:value.stage}:{})};
 }
 export function cleanInput(value){
   if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('Invalid input.');

@@ -24,12 +24,12 @@ try{
  const first=await context();await first.page.getByRole('button',{name:'Create player profile',exact:true}).click();await first.page.getByRole('button',{name:'Link this profile to Discord',exact:true}).waitFor();
  const guestToken=await token(first.page),guest=await store.identity(guestToken),opponent=await store.createIdentity('Other');
  await store.save({id:randomUUID(),createdAt:Date.now(),players:[{playerId:guest.id,name:guest.name},{playerId:opponent.player.id,name:'Other'}],mode:'casual',winner:0,reason:'completed',wins:[2,0],playedTicks:1800,replay:{rules:'test',frames:[]}});
- await first.page.locator('[data-hub-tab=profile]').click();await first.page.getByText('1 wins / 0 losses / 0 draws',{exact:false}).waitFor();
+ await first.page.locator('[data-hub-tab=profile]').click();await first.page.waitForFunction(()=>{const tiles=[...document.querySelectorAll('.profile-stats>div')];return ['Wins','Losses','Draws'].every((label,i)=>tiles.some(tile=>tile.querySelector('small')?.textContent===label&&tile.querySelector('strong')?.textContent===String(i===0?1:0)));});
  await authorize(first.page,'Link this profile to Discord');
  assert.equal((await store.identity(await token(first.page))).id,guest.id);assert.match(await first.page.locator('.discord-account').innerText(),/Linked to CommunityTester/);
  await mkdir('test-results',{recursive:true});await first.page.screenshot({path:'test-results/discord-linked-profile.png'});
  const second=await context(true);await authorize(second.page,'Continue with Discord');
- const secondToken=await token(second.page);assert.equal((await store.identity(secondToken)).id,guest.id);assert.match(await second.page.locator('#hub-content').innerText(),/1 wins/);
+ const secondToken=await token(second.page);assert.equal((await store.identity(secondToken)).id,guest.id);await second.page.waitForFunction(()=>[...document.querySelectorAll('.profile-stats>div')].some(tile=>tile.querySelector('small')?.textContent==='Wins'&&tile.querySelector('strong')?.textContent==='1'));assert.equal((await store.identity(secondToken)).wins,1);
  await first.page.getByRole('button',{name:'Log out of this device',exact:true}).click();await first.page.getByRole('button',{name:'Continue with Discord',exact:true}).waitFor();assert.equal(await token(first.page),null);assert.ok(await store.identity(secondToken));await first.ctx.close();await second.ctx.close();
  const conflict=await context();await conflict.page.getByRole('button',{name:'Create player profile',exact:true}).click();await conflict.page.getByRole('button',{name:'Link this profile to Discord',exact:true}).waitFor();const otherToken=await token(conflict.page);
  await conflict.page.getByRole('button',{name:'Link this profile to Discord',exact:true}).click();await conflict.page.waitForFunction(()=>document.querySelector('#hub-message').textContent.includes('different profile'));

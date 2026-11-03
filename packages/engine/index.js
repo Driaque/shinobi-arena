@@ -1,3 +1,4 @@
+import {resolveStage} from './stages.js';
 import {canLink} from './tactics.js';
 import {JUTSU_KEYS,moveEnvironment} from './techniques.js';
 import {difficultyFor} from './difficulty.js';
@@ -27,9 +28,9 @@ function fighter(id, loadout) {
     hp: 1000, chakra: 100, stamina:100, guard:100, actionsStarted:0, lastActionEnd:-1000, lastExertion:-100, lastGuardHit:-100, guardStart:-100, parryCooldown:0, airDashUsed:false, jumpBuffer:0, dashBuffer:null, damageTaken:0, awakeningTicks:0, awakeningUsed:false, awakeningFlash:0, buffer:null, combo:{hits:0,damage:0,lastTick:-100,target:null}, facing: id === 0 ? 1 : -1, stun: 0, blocking: false, crouching:false,
     jumps: 0, dash: null, dashCooldown: 0, taps: {left:-100,right:-100}, cooldowns: {}, effects: [], buffs: [], invulnerable: 0, replacement: null, action: null, previous: {}, lastHit: -100, blockedHit: false };
 }
-export function createMatch(loadouts=[{character:'naruto',weapon:'kunai'},{character:'sasuke',weapon:'kunai'}],{difficulty='easy'}={}) {
+export function createMatch(loadouts=[{character:'naruto',weapon:'kunai'},{character:'sasuke',weapon:'kunai'}],{difficulty='easy',stage='skyglass'}={}) {
   const selected=validateLoadouts(loadouts);
-  return { arena:{...ARENA},metrics:[0,1].map(()=>({damage:0,hits:0,blocked:0,parries:0,punishes:0,chargePunishes:0,fieldDamage:0,links:0})), version: RULES_VERSION, difficulty:difficultyFor(difficulty).id, tick: 0, round: 1, remainingTicks: 90 * TICK_RATE,
+  return { stage:resolveStage(stage),arena:{...ARENA},metrics:[0,1].map(()=>({damage:0,hits:0,blocked:0,parries:0,punishes:0,chargePunishes:0,fieldDamage:0,links:0})), version: RULES_VERSION, difficulty:difficultyFor(difficulty).id, tick: 0, round: 1, remainingTicks: 90 * TICK_RATE,
     loadouts: selected, fighters: selected.map((l,i)=>fighter(i,l)), wins: [0, 0], status: 'playing', result: null,
     zones:[],projectiles: [], nextId: 1, events: [] };
 }
