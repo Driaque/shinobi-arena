@@ -17,7 +17,11 @@ export function createInput() {
     dash(direction){if(direction!==-1&&direction!==1)throw new Error('Invalid dash direction');pendingDash=direction;},
     // Resizing can occur between pointerup and the next simulation tick. Clear
     // holds to prevent stuck movement without dropping an already accepted tap.
-    releaseHeld() { held.clear();axes.clear();vertical.clear(); },
+    releaseHeld(preserveSources=[]) {
+      const keep=new Set(preserveSources);
+      for(const sources of held.values())for(const source of sources)if(!keep.has(source))sources.delete(source);
+      axes.clear();vertical.clear();
+    },
     reset() { pendingAim=null;pendingDash=0;held.clear(); pressed.clear(); axes.clear();vertical.clear(); },
     snapshot,
     consume() {
