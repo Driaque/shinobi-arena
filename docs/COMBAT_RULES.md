@@ -76,7 +76,7 @@ prototype balance choices; roster variety does not establish competitive balance
 
 ## duel-0.7.0 — originals combat interactions
 
-Silent's Tetsugan stance gives guarded chip absorption, bounded non-recursive reflect and a short one-use sword-counter window. Echoing Rift pulls on clean contact and exposes only metal damage. Winta's Shinrai Ōu enhances lightning; Eclipse Drain heals from actual clean damage, capped at maximum HP and excluding overkill. Healing does not undo accumulated damage charge. New statuses are not treated as poison/burn ticks. See [ORIGINAL_CHARACTERS.md](ORIGINAL_CHARACTERS.md) for exact values and proposed awakening modifiers.
+Silent's Skyforged Aegis stance gives guarded chip absorption, bounded non-recursive reflect and a short one-use sword-counter window. Echoing Rift pulls on clean contact and exposes only metal damage. Winta's Stormheart enhances lightning; Eclipse Drain heals from actual clean damage, capped at maximum HP and excluding overkill. Healing does not undo accumulated damage charge. New statuses are not treated as poison/burn ticks. See [ORIGINAL_CHARACTERS.md](ORIGINAL_CHARACTERS.md) for exact values and proposed awakening modifiers.
 
 ## duel-0.8.0 — movement and counterplay
 

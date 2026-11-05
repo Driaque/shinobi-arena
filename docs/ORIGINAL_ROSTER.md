@@ -4,11 +4,11 @@ Skyglass Terrace once connected the river courts, the northern pass and the susp
 
 ## Silent — Cold Metal
 
-Once the keeper of Hyorin’s northern pass, Silent sealed a fractured Skyglass conduit inside his own armor to stop a catastrophe. He now searches for its missing heart before the seal destroys his home.
+Once the keeper of Frostmere’s northern pass, Silent sealed a fractured Skyglass conduit inside his own armor to stop a catastrophe. He now searches for its missing heart before the seal destroys his home.
 
 Dora is his wife and closest strategist. His blood brother Winta held the pass beside him. Rook forged the armor that keeps him alive.
 
-Play style: Precision sword counters. Tetsugan reflects guarded hits; Echoing Rift pulls and exposes metal vulnerability.
+Play style: Precision sword counters. Skyforged Aegis reflects guarded hits; Echoing Rift pulls and exposes metal vulnerability.
 
 ## Winta — Frozen Sun
 
@@ -16,11 +16,11 @@ Winta survived the northern breach by turning a failing conduit into a crimson s
 
 Silent’s blood brother and trusted battle companion. Oryn blames him for the expedition’s loss. Eira alone has read his unaltered rescue report.
 
-Play style: Lightning sword pressure, dash attacks and recovery through clean drain hits. Shinrai Ōu strengthens lightning.
+Play style: Lightning sword pressure, dash attacks and recovery through clean drain hits. Stormheart strengthens lightning.
 
 ## Dora — AquaPrincess
 
-Dora, Silent’s wife, is Hyorin’s strongest kunoichi and the royal envoy who united the river courts. When the Terrace fell, she chose to shelter its refugees instead of surrendering them to the council. She fights to rebuild the alliance on her own terms.
+Dora, Silent’s wife, is Frostmere’s strongest kunoichi and the royal envoy who united the river courts. When the Terrace fell, she chose to shelter its refugees instead of surrendering them to the council. She fights to rebuild the alliance on her own terms.
 
 Silent’s wife. Veyra was once her council adviser. Nyra owes her sanctuary; Aren carries her messages between the broken cities.
 

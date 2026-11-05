@@ -58,7 +58,7 @@ CI passes, no unsupported feature claims. Mobile changes also require listed dev
 
 
 
-### Originals / TNR follow-up
+### Fabled Rivals Originals follow-up
 
 - Playtest Silent/Winta matchups and adjust the proposed real-time kit values.
 - Add explicit offensive/defensive stance switching for Silent; current bloodline activation is the defensive stance.

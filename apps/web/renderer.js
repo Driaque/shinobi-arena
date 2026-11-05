@@ -169,7 +169,7 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
         line(-17,-85,16,-85,'#b6ccdb',4);
       }else{
         circle(8,-110,2,'#e9c66f');line(-16,-87,17,-87,'#c7937c',4);
-        if(attacking||form||f.buffs.some(b=>b.type==='shinrai'))for(let i=0;i<3;i++){const offset=(state.tick*7+i*19)%48;line(armX+offset,-80-i*12,armX+offset+8,-91-i*12,'#ff7999',2);line(armX+offset+8,-91-i*12,armX+offset+4,-103-i*12,'#ffd499',2);}
+        if(attacking||form||f.buffs.some(b=>b.type==='stormheart'))for(let i=0;i<3;i++){const offset=(state.tick*7+i*19)%48;line(armX+offset,-80-i*12,armX+offset+8,-91-i*12,'#ff7999',2);line(armX+offset+8,-91-i*12,armX+offset+4,-103-i*12,'#ffd499',2);}
       }
     }
     if(character.id==='kakashi'){c.fillStyle='#25394a';c.fillRect(-15,-108,30,12);}

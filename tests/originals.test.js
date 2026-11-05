@@ -7,7 +7,7 @@ function stance(s){advance(s,25,[{bloodline:true},{}]);}
 test('each original has a sword chain with three connected, scaled hits',()=>{
  for(const name of ['silent','winta']){const s=duel(name);for(let t=0;t<28;t++)stepMatch(s,[{attack:[0,7,17].includes(t)},{}]);assert.equal(s.fighters[0].combo.hits,3);assert.equal(s.fighters[0].combo.damage,182);assert.ok(MOVES[moveFor(s.fighters[0],'attack')].sword);}
 });
-test('Tetsugan absorbs guarded chip, reflects without recursion and readies a counter',()=>{
+test('Skyforged Aegis absorbs guarded chip, reflects without recursion and readies a counter',()=>{
  const s=duel();stance(s);advance(s,6,[{block:true},{attack:true}]);
  assert.equal(s.fighters[0].hp,995);assert.equal(s.fighters[1].hp,980);assert.ok(s.fighters[0].buffs.some(b=>b.type==='counter'));
  assert.ok(s.events.some(e=>e.type==='reflect'));
@@ -15,7 +15,7 @@ test('Tetsugan absorbs guarded chip, reflects without recursion and readies a co
  advance(s,30);s.fighters[0].x=600;s.fighters[1].x=670;advance(s,6,[{attack:true},{}]);
  assert.equal(s.fighters[1].hp,892);assert.ok(!s.fighters[0].buffs.some(b=>b.type==='counter'));
 });
-test('Tetsugan does not reflect unguarded or fully piercing attacks',()=>{
+test('Skyforged Aegis does not reflect unguarded or fully piercing attacks',()=>{
  const unguarded=duel();stance(unguarded);advance(unguarded,6,[{}, {attack:true}]);assert.equal(unguarded.fighters[1].hp,1000);
  const pierced=duel('silent','sasuke');stance(pierced);advance(pierced,13,[{block:true},{special1:true}]);assert.equal(pierced.fighters[1].hp,1000);assert.equal(pierced.fighters[0].hp,850);assert.ok(!pierced.fighters[0].buffs.some(b=>b.type==='counter'));
 });
@@ -31,7 +31,7 @@ test('Echoing Rift pulls, exposes only metal damage, and never ticks as damage o
 test('ordinary guard and Replacement prevent the Rift pull and vulnerability',()=>{
  for(const input of [{block:true},{replacement:true}]){const s=duel();s.fighters[1].x=850;advance(s,17,[{special2:true},input]);assert.equal(s.fighters[1].effects.length,0);assert.ok(s.fighters[1].x>=850);}
 });
-test('Shinrai Ōu enhances lightning, but not water or equipped metal attacks',()=>{
+test('Stormheart enhances lightning, but not water or equipped metal attacks',()=>{
  const s=duel('winta','silent');stance(s);advance(s,6,[{attack:true},{}]);assert.equal(s.fighters[1].hp,925);
  for(const [key,ticks,expected]of [['special2',14,900],['weapon',12,895]]){const q=duel('winta','silent');stance(q);advance(q,ticks,[{[key]:true},{}]);assert.equal(q.fighters[1].hp,expected);}
 });

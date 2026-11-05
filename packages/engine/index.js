@@ -310,7 +310,7 @@ export function stepMatch(state, inputs = [{}, {}]) {
     const continuing=attacker.combo.hits>0&&attacker.combo.target===target.id&&hit.targetStunned&&state.tick-attacker.combo.lastTick<=30;
     const scaling=continuing?Math.max(.55,1-attacker.combo.hits*.1):1;
     const counter=(hit.sword||hit.fanStrike)&&attacker.buffs.some(b=>b.type==='counter')?1.35:1;
-    const lightning=hit.element==='lightning'&&attacker.buffs.some(b=>b.type==='shinrai')?1.15:1;
+    const lightning=hit.element==='lightning'&&attacker.buffs.some(b=>b.type==='stormheart')?1.15:1;
     const vulnerable=hit.element==='metal'?1+(target.effects.find(e=>e.type==='metalVulnerable')?.potency??0):1;
     const base=Math.ceil(hit.damage*weak*(hit.power??activeAwakening(attacker)?.damage??1)*scaling*counter*lightning*vulnerable*(hit.punish?1.2:1));
     if(hit.sword||hit.fanStrike)attacker.buffs=attacker.buffs.filter(b=>b.type!=='counter');
@@ -323,7 +323,7 @@ export function stepMatch(state, inputs = [{}, {}]) {
     const rawDamage=hit.blocked?Math.ceil(base*(0.08+0.92*pierce)):base;
     const penetrated=hit.blocked&&pierce>0;
     if(!hit.blocked||pierce>=1){applyEffect(state,target,hit);if(hit.poison)applyEffect(state,target,{effect:'poison',duration:300,potency:9});}
-    const counterGuard=hit.blocked&&pierce<1&&target.buffs.some(b=>b.type==='tetsugan');
+    const counterGuard=hit.blocked&&pierce<1&&target.buffs.some(b=>b.type==='skyforgedAegis');
     if(hit.blocked&&pierce<1&&target.buffs.some(b=>b.type==='aquaGuard'))target.buffs=[...target.buffs.filter(b=>b.type!=='counter'),{type:'counter',remaining:90}];
     const charging=target.charging;
     const damage=receiveDamage(state,target,counterGuard?rawDamage*.8:rawDamage);

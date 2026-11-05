@@ -21,7 +21,7 @@ Calculated ranged setups and melee counters. Selecting Dora suggests fans and ka
 
 Weaken refreshes to the stronger potency and longer remaining duration rather than multiplying. Royal Tempest never pulls through ordinary guard or invulnerability. Its automatic heavy follow-up commits Dora to a separate attack; it costs no additional chakra, can be interrupted and cannot basic-chain cancel. The opener’s hitstun is 12 ticks, leaving six ticks before the follow-up becomes active for guard, parry, movement or Replacement. Full pierce, low stamina, cooldowns and missed-attack recovery constrain her pressure.
 
-Limit Release extends her procedural hair and subtly widens the flowing robe silhouette, with an aqua wind aura. Her stronger fire techniques use warm effects. The supplied awakening name and victory catchphrase “Yaaay” are retained; move names and numerical balance are proposed game adaptations, not established TNR canon.
+Limit Release extends her procedural hair and subtly widens the flowing robe silhouette, with an aqua wind aura. Her stronger fire techniques use warm effects. The supplied awakening name and victory catchphrase “Yaaay” are retained; move names and numerical balance are part of her Fabled Rivals design.
 
 ## Verification
 

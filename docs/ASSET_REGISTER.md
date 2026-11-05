@@ -10,7 +10,7 @@ The demo uses procedural Canvas 2D characters/stage and system fonts.
 Add records before including new assets. Keep character concept, art source and distribution permission distinct.
 
 
-## User-supplied TNR concept portraits (v0.7.0)
+## User-supplied original character concept portraits (v0.7.0)
 
 | Asset | Creator/source | Permission/license evidence | Attribution | Files | Approved scope |
 | --- | --- | --- | --- | --- | --- |

@@ -5,6 +5,11 @@
 - Story and co-op survival now share normal fight controls, including the touch stick, equipped techniques, crouch guard, inventory actions, saved layouts and bindings, and gamepad settings.
 - Teammates start in separate lanes with clear spacing and face the enemy wave; the formation is restored when allies recover between waves.
 
+## 0.34.1
+
+- Establish Silent, Winta and Dora consistently as Fabled Rivals originals across roster data, help and documentation.
+- Introduce Skyforged Aegis, Stormheart, Rimeflash and Frostmere naming across abilities, effects and lore. Combat values and controls are unchanged.
+
 ## 0.34.0
 
 - Grouped navigation into Menu and Settings, with persistent account status and battle-only Pause/Fullscreen.
