@@ -36,7 +36,9 @@ jobs:
     name: Browser / ${{ matrix.group }}
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # Browser installation can spend several minutes retrying external mirrors.
+    # Allow setup time without cancelling otherwise healthy gameplay checks.
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
