@@ -1,5 +1,10 @@
 # Release notes
 
+## Unreleased
+
+- Story and co-op survival now share normal fight controls, including the touch stick, equipped techniques, crouch guard, inventory actions, saved layouts and bindings, and gamepad settings.
+- Teammates start in separate lanes with clear spacing and face the enemy wave; the formation is restored when allies recover between waves.
+
 ## 0.34.0
 
 - Grouped navigation into Menu and Settings, with persistent account status and battle-only Pause/Fullscreen.
