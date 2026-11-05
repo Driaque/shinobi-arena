@@ -1,3 +1,11 @@
+import {mountCombatControls} from './combat-controls-view.js';
+import {createControls} from './controls.js';
+import {createTechniqueTray} from './technique-tray.js';
+import {createGamepads} from './packages/input/gamepad.js';
+import {createExperience,experience,padBindings} from './experience.js';
+import {WEAPONS} from './packages/engine/index.js';
+import {ITEMS} from './packages/engine/items.js';
+mountCombatControls(document.querySelector('.arena'));
 import {createInput} from './packages/input/index.js';
 import {stepMatch,nextRound,computerInput,CHARACTERS,MOVES,moveFor} from './packages/engine/index.js';
 import {STORY_CHAPTER,createStoryFight} from './packages/engine/story.js';
@@ -10,13 +18,13 @@ try{const n=Number(localStorage.getItem(KEY));if(Number.isInteger(n)&&n>=0&&n<=3
 const saveCheckpoint=()=>{try{localStorage.setItem(KEY,String(checkpoint));}catch{}$('#story-checkpoint').textContent=checkpoint===3?'Chapter complete. Replay any time.':checkpoint?`Continue at encounter ${checkpoint+1} of 3.`:'Three encounters. One shared truth.';$('#start-story').textContent=checkpoint===3?'Replay chapter':checkpoint?'Continue chapter':'Begin chapter';};saveCheckpoint();
 let mode='',state=null,index=0,paused=true,socket=null,generation=0,seq=0,slot=0,phase='',last=0,accumulator=0,pingTimer,timeout,lastMessage=0,nextAction=()=>{};
 const status=text=>{$('#adventure-status').textContent=text;};
-function dialogue(kicker,title,copy,label,action){paused=true;input.reset();$('#story-kicker').textContent=kicker;$('#story-heading').textContent=title;$('#story-copy').textContent=copy;$('#story-next').textContent=label;nextAction=action;if(!$('#story-dialog').open)$('#story-dialog').showModal();}
+function dialogue(kicker,title,copy,label,action){paused=true;controls.reset();$('#story-kicker').textContent=kicker;$('#story-heading').textContent=title;$('#story-copy').textContent=copy;$('#story-next').textContent=label;nextAction=action;if(!$('#story-dialog').open)$('#story-dialog').showModal();}
 $('#story-next').onclick=()=>{$('#story-dialog').close();nextAction();};
 $('#story-dialog').addEventListener('cancel',e=>e.preventDefault());
-function active(){return state?.status==='playing'&&!paused&&!$('#story-dialog').open;}
-function closeConnection(){generation++;clearTimeout(timeout);clearInterval(pingTimer);const ws=socket;socket=null;if(ws){if(ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:'cancel'}));ws.close();}phase='';input.reset();$('#host-coop').disabled=false;$('#join-coop').disabled=false;}
-function menu(){closeConnection();state=null;mode='';paused=true;$('#adventure-menu').hidden=false;$('#adventure-play').hidden=true;$('#pause-adventure').hidden=true;$('#leave-adventure').hidden=true;if($('#story-dialog').open)$('#story-dialog').close();saveCheckpoint();}
-function playView(){input.reset();$('#adventure-menu').hidden=true;$('#adventure-play').hidden=false;$('#leave-adventure').hidden=false;$('#pause-adventure').hidden=mode!=='story';last=0;accumulator=0;}
+function active(){return state?.status==='playing'&&!paused&&!$('#story-dialog').open&&!controls.editing&&!document.querySelector('dialog[open]');}
+function closeConnection(){generation++;clearTimeout(timeout);clearInterval(pingTimer);const ws=socket;socket=null;if(ws){if(ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:'cancel'}));ws.close();}phase='';controls.reset();$('#host-coop').disabled=false;$('#join-coop').disabled=false;}
+function menu(){closeConnection();state=null;mode='';paused=true;$('#adventure-menu').hidden=false;$('#adventure-play').hidden=true;$('#control-settings').hidden=true;$('#pause-adventure').hidden=true;$('#leave-adventure').hidden=true;if($('#story-dialog').open)$('#story-dialog').close();saveCheckpoint();}
+function playView(){controls.reset();$('#control-settings').hidden=false;$('#adventure-menu').hidden=true;$('#adventure-play').hidden=false;$('#leave-adventure').hidden=false;$('#pause-adventure').hidden=mode!=='story';last=0;accumulator=0;}
 function beginEncounter(){state=createStoryFight(index,$('#story-difficulty').value);playView();const e=STORY_CHAPTER.encounters[index];$('#adventure-title').textContent=`${index+1}/3 · ${e.title}`;dialogue(STORY_CHAPTER.subtitle,e.speaker,e.before,'Fight',()=>{paused=false;last=0;});}
 $('#start-story').onclick=()=>{closeConnection();mode='story';index=checkpoint===3?0:checkpoint;status('');beginEncounter();};
 $('#restart-story').onclick=()=>{checkpoint=0;saveCheckpoint();$('#start-story').click();};
@@ -27,7 +35,7 @@ function finishStory(){paused=true;input.reset();if(state.status==='roundOver'){
 function pauseStory(){if(mode!=='story'||!active())return;dialogue('PAUSED','Your journey can wait.','Resume when you are ready.','Resume',()=>{paused=false;last=0;});}
 $('#pause-adventure').onclick=pauseStory;
 $('#leave-adventure').onclick=()=>{menu();status('Adventure ended. Story checkpoints are kept.');};
-function fail(text){closeConnection();paused=true;mode='';state=null;$('#adventure-menu').hidden=false;$('#adventure-play').hidden=true;$('#leave-adventure').hidden=true;$('#pause-adventure').hidden=true;status(text);}
+function fail(text){closeConnection();paused=true;mode='';state=null;$('#adventure-menu').hidden=false;$('#adventure-play').hidden=true;$('#leave-adventure').hidden=true;$('#control-settings').hidden=true;$('#pause-adventure').hidden=true;status(text);}
 async function join(room){
  if(!/^[A-Z0-9]{8}$/.test(room)){status('Enter the eight-character room code your friend shared.');return;}
  if(socket||phase==='connecting')return;closeConnection();const gen=generation;mode='coop';phase='connecting';status('Connecting to co-op…');$('#leave-adventure').hidden=false;$('#host-coop').disabled=true;$('#join-coop').disabled=true;
@@ -48,13 +56,33 @@ async function join(room){
 }
 $('#host-coop').onclick=()=>{const bytes=crypto.getRandomValues(new Uint8Array(8)),alphabet='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',room=Array.from(bytes,n=>alphabet[n%alphabet.length]).join('');$('#coop-room').value=room;join(room);};
 $('#join-coop').onclick=()=>join($('#coop-room').value.trim().toUpperCase());
-const keys={KeyA:'left',KeyD:'right',KeyZ:'depthUp',KeyL:'depthDown',KeyW:'jump',KeyQ:'dashBack',KeyE:'dashForward',KeyJ:'attack',KeyH:'weapon',KeyK:'block',KeyU:'special1',KeyI:'special2',KeyO:'bloodline',KeyR:'replacement',KeyG:'charge',KeyT:'awakening'};
-window.addEventListener('keydown',e=>{if(e.code==='Escape'||e.code==='KeyP'){pauseStory();return;}if(!active()||!keys[e.code]||e.repeat||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;e.preventDefault();input.press(keys[e.code],e.code);});window.addEventListener('keyup',e=>input.release(e.code));
-for(const b of document.querySelectorAll('[data-action]')){b.addEventListener('pointerdown',e=>{if(!active())return;e.preventDefault();b.setPointerCapture(e.pointerId);input.press(b.dataset.action,'pointer'+e.pointerId);b.classList.add('active');});for(const event of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(event,e=>{input.release('pointer'+e.pointerId);b.classList.remove('active');});}
-function clearInput(){input.reset();document.querySelectorAll('.active').forEach(b=>b.classList.remove('active'));pauseStory();}
+const inputs=[input,createInput()];
+const controls=createControls({inputs,onPause:pauseStory,onOpen:()=>input.reset(),isPlaying:active});
+createExperience({onOpen:()=>controls.reset(),onChange:()=>window.dispatchEvent(new Event('arena:experience'))});
+const techniques=createTechniqueTray({input,getPlayer:()=>state?.fighters[mode==='coop'?slot:0],isPlaying:active,binding:key=>controls.binding(0,key),visible:key=>controls.visible(key)});
+$('#jutsu-toggle').hidden=true;
+const gamepads=createGamepads({inputs,settings:experience,bindings:padBindings,isPlaying:active,isLocal:()=>false,onPause:pauseStory});
+function clearInput(){controls.reset();document.querySelectorAll('.active').forEach(b=>b.classList.remove('active'));pauseStory();}
 window.addEventListener('blur',clearInput);document.addEventListener('visibilitychange',()=>{if(document.hidden)clearInput();});window.addEventListener('pagehide',()=>{closeConnection();render.dispose();});
 let hudKey='';function hud(){const title=state.coop?`Wave ${state.coop.wave}/${state.coop.totalWaves}`:`Encounter ${index+1}/3`;$('#adventure-clock').textContent=state.coop?.breakTicks?'Regrouping…':`${Math.ceil(state.remainingTicks/60)}s`;const next=JSON.stringify(state.fighters.map(f=>[f.character,f.hp,f.chakra,f.stamina,f.guard]));if(next!==hudKey){hudKey=next;const list=$('#adventure-vitals');list.replaceChildren();state.fighters.forEach((f,i)=>{const n=document.createElement('div');n.className='vital'+(state.coop?f.team===1?' enemy':'':i===1?' enemy':'');const name=document.createElement('strong');name.textContent=`${state.coop?(f.team===0?i===slot?'YOU · ':'ALLY · ':'ENEMY · '):''}${f.name} · ${Math.ceil(f.hp)} HP`;const bar=document.createElement('meter');bar.min=0;bar.max=1000;bar.value=f.hp;bar.setAttribute('aria-label',`${f.name} health`);const meta=document.createElement('span');meta.textContent=`Chakra ${Math.floor(f.chakra)} · Stamina ${Math.floor(f.stamina)}`;n.append(name,bar,meta);list.append(n);});}
- const me=state.fighters[mode==='coop'?slot:0];for(const [action,label]of [['special1','Technique 1'],['special2','Technique 2'],['bloodline','Bloodline']]){const id=moveFor(me,action),b=$(`[data-action=${action}]`);b.textContent=id?`${MOVES[id].name}${me.cooldowns[action]>0?' · '+Math.ceil(me.cooldowns[action]/60)+'s':''}`:label+' · empty';b.disabled=!id;}
+ const me=state.fighters[mode==='coop'?slot:0];
+ for(const [action,name,meta]of [['special1','s1-name','s1-meta'],['special2','s2-name','s2-meta'],['bloodline','bl-name','bl-meta']]){
+  const id=moveFor(me,action),button=$(`[data-action=${action}]`);
+  $('#'+name).textContent=id?MOVES[id].name:'Empty slot';
+  $('#'+meta).textContent=`${controls.binding(0,action)} · ${me.cooldowns[action]>0?Math.ceil(me.cooldowns[action]/60)+'s':id?MOVES[id].cost:'NONE'}`;
+  button.disabled=!controls.editing&&!id;button.hidden=!controls.visible(action)||(!controls.editing&&!id);
+ }
+ for(const action of ['jump','dashBack','dashForward','attack','block'])$(`[data-action=${action}] small`).textContent=controls.binding(0,action);
+ $('#weapon-label').textContent=`${controls.binding(0,'weapon')} · ${WEAPONS[me.weapon].name}`;
+ $('#replacement-cd').textContent=`${controls.binding(0,'replacement')} · ${me.cooldowns.replacement>0?Math.ceil(me.cooldowns.replacement/60)+'s':25}`;
+ $('#awakening-meta').textContent=`${controls.binding(0,'awakening')} · ${me.awakeningUsed?'USED':'AWAKEN'}`;
+ $('#swap-meta').textContent=`${controls.binding(0,'swapWeapon')} · ${me.weaponSlot+1}/2`;
+ $('#item-cycle-meta').textContent=`${controls.binding(0,'cycleItem')} · ${me.itemSlot+1}/4`;
+ const item=me.items[me.itemSlot];$('#item-use-name').textContent=ITEMS[item.id]?.short??'EMPTY';
+ $('#item-use-meta').textContent=`${controls.binding(0,'useItem')} · ${me.cooldowns.useItem>0?Math.ceil(me.cooldowns.useItem/60)+'s':item.count?'READY':'USED'}`;
+ for(const button of document.querySelectorAll('[data-action]'))button.classList.toggle('active',input.snapshot()[button.dataset.action]);
+ $('#adventure-controls-help').textContent=`${controls.binding(0,'left')}/${controls.binding(0,'right')} move · ${controls.binding(0,'depthUp')}/${controls.binding(0,'depthDown')} lanes · ${controls.binding(0,'jump')} ×2 jump · ${controls.binding(0,'crouch')} crouch · ${controls.binding(0,'attack')}/${controls.binding(0,'weapon')} basic/weapon · ${controls.binding(0,'charge')} charge · ${controls.binding(0,'swapWeapon')} swap · ${controls.binding(0,'cycleItem')}/${controls.binding(0,'useItem')} items. Stick moves across the battlefield; double-pull sideways to dash. Online cannot pause.`;
+ techniques.draw();$('#jutsu-toggle').hidden=!active();
  $('#adventure-feedback').textContent=state.coop?state.coop.breakTicks?'Wave cleared. Allies recover before the next wave.':me.hp<=0?'Knocked out. Your ally can clear this wave to bring you back.':`${title} · Blue team holds together. No friendly fire.`:`${title} · ${state.wins[0]} – ${state.wins[1]} rounds`;
 }
-function frame(now){if(state){if(active()){accumulator+=last?Math.min((now-last)/1000,.1):0;while(accumulator>=1/60&&active()){const commands=input.consume();if(mode==='coop'){if(socket?.readyState===WebSocket.OPEN)socket.send(JSON.stringify({type:'input',seq:seq++,input:commands}));}else{stepMatch(state,[commands,computerInput(state)]);if(state.status!=='playing')finishStory();}accumulator-=1/60;}}else accumulator=0;render(state,{interpolate:mode==='coop',localAlpha:mode==='story'?accumulator*60:0});hud();}last=now;requestAnimationFrame(frame);}requestAnimationFrame(frame);
+function frame(now){gamepads.poll();if(state){if(active()){accumulator+=last?Math.min((now-last)/1000,.1):0;while(accumulator>=1/60&&active()){const commands=input.consume();if(mode==='coop'){if(socket?.readyState===WebSocket.OPEN)socket.send(JSON.stringify({type:'input',seq:seq++,input:commands}));}else{stepMatch(state,[commands,computerInput(state)]);if(state.status!=='playing')finishStory();}accumulator-=1/60;}}else accumulator=0;render(state,{interpolate:mode==='coop',localAlpha:mode==='story'?accumulator*60:0});hud();}last=now;requestAnimationFrame(frame);}requestAnimationFrame(frame);

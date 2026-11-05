@@ -1,3 +1,5 @@
+import {mountCombatControls} from './combat-controls-view.js';
+mountCombatControls(document.querySelector('.arena'));
 import {createNavigation} from './navigation.js';
 import {createSocialUI} from './social.js';
 import {createStagePicker} from './stage-picker.js';

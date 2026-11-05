@@ -1,0 +1,20 @@
+// Shared touch deck and editor for arena fights and adventures.
+export function mountCombatControls(arena){
+ arena.insertAdjacentHTML('beforeend', `
+    <div class="control-deck" aria-hidden="true"><span>TOUCH CONTROLS</span></div>
+    <div class="controls" aria-label="Player one touch controls">
+      <div id="joystick" data-control="stick" aria-label="Analog movement stick: up to jump, down to crouch, double-pull sideways to dash"><div class="stick-ring"><span>MOVE</span><i class="stick-thumb"></i></div></div>
+      <div class="movement"><button data-action="dashBack" data-control="dashBack" aria-label="Dash backward">BACK<small>Q</small></button><button data-action="jump" data-control="jump" aria-label="Jump or double jump">JUMP ×2<small>W</small></button><button data-action="dashForward" data-control="dashForward" aria-label="Dash forward">DASH<small>E</small></button></div>
+      <div class="attacks"><button data-action="block" data-control="block">GUARD<small>K</small></button><button data-action="attack" data-control="attack" class="hit"><span id="basic-label">BASIC ×3</span><small>J</small></button><button data-action="weapon" data-control="weapon">WEAPON<small id="weapon-label">H · KUNAI</small></button><button data-action="replacement" data-control="replacement">REPLACE<small id="replacement-cd">R · 25</small></button><button data-action="special1" data-control="special1" class="skill"><span id="s1-name">RASENGAN</span><small id="s1-meta">U · 30</small></button><button data-action="special2" data-control="special2" class="skill"><span id="s2-name">CLONE</span><small id="s2-meta">I · 35</small></button><button data-action="bloodline" data-control="bloodline" class="skill bloodline"><span id="bl-name">BLOODLINE</span><small id="bl-meta">O · NONE</small></button></div>
+      <button data-action="awakening" data-control="awakening" class="awakening-control"><span>AWAKEN</span><small id="awakening-meta">T · 0%</small></button>
+      <button data-action="swapWeapon" data-control="swapWeapon"><span>SWAP</span><small id="swap-meta">F</small></button>
+      <button data-action="cycleItem" data-control="cycleItem"><span>ITEM SLOT</span><small id="item-cycle-meta">C</small></button>
+      <button data-action="useItem" data-control="useItem"><span id="item-use-name">ITEM</span><small id="item-use-meta">X</small></button>
+    </div>
+    <section id="layout-editor" class="layout-editor" aria-label="Touch control editor" hidden>
+      <div class="editor-row"><strong>CONTROL LAYOUT</strong><label>Placement <select id="control-placement"><option value="dock">Below arena</option><option value="overlay">Over arena</option></select></label><label>Opacity <input id="control-opacity" type="range" min="25" max="100" value="65"><output id="opacity-value">65%</output></label></div><div class="editor-row"><label>Control <select id="control-select"></select></label><label>Size <input id="control-size" type="range" min="48" max="160" value="112"><output id="size-value">112 px</output></label></div>
+      <details class="visibility-settings"><summary>Visible controls (choose what appears during fights)</summary><fieldset id="control-visibility"><legend>Touch controls</legend></fieldset><p>Hidden buttons keep their keyboard bindings. You can restore any control here.</p></details><div class="editor-row"><span id="editor-message" role="status">Drag a control to move it.</span><button id="key-settings">Keyboard</button><button id="reset-layout">Reset layout</button><button id="cancel-controls">Cancel</button><button id="save-controls" class="save-controls">Save</button></div>
+    </section>
+`);
+ document.body.insertAdjacentHTML('beforeend', `<dialog id="keys-dialog" class="keys-dialog" aria-labelledby="keys-title"><div class="keys-header"><h2 id="keys-title">Keyboard bindings</h2><button id="close-keys">Done</button></div><p id="key-message" role="status"></p><div id="key-bindings"></div><button id="reset-keys">Restore default keys</button><p>Changes are a draft until you Save the control editor. P and Escape pause; Tab navigates.</p></dialog>`);
+}

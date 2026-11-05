@@ -24,3 +24,12 @@ test('two real WebSocket clients enter a shared expedition and disconnect withou
  const connect=()=>{const ws=new WebSocket(url,{headers:{Origin:base}}),messages=[],waiting=[];sockets.push(ws);ws.on('message',raw=>{const m=JSON.parse(raw);messages.push(m);for(const w of [...waiting])if(w.predicate(m)){clearTimeout(w.timer);waiting.splice(waiting.indexOf(w),1);w.resolve(m);}});const wait=predicate=>{const found=messages.find(predicate);if(found)return Promise.resolve(found);return new Promise((resolve,reject)=>{const w={predicate,resolve,timer:setTimeout(()=>reject(Error('Timed out waiting for WebSocket message')),5000)};waiting.push(w);});};return {ws,wait};};
  try{const a=connect(),b=connect();await Promise.all([a.wait(m=>m.type==='hello'),b.wait(m=>m.type==='hello')]);for(const [i,c]of [a,b].entries())c.ws.send(JSON.stringify({type:'join',protocol:PROTOCOL_VERSION,rules:RULES_VERSION,queue:'coop',room:'REAL2345',profile:{name:'Ally '+i,...loadouts[i]}}));const joined=await Promise.all([a.wait(m=>m.type==='matched'),b.wait(m=>m.type==='matched')]);assert.equal(joined[0].id,joined[1].id);assert.equal(joined[0].state.fighters.length,4);assert.notEqual(joined[0].slot,joined[1].slot);await a.wait(m=>m.type==='snapshot'&&m.phase==='playing');a.ws.send(JSON.stringify({type:'input',seq:1,input:{right:true}}));b.ws.send(JSON.stringify({type:'input',seq:1,input:{jump:true}}));const moved=await a.wait(m=>m.type==='snapshot'&&m.state.fighters[0].x>300&&m.state.fighters[1].y>0);assert.equal(moved.state.coop.wave,1);b.ws.close();const ended=await a.wait(m=>m.type==='ended');assert.equal(ended.reason,'opponent-disconnected');const history=await fetch(base+'/api/history').then(r=>r.json());assert.deepEqual(history.matches,[]);assert.equal((await fetch(base+'/api/leaderboard').then(r=>r.json())).players.length,0);}finally{for(const ws of sockets)ws.close();await app.close();}
 });
+
+// Formation survives the initial simulation tick and every wave revival.
+test('allies start separated across lanes and facing the wave, including after revival',()=>{
+ const s=createCoopMatch(loadouts);
+ const formation=()=>{const [a,b]=s.fighters;assert.ok(b.x-a.x>=170);assert.ok(Math.abs(a.depth-b.depth)>100);assert.equal(a.facing,1);assert.equal(b.facing,1);};
+ formation();stepCoop(s);formation();
+ s.fighters[0].hp=0;s.fighters.slice(2).forEach(f=>f.hp=0);stepCoop(s);formation();
+ for(let i=0;i<180;i++)stepCoop(s);formation();
+});

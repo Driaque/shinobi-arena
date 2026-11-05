@@ -3,10 +3,10 @@ import {createStickGestures} from './packages/input/analog.js';
 import { ACTIONS } from './packages/input/index.js';
 import { STORAGE_KEY, VISIBILITY_IDS, CONTROL_IDS, DEFAULT_KEYS, freshSettings, readSettings, stickVector, defaultLayout, defaultDockLayout, layoutProfile, projectControl, layoutOverlaps, rebind, keyLabel, keyForAction } from './packages/input/preferences.js';
 export const ACTION_LABELS={crouchGuard:'Crouch Guard',jutsu4:'Jutsu 4',jutsu5:'Jutsu 5',jutsu6:'Jutsu 6',jutsu7:'Jutsu 7',depthUp:'Move toward rear',depthDown:'Move toward front',charge:'Charge chakra',swapWeapon:'Swap weapon',cycleItem:'Choose consumable',useItem:'Use consumable',crouch:'Crouch',awakening:'Awakening',stick:'Movement stick',left:'Move left',right:'Move right',jump:'Double jump',attack:'Basic attack',weapon:'Weapon',block:'Guard',special1:'Signature 1',special2:'Signature 2',bloodline:'Bloodline',replacement:'Replacement',dashForward:'Dash forward',dashBack:'Dash backward'};
-export function createControls({inputs,onPause,isPlaying}) {
+export function createControls({inputs,onPause,isPlaying,onOpen=onPause}) {
   const $=s=>document.querySelector(s),arena=$('.arena'),stick=$('#joystick');
   const nodes=Object.fromEntries(CONTROL_IDS.map(id=>[id,$(`[data-control="${id}"]`)]));
-  const editor=$('#layout-editor'),keysDialog=$('#keys-dialog'),overlay=$('#overlay');
+  const editor=$('#layout-editor'),keysDialog=$('#keys-dialog'),overlay=$('#overlay')??{hidden:true};
   let settings;try{settings=readSettings(localStorage.getItem(STORAGE_KEY));}catch{settings=freshSettings();}
   const gestures=createStickGestures(()=>({doublePullMs:experience().doublePullMs}));
   let draft=null,editing=false,selected='stick',drag=null,stickPointer=null,listening=null,previousOverlay=false;
@@ -104,11 +104,11 @@ export function createControls({inputs,onPause,isPlaying}) {
   keysDialog.addEventListener('cancel',event=>{event.preventDefault();closeKeys();});
   $('#reset-keys').addEventListener('click',()=>{listening=null;draft.keys=DEFAULT_KEYS.map(m=>({...m}));renderKeys();$('#key-message').textContent='Default keys restored in this draft.';});
   function open(){
-    if(editing)return;onPause();reset();previousOverlay=overlay.hidden;overlay.hidden=true;
-    draft=structuredClone(settings);editing=true;arena.classList.add('editing-controls');editor.hidden=false;$('#mode').disabled=true;applyLayout();
+    if(editing)return;onOpen();reset();previousOverlay=overlay.hidden;overlay.hidden=true;
+    draft=structuredClone(settings);editing=true;arena.classList.add('editing-controls');editor.hidden=false;if($('#mode'))$('#mode').disabled=true;applyLayout();
   }
   function close(){
-    reset();editing=false;draft=null;arena.classList.remove('editing-controls');editor.hidden=true;$('#mode').disabled=false;
+    reset();editing=false;draft=null;arena.classList.remove('editing-controls');editor.hidden=true;if($('#mode'))$('#mode').disabled=false;
     overlay.hidden=previousOverlay;applyLayout();$('#control-settings').focus();
   }
   for(const id of VISIBILITY_IDS){
@@ -120,8 +120,8 @@ export function createControls({inputs,onPause,isPlaying}) {
   $('#save-controls').addEventListener('click',()=>{
     const warning=collisionMessage();if(warning){message(warning);return;}
     settings=structuredClone(draft);
-    try{localStorage.setItem(STORAGE_KEY,JSON.stringify(settings));$('#status').textContent='Controls saved on this device.';}
-    catch{$('#status').textContent='Storage is unavailable. These controls apply until this page closes.';}
+    try{localStorage.setItem(STORAGE_KEY,JSON.stringify(settings));($('#status')??$('#adventure-status')).textContent='Controls saved on this device.';}
+    catch{($('#status')??$('#adventure-status')).textContent='Storage is unavailable. These controls apply until this page closes.';}
     close();
   });
   $('#reset-layout').addEventListener('click',()=>{draft[layoutKey()][profile()]=(current().placement==='dock'?defaultDockLayout:defaultLayout)(arena.clientWidth,arena.clientHeight);applyLayout();});
@@ -144,10 +144,10 @@ export function createControls({inputs,onPause,isPlaying}) {
       return;
     }
     if(editing){if(event.code==='Escape'){event.preventDefault();close();}return;}
-    if(event.target.closest('input,select,textarea,dialog')||!$('#rotate').hidden)return;
+    if(event.target.closest('input,select,textarea,dialog')||$('#rotate')&&!$('#rotate').hidden)return;
     if(['KeyP','Escape'].includes(event.code)){if(!event.repeat)onPause();return;}
     const player=current().keys.findIndex(m=>m[event.code]);
-    if(player<0||!isPlaying()||player===1&&$('#mode').value==='cpu')return;
+    if(player<0||!isPlaying()||player===1&&($('#mode')?.value??'cpu')==='cpu')return;
     event.preventDefault();inputs[player].press(current().keys[player][event.code],event.code);
   });
   window.addEventListener('arena:experience',()=>{reset();applyLayout();});
