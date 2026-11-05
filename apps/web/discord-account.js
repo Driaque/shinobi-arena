@@ -36,4 +36,5 @@ export function startDiscord({base,mode,isBusy=()=>false,onDone=()=>{},onError=(
 export async function logoutDiscord(base){
  const token=profileToken(base);await arenaRequest('/api/auth/discord/logout',{base,token,method:'POST'});
  if(profileToken(base)===token)localStorage.removeItem(key(base));
+ globalThis.window?.dispatchEvent?.(new Event('arena:identity'));
 }

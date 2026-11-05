@@ -2,6 +2,7 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { resolve, sep, extname } from 'node:path';
 const root = resolve('dist');
+const arg=name=>{const i=process.argv.indexOf(name);return i>=0?process.argv[i+1]:undefined;};
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.jpg':'image/jpeg','.webp':'image/webp','.png':'image/png' };
 createServer(async (req, res) => {
   try {
@@ -11,5 +12,5 @@ createServer(async (req, res) => {
     const data = await readFile(path);
     res.writeHead(200, { 'Content-Type': types[extname(path)] ?? 'application/octet-stream' }).end(data);
   } catch { res.writeHead(404).end('Not found'); }
-}).listen(Number(process.env.PORT || 4173), '127.0.0.1', () => console.log('Ready — run npm run build first'));
+}).listen(Number(arg('--port') || process.env.PORT || 4173), arg('--host') || '127.0.0.1', () => console.log('Ready — run npm run build first'));
 

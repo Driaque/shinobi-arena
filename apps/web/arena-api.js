@@ -16,6 +16,6 @@ export function ensureIdentity(name,base){
  pendingIdentities.set(base,pending);return pending;
 }
 async function loadIdentity(name,base){let token=profileToken(base);if(token){try{await arenaRequest('/api/me',{base,token});return token;}catch(e){throw new Error('Your saved profile could not be loaded. Use Arena → Profile to restore it, or retry when the server is available.');}}
- const created=await arenaRequest('/api/identity',{base,method:'POST',body:{name}});try{localStorage.setItem(key(base),created.token);}catch{throw new Error('Save a profile recovery code before ranked play; browser storage is unavailable.');}return created.token;
+ const created=await arenaRequest('/api/identity',{base,method:'POST',body:{name}});try{localStorage.setItem(key(base),created.token);}catch{throw new Error('Save a profile recovery code before ranked play; browser storage is unavailable.');}globalThis.window?.dispatchEvent?.(new Event('arena:identity'));return created.token;
 }
-export async function restoreIdentity(token,base){if(!/^[A-Za-z0-9_-]{43}$/.test(token))throw new Error('Enter the complete profile recovery code');const value=await arenaRequest('/api/me',{base,token});localStorage.setItem(key(base),token);return value;}
+export async function restoreIdentity(token,base){if(!/^[A-Za-z0-9_-]{43}$/.test(token))throw new Error('Enter the complete profile recovery code');const value=await arenaRequest('/api/me',{base,token});localStorage.setItem(key(base),token);globalThis.window?.dispatchEvent?.(new Event('arena:identity'));return value;}

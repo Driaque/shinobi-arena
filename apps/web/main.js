@@ -1,3 +1,4 @@
+import {createNavigation} from './navigation.js';
 import {createSocialUI} from './social.js';
 import {createStagePicker} from './stage-picker.js';
 import {DEFAULT_FIGHTERS,isOriginalFighter} from './packages/engine/originals.js';
@@ -36,6 +37,15 @@ $('#difficulty').value=difficulty;
 const stages=createStagePicker(()=>{if(!started&&mode!=='online')state=newMatch(readLoadouts());});
 const newMatch=(loadouts=DEFAULT_FIGHTERS.map(character=>({character,weapon:CHARACTERS[character].defaultWeapon??'katana'})))=>{const next=$('#mode').value==='training'&&trainingUI?trainingUI.create(loadouts):createMatch(loadouts,{difficulty,stage:stages.value()});if(next.training)next.stage=stages.resolve();return next;};
 let state=newMatch(), paused=true, started=false, mode='cpu', cpu={}, lastTime=0, accumulator=0, feedbackUntil=0;
+let setupStep='characters';
+const setupBack=document.createElement('button');setupBack.id='setup-back';setupBack.textContent='Back to characters';setupBack.hidden=true;$('#play').before(setupBack);
+function showSetupStep(step,keepTitle=false){
+ setupStep=step;const choosing=!started||state.status==='matchOver';
+ $('#loadout-panel').hidden=!choosing||step!=='characters';
+ stages.element.hidden=!choosing||step!=='stage';setupBack.hidden=!choosing||step!=='stage';
+ if(choosing&&!activeTournament){if(!keepTitle)$('#overlay-title').textContent=step==='characters'?'Choose your fighters.':'Choose your battle stage.';$('#play').textContent=step==='characters'?'Continue to battle stage':mode==='online'?'Find opponent':mode==='training'?'Start training':'Enter the arena';}
+}
+setupBack.onclick=()=>showSetupStep('characters');
 const shortNames={tidalEdict:'TIDAL EDICT',royalTempest:'ROYAL TEMPEST',triuneFlow:'TRIUNE FLOW',royalGale:'ROYAL GALE',releasedTempest:'SOVEREIGN',harmoniousSlash:'HARMONIOUS',echoingRift:'ECHOING RIFT',aquaGuard:'TRIUNE FLOW',tetsugan:'TETSUGAN',mizukumi:'MIZUKUMI',eclipseDrain:'ECLIPSE DRAIN',shinraiOu:'SHINRAI ŌU',ascendantSlash:'ASCENDANT CUT',ascendantRift:'METAL RIFT',dominionMizukumi:'DOMINION DASH',dominionDrain:'DOMINION DRAIN',special1:'RASENGAN',chidori:'CHIDORI',clone:'CLONE',fireball:'FIREBALL',lionFists:'TWIN LIONS',chakraStrike:'PALM STRIKE',snakeStrike:'SNAKES',seal:'SEAL',sharingan:'SHARINGAN',byakugan:'BYAKUGAN'};
 function readLoadouts(){if(loadoutUI)return [0,1].map(i=>loadoutUI.read(i));return [0,1].map(i=>({character:$(`#character${i} input:checked`).value,weapon:$(`#weapon${i}`).value,weapons:[$(`#weapon${i}`).value,$(`#weapon-secondary${i}`).value||null],items:[0,1,2,3].map(slot=>$(`#item${i}-${slot}`).value||null)}));}
 function describeLoadouts(){
@@ -90,7 +100,7 @@ function dialog(kicker,title,description,button){
   $('#overlay-hint').textContent=mode==='cpu'?`${difficultyFor(difficulty).name} · ${difficultyFor(difficulty).description}`:'P2 arrows · N basic · B weapon · M guard · , / . signatures · / bloodline · V replace';
   $('#loadout-panel').hidden=started&&state.status!=='matchOver';
   if(mode==='training')$('#overlay-hint').textContent='Practice configures your dummy and challenges · Reset returns both fighters to position';
-  $('#overlay').hidden=false;$('#play').hidden=false;if(mode==='online')$('#online-lobby').hidden=false;
+  showSetupStep('characters',true);$('#overlay').hidden=false;$('#play').hidden=false;if(mode==='online')$('#online-lobby').hidden=false;
 }
 function pause(){
   if(mode==='online'){clearInputs();return;}
@@ -116,6 +126,7 @@ function finish(){
 }
 $('#play').addEventListener('click',()=>{
   if(!$('#rotate').hidden)return;coach.hidden=true;
+  if((!started||state.status==='matchOver')&&!activeTournament&&!(mode==='online'&&online.busy)&&setupStep==='characters'){showSetupStep('stage');return;}
   if(mode==='online'){if(activeTournament&&(!started||state.status==='matchOver')){arenaHub.open('tournaments');return;}if(online.phase==='roundOver'){online.ready();$('#play').disabled=true;$('#play').textContent='Waiting for opponent…';}else {if(online.busy)return;online.reset();online.join();}return;}
   if(!started||state.status==='matchOver')state=newMatch(readLoadouts());
   else if(state.status==='roundOver')nextRound(state);
@@ -148,7 +159,7 @@ trainingUI=createTrainingUI({pause,clearInputs,getState:()=>state,setState:useTr
 
 const socialUI=createSocialUI({getOnline:()=>online});
 online=createOnline({onSocial:socialUI.update,onPhase:socialUI.phase,getProfile:()=>({...readLoadouts()[0],stage:stages.value()}),onStatus:()=>{
- if(mode==='online'){for(const el of document.querySelectorAll('#character0 input,#weapon0,#weapon-secondary0,#item0-0,#item0-1,#item0-2,#item0-3'))el.disabled=online?.busy??false;$('#play').disabled=online?.busy??false;$('#play').textContent=online?.busy?'Finding opponent…':activeTournament?'View tournament bracket':'Find opponent';}
+ if(mode==='online'){for(const el of document.querySelectorAll('#character0 input,#weapon0,#weapon-secondary0,#item0-0,#item0-1,#item0-2,#item0-3'))el.disabled=online?.busy??false;$('#play').disabled=online?.busy??false;$('#play').textContent=online?.busy?'Finding opponent…':activeTournament?'View tournament bracket':setupStep==='characters'&&!started?'Continue to battle stage':'Find opponent';}
 },onEnd:message=>{
  if(mode!=='online')return;clearInputs();started=false;paused=true;onlineScreen='';
  dialog('ONLINE ARENA',activeTournament?'Tournament update':'Return to the lobby',message,activeTournament?'View tournament bracket':'Find opponent');$('#play').disabled=false;
@@ -177,6 +188,8 @@ online=createOnline({onSocial:socialUI.update,onPhase:socialUI.phase,getProfile:
 createExperience({onOpen:()=>{clearInputs();pause();},onChange:()=>window.dispatchEvent(new Event('arena:experience'))});
 const netLabel=document.createElement('span');netLabel.id='network-quality';document.querySelector('.topbar').after(netLabel);
 const arenaHub=createArenaHub({onFight:id=>{online.reset();$('#mode').value='online';$('#mode').dispatchEvent(new Event('change'));activeTournament=id;online.join({tournamentId:id});},onTakeover:next=>{online.reset();$('#mode').value='training';$('#mode').dispatchEvent(new Event('change'));next.status='playing';next.result=null;next.training={drill:'free',dummy:'attack',unlimitedResources:false,refillHealth:true,instantCooldowns:false,showRanges:true,step:0,completed:false,feedback:'Replay takeover: practice from the preceding recorded sample as P1.',feedbackUntil:next.tick+240,stats:{damage:0,hits:0,bestCombo:0}};for(const f of next.fighters)f.hp=Math.max(1,f.hp);useTrainingState(next);$('#overlay').hidden=true;paused=false;started=true;clearInputs();},onOpen:()=>{clearInputs();pause();},isBusy:()=>mode==='online'&&['connecting','queued','playing','countdown','roundOver','lounge'].includes(online.phase)});
+createNavigation({hub:arenaHub,isBusy:()=>mode==='online'&&online.busy});
+showSetupStep('characters');
 techniqueTray=createTechniqueTray({input:inputs[0],getPlayer:()=>state.fighters[mode==='online'?online.slot:0],isPlaying:()=>started&&!paused&&!controls?.editing&&$('#rotate').hidden&&state.status==='playing'&&(mode!=='online'||online.phase==='playing'),binding:key=>controls.binding(0,key),visible:key=>controls.visible(key)});
 window.addEventListener('blur',()=>{clearInputs();pause();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){clearInputs();pause();}});
@@ -190,6 +203,8 @@ createFullscreen({element:$('#game'),target:document.documentElement,button:$('#
 }});
 function paintHud(){
   document.documentElement.classList.toggle('in-match',started&&!paused);
+  const inBattle=started&&state.status!=='matchOver';$('#pause').hidden=!inBattle||mode==='online';$('#fullscreen').hidden=!inBattle;if($('#jutsu-toggle'))$('#jutsu-toggle').hidden=!inBattle;
+  if($('#overlay').hidden||started&&state.status!=='matchOver'||$('#loadout-panel').hidden&&setupStep!=='stage'){stages.element.hidden=true;setupBack.hidden=true;}
   $('#difficulty').disabled=mode!=='cpu'||Boolean(controls?.editing);
   $('.difficulty-label').hidden=mode==='training'||mode==='online';
   $('#difficulty').title=difficultyFor(difficulty).description;

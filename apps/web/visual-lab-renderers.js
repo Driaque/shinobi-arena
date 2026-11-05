@@ -185,7 +185,9 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
     }
     return sheetTextures.get(id).views;
   }
-  const actors = Array.from({ length: 2 }, () => {
+  const actors = new Map();
+  function actorFor(id) {
+    if(actors.has(id))return actors.get(id);
     const container = new Container();
     fighters.addChild(container);
     const ghosts = Array.from({ length: 3 }, () => {
@@ -195,8 +197,8 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
     });
     const sprite = new Sprite(textures[0]);
     container.addChild(sprite);
-    return { container, ghosts, sprite };
-  });
+    const actor={container,ghosts,sprite};actors.set(id,actor);return actor;
+  }
   let terrainStage=null;
   let lost = false;
   const contextLost = (e) => {
@@ -236,7 +238,7 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
     effects.clear();
     // Retain static geometry; rebuild only the animated additions.
     shapes(ground,sceneryFor(scene).slice(staticScenery.length));
-    for(const a of actors)a.container.visible=false;
+    for(const a of actors.values())a.container.visible=false;
     for (const z of scene.zones ?? [])
       if (z.kind === "elemental")
         ground
@@ -257,7 +259,7 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
           ground
             .ellipse(f.x, f.y - 66, 30 + i * 12, 65 + i * 9)
             .fill({ color: 0x5dedd3, alpha: 0.025 * i });
-      const a = actors[f.id];
+      const a = actorFor(f.id);
       a.container.visible=true;
       a.container.position.set(f.x, f.y);
       a.container.alpha = f.alpha ?? 1;

@@ -1,3 +1,4 @@
+import {clickGame,selectGame,openNavigation} from './navigation-helper.mjs';
 import {chromium} from 'playwright';import {spawn} from 'node:child_process';import assert from 'node:assert/strict';import {mkdir} from 'node:fs/promises';
 const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'4202'},stdio:['ignore','pipe','inherit']});let browser;
 try{
@@ -7,7 +8,7 @@ try{
   const context=await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1440,height:960},isMobile:mobile,hasTouch:mobile}),p=await context.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));
   await p.goto('http://127.0.0.1:4202');await p.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-pixi');
   for(const stage of ['frost','forge','grove','court','skyglass']){
-   await p.click(`[data-stage=${stage}]`);
+   if(await p.locator('#loadout-panel').isVisible())await p.locator('#play').click();await p.click(`[data-stage=${stage}]`);
    await p.waitForFunction(id=>document.querySelector('#canvas').dataset.stage===id,stage);
   }
   await p.reload();await p.waitForFunction(()=>document.querySelector('#canvas').dataset.stage==='skyglass');
@@ -24,16 +25,16 @@ try{
   assert.equal(await p.locator('#include-anime').isChecked(),false);assert.equal(await p.locator('#character0 .character-card:visible').count(),10);assert.ok(await p.locator('#character0').evaluate(el=>el.clientHeight>=260),'original grid exposes more rows');assert.equal(await p.locator('#character0 input:checked').inputValue(),'aren');assert.equal(await p.locator('#character1 input:checked').inputValue(),'winta');
   for(const c of ['silent','winta','dora','aren','eira','kael','nyra','rook','veyra','oryn']){await p.locator(`#character0 input[value=${c}]`).check();assert.match(await p.locator('#kit0').innerText(),/Story & connections/);}
   await p.locator('#include-anime').check();assert.equal(await p.locator('#character0 .character-card:visible').count(),35);await p.locator('#character0 input[value=naruto]').check();await p.locator('#include-anime').uncheck();assert.equal(await p.locator('#character0 input:checked').inputValue(),'aren');assert.equal(await p.locator('#character0 .character-card:visible').count(),10);
-  for(const mode of ['cpu','local','training','online']){await p.selectOption('#mode',mode);if(mode!=='online'){await p.click('#play');await p.waitForTimeout(100);}await p.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-pixi');assert.doesNotMatch(await p.locator('#name1').innerText(),/SPARRING ECHO/);}
-  await p.selectOption('#mode','training');await p.click('#play');await p.click('#training-settings');assert.equal(await p.locator('#training-charge').isDisabled(),true,'Aren has no awakening to charge');await p.click('#training-close');await p.click('#play');await p.screenshot({path:`test-results/global-pixi-${mobile?'portrait':'desktop'}.png`});
-  await p.click('#graphics-settings');
+  for(const mode of ['cpu','local','training','online']){await selectGame(p,'#mode',mode);if(mode!=='online'){await clickGame(p,'#play');await p.waitForTimeout(100);}await p.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-pixi');assert.doesNotMatch(await p.locator('#name1').innerText(),/SPARRING ECHO/);}
+  await selectGame(p,'#mode','training');await clickGame(p,'#play');await clickGame(p,'#training-settings');assert.equal(await p.locator('#training-charge').isDisabled(),true,'Aren has no awakening to charge');await p.click('#training-close');await clickGame(p,'#play');await p.screenshot({path:`test-results/global-pixi-${mobile?'portrait':'desktop'}.png`});
+  await clickGame(p,'#graphics-settings');
   assert.equal(await p.locator('#fighter-style').inputValue(),'fluid');
   assert.equal(await p.locator('#canvas').getAttribute('data-fighter-style'),'fluid');
   await p.selectOption('#fighter-style','painted');await p.waitForFunction(()=>document.querySelector('#canvas').dataset.fighterStyle==='painted');
   await p.selectOption('#fighter-style','fluid');await p.waitForFunction(()=>document.querySelector('#canvas').dataset.fighterStyle==='fluid');
   await p.selectOption('#battle-renderer','canvas');await p.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-canvas');await p.selectOption('#battle-renderer','pixi');await p.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-pixi');await p.click('#graphics-close');
   await p.evaluate(()=>document.querySelector('[data-practice-art=pixi]').dispatchEvent(new Event('webglcontextlost',{cancelable:true})));await p.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-canvas');
-  await p.click('#graphics-settings');await p.click('#battle-graphics-retry');await p.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-pixi');await p.click('#graphics-close');
+  await clickGame(p,'#graphics-settings');await p.click('#battle-graphics-retry');await p.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-pixi');await p.click('#graphics-close');
   assert.equal(await p.evaluate(async()=>{
    const {createRenderer}=await import('./renderer.js'),{createMatch}=await import('./packages/engine/index.js');const host=document.createElement('div');host.style.cssText='position:fixed;width:800px;height:400px;left:-1000px';const canvas=document.createElement('canvas');host.append(canvas);document.body.append(host);const render=createRenderer(canvas),state=createMatch();render(state,{sampled:true});state.fighters[0].x=777;render(state,{sampled:true});const x=render.frame.state.fighters[0].x;render.dispose();host.remove();return x;
   }),777,'replay samples at the same tick use the actual interpolated position');

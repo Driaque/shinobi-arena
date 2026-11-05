@@ -1,3 +1,4 @@
+import {clickGame,selectGame,openNavigation} from './navigation-helper.mjs';
 import {chromium} from 'playwright';
 import {mkdtemp,rm,mkdir} from 'node:fs/promises';import {tmpdir} from 'node:os';import {join} from 'node:path';import {randomUUID} from 'node:crypto';
 import assert from 'node:assert/strict';import {createOnlineServer} from '../apps/server/index.js';
@@ -13,7 +14,7 @@ try{
   // Route the initial request: Playwright does not re-route subsequent redirect hops.
   // Keep the real server's state/binding cookie, then emulate Discord's callback redirect.
   await ctx.route(origin+'/auth/discord/authorize?**',async route=>{const response=await route.fetch({maxRedirects:0});assert.equal(response.status(),302);const url=new URL(response.headers().location);assert.equal(url.origin,'https://discord.com');assert.equal(url.searchParams.get('scope'),'identify');assert.equal(url.searchParams.get('code_challenge_method'),'S256');await route.fulfill({response,headers:{...response.headers(),location:origin+'/auth/discord/callback?'+new URLSearchParams({state:url.searchParams.get('state'),code:'test-code',iss:'https://discord.com'})}});});
-  const page=await ctx.newPage();page.on('pageerror',e=>errors.push(e.message));await page.goto(origin);await page.click('#account-profile');await page.waitForSelector('.discord-account');return {ctx,page};
+  const page=await ctx.newPage();page.on('pageerror',e=>errors.push(e.message));await page.goto(origin);await clickGame(page,'#account-profile');await page.waitForSelector('.discord-account');return {ctx,page};
  }
  async function authorize(page,label){
   const opened=page.waitForEvent('popup');await page.getByRole('button',{name:label,exact:true}).click();const popup=await opened;
