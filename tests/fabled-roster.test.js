@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {ORIGINAL_FIGHTERS,DEFAULT_FIGHTERS,isOriginalFighter} from '../packages/engine/originals.js';
-import {CHARACTERS,validateLoadout,createMatch,stepMatch} from '../packages/engine/index.js';
+import {CHARACTERS,MOVES,defaultJutsus,validateLoadout,createMatch,stepMatch} from '../packages/engine/index.js';
 import {sceneryFor,projectileShapes} from '../packages/presentation/battlefield.js';
 import {practiceSceneFor} from '../packages/presentation/practice-scene.js';
 test('ten originals have playable distinct kits, connected stories and original defaults',()=>{
@@ -11,6 +11,16 @@ test('ten originals have playable distinct kits, connected stories and original 
  }assert.equal(kits.size,10);
  assert.match(ORIGINAL_FIGHTERS.silent.relationships,/blood brother/);assert.match(ORIGINAL_FIGHTERS.winta.relationships,/blood brother/);
  for(const c of ['silent','winta','dora','aren'])assert.ok(isOriginalFighter(c));
+});
+test('original character kits expose their Skyglass ability names throughout the catalog',()=>{
+ for(const [id,ability,name] of [['silent','skyforgedAegis','Skyforged Aegis · Middle Guard'],['winta','stormheart','Stormheart']]){
+  assert.equal(CHARACTERS[id].era,'Original');assert.equal(CHARACTERS[id].classification,'original');
+  assert.equal(CHARACTERS[id].bloodline,ability);assert.equal(MOVES[ability].name,name);
+  assert.ok(defaultJutsus(id).includes(ability));
+  assert.deepEqual(validateLoadout({character:id,weapon:'tachi',jutsus:defaultJutsus(id)}).jutsus,defaultJutsus(id));
+ }
+ assert.equal(MOVES[CHARACTERS.winta.special1].name,'Rimeflash');
+ assert.match(CHARACTERS.silent.backstory,/Frostmere/);
 });
 test('native projectile/scenery geometry is bounded, deterministic and retains exact snapshot positions across seeks',()=>{
  const scene={tick:100,decorative:true,parallax:4,projectiles:[{x:700,y:100,depth:20,move:'itemRaijin',direction:-1},{x:900,y:80,move:'itemBomb',life:30},{x:800,y:40,move:'itemShuriken'}]};

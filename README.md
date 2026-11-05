@@ -6,7 +6,7 @@ Master your style. Forge your legend.
 
 Formerly Shinobi Arena. The current roster is a development prototype; a fully original roster and setting are planned for public rollout. This branding update does not replace the prototype characters.
 
-A playable browser fighting prototype with a **28-character selectable roster spanning Naruto, Boruto and TNR originals**, desktop keyboard controls,
+A playable browser fighting prototype with a **28-character selectable roster spanning Naruto, Boruto and Fabled Rivals originals**, desktop keyboard controls,
 a landscape analog stick and customizable touch controls, online matchmaking, local two-player and a computer opponent.
 
 ## Practice graphics
@@ -128,7 +128,7 @@ No third-party character assets are bundled. Asset provenance is recorded in
 
 ### v0.7.0: The Northern Calamity
 
-28 selectable fighters now include **Silent — Cold Metal** and **Winta — Frozen Sun**, and **Dora — AquaPrincess**, under **Originals / TNR**, with user-supplied concept portraits. Silent has sword counters, Tetsugan guard reflect/absorption and a pulling metal-vulnerability strike. Winta has lightning pressure and a lifestealing strike. Their proposed awakenings change signatures and speed up sword chains. Tachi and Kaiken are selectable equipment. [Character kits and adaptation notes](docs/ORIGINAL_CHARACTERS.md).
+28 selectable fighters now include **Silent — Cold Metal** and **Winta — Frozen Sun**, and **Dora — AquaPrincess**, under **Fabled Rivals Originals**, with user-supplied concept portraits. Silent has sword counters, Skyforged Aegis guard reflect/absorption and a pulling metal-vulnerability strike. Winta has lightning pressure and a lifestealing strike. Their proposed awakenings change signatures and speed up sword chains. Tachi and Kaiken are selectable equipment. [Character kits and adaptation notes](docs/ORIGINAL_CHARACTERS.md).
 
 ### v0.8.0: movement, counterplay and clear mobile controls
 

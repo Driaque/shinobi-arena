@@ -61,6 +61,6 @@ These support theme choices, not exact prototype effects or asset permissions. P
 rendering remain project-authored procedural artwork.
 
 
-## v0.7.0 — Originals / TNR
+## v0.7.0 — Fabled Rivals Originals
 
-Silent (Cold Metal / Tetsugan) and Winta (Frozen Sun / Shinrai Ōu) join the roster. Full character brief, selected kits, proposed awakening rules and deferred ability pool: [ORIGINAL_CHARACTERS.md](ORIGINAL_CHARACTERS.md). Both have individual sword chains, two signatures, a bloodline activation and a damage-unlocked awakening. Tachi and Kaiken join pre-battle equipment.
+Silent (Cold Metal / Skyforged Aegis) and Winta (Frozen Sun / Stormheart) join the roster. Full character brief, selected kits, proposed awakening rules and deferred ability pool: [ORIGINAL_CHARACTERS.md](ORIGINAL_CHARACTERS.md). Both have individual sword chains, two signatures, a bloodline activation and a damage-unlocked awakening. Tachi and Kaiken join pre-battle equipment.

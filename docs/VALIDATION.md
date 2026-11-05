@@ -41,7 +41,7 @@ online-play claims are made. Browser smoke automation does not replace interacti
 
 ## v0.7.0 — Silent and Winta
 
-Engine checks cover individual sword chains, guard absorption/reflect and counter expiry, full-pierce bypass, pull/metal vulnerability without accidental DOT, guard/Replacement avoidance, lightning-only amplification, actual-damage lifesteal/HP cap/overkill, awakening expiry/reset/faster chains, and deterministic replay. Browser smoke covers all 18 roster entries, Originals / TNR filter, both concept images, selected Tachi/Kaiken loadouts, real guard reflect/counter HUD and the existing desktop/mobile suite. Mobile screenshots include the original portraits at landscape size. Prototype art and playtest balance remain limitations.
+Engine checks cover individual sword chains, guard absorption/reflect and counter expiry, full-pierce bypass, pull/metal vulnerability without accidental DOT, guard/Replacement avoidance, lightning-only amplification, actual-damage lifesteal/HP cap/overkill, awakening expiry/reset/faster chains, and deterministic replay. Browser smoke covers all 18 roster entries, Fabled Rivals Originals filter, both concept images, selected Tachi/Kaiken loadouts, real guard reflect/counter HUD and the existing desktop/mobile suite. Mobile screenshots include the original portraits at landscape size. Prototype art and playtest balance remain limitations.
 
 ## v0.8.0 — movement, tactics and mobile controls
 

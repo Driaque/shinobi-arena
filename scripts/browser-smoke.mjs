@@ -117,8 +117,8 @@ try {
  await page.selectOption('#roster-era','Original');await page.locator('#character0 input[value="silent"]').check();await page.locator('#character1 input[value="winta"]').check();
  await equip(page,'#weapon0','tachi');await equip(page,'#weapon1','kaiken');await clickGame(page,'#play');await page.clock.runFor(32);
  assert.equal(await page.locator('#name0').innerText(),'SILENT');assert.equal(await page.locator('#name1').innerText(),'WINTA');
- assert.equal(await page.locator('#bl-name').innerText(),'TETSUGAN');assert.match(await page.locator('#weapon-label').innerText(),/TACHI/);
- await page.keyboard.down('KeyO');await page.clock.runFor(450);await page.keyboard.up('KeyO');assert.match(await page.locator('#effects0').innerText(),/TETSUGAN GUARD/);
+ assert.equal(await page.locator('#bl-name').innerText(),'SKYFORGED AEGIS');assert.match(await page.locator('#weapon-label').innerText(),/TACHI/);
+ await page.keyboard.down('KeyO');await page.clock.runFor(450);await page.keyboard.up('KeyO');assert.match(await page.locator('#effects0').innerText(),/SKYFORGED AEGIS GUARD/);
  await page.keyboard.down('ArrowLeft');await page.clock.runFor(1550);await page.keyboard.up('ArrowLeft');
  await page.keyboard.down('KeyK');await page.keyboard.down('KeyN');await page.clock.runFor(140);await page.keyboard.up('KeyN');
  assert.ok(Number(await page.locator('#hp1').innerText())<1000,'Silent reflects a guarded sword strike');assert.match(await page.locator('#effects0').innerText(),/COUNTER READY/);
