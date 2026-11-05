@@ -1,3 +1,4 @@
+import {clickGame,selectGame,openNavigation} from './navigation-helper.mjs';
 import {legacyRoster} from './loadout-helper.mjs';
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
@@ -68,7 +69,7 @@ try {
     await p.clock.runFor(32);
     await p.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-pixi');
     assert.ok(requests.some(u=>u.includes('/practice-pixi.js')),'all-mode Pixi graphics load on the main game');
-    await p.selectOption("#mode", "training");
+    await selectGame(p,'#mode',"training");
     await p.locator("#character0 input[value=silent]").check();
     await p.click("#edit-loadout0");
     for (const [i, id] of [
@@ -84,9 +85,9 @@ try {
       await p.locator('[data-pick-id="' + id + '"]').click();
     }
     await p.click("#loadout-save");
-    await p.click("#play");
+    await clickGame(p,'#play');
     await p.clock.runFor(32);
-    await p.click("#training-settings");
+    await clickGame(p,'#training-settings');
     const before = await p.locator("#canvas").getAttribute("data-render-tick"),
       kit = await p.locator("#loadout-summary0").innerText();
     await graphics(p, "pixi", "aren-pixi");
@@ -134,10 +135,10 @@ try {
         /Flood Field/,
       );
       await p.screenshot({ path: "test-results/practice-pixi-field.png" });
-      await p.click("#training-settings");
+      await clickGame(p,'#training-settings');
       await p.click("#training-charge");
       await p.click("#training-close");
-      await p.click("#play");
+      await clickGame(p,'#play');
       await p.clock.runFor(600);
       await press("KeyT", 100);
       assert.match(
@@ -177,7 +178,7 @@ try {
       );
       await p.mouse.up();
     }
-    await p.click("#training-settings");
+    await clickGame(p,'#training-settings');
     await p.clock.runFor(32);
     const held = await p.locator("#canvas").getAttribute("data-render-tick");
     await p.evaluate(() =>
@@ -209,7 +210,7 @@ try {
       "aren-pixi",
     );
     await p.click("#training-close");
-    await p.selectOption("#mode", "cpu");
+    await selectGame(p,'#mode',"cpu");
     await p.clock.runFor(32);
     assert.equal(
       await p.locator("#canvas").getAttribute("data-presentation"),
@@ -218,7 +219,7 @@ try {
     assert.equal(await p.locator("[data-practice-art]").count(), 2);
     assert.match(await p.locator("#name0").innerText(), /^SILENT$/);
     for (const mode of ["local", "online"]) {
-      await p.selectOption("#mode", mode);
+      await selectGame(p,'#mode',mode);
       await p.clock.runFor(32);
       assert.equal(
         await p.locator("#canvas").getAttribute("data-presentation"),
@@ -248,13 +249,13 @@ try {
     };
   });
   await f.goto("http://127.0.0.1:4199");await legacyRoster(f);
-  await f.selectOption("#mode", "training");
-  await f.click("#play");
+  await selectGame(f,'#mode',"training");
+  await clickGame(f,'#play');
   await f.waitForFunction(
     () =>
       document.querySelector("#canvas").dataset.presentation === "aren-canvas",
   );
-  await f.click("#training-settings");
+  await clickGame(f,'#training-settings');
   assert.match(
     await f.locator("#practice-graphics-status").innerText(),
     /unavailable.*Canvas/,
@@ -266,9 +267,9 @@ try {
     blocked ? route.abort() : route.continue(),
   );
   await r.goto("http://127.0.0.1:4199");await legacyRoster(r);
-  await r.selectOption("#mode", "training");
-  await r.click("#play");
-  await r.click("#training-settings");
+  await selectGame(r,'#mode',"training");
+  await clickGame(r,'#play');
+  await clickGame(r,'#training-settings');
   await r.selectOption("#practice-renderer", "pixi");
   await r.waitForFunction(() =>
     document

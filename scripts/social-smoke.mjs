@@ -1,3 +1,4 @@
+import {clickGame,selectGame,openNavigation} from './navigation-helper.mjs';
 import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
@@ -9,7 +10,7 @@ try{
  await app.listen();const base=`http://127.0.0.1:${app.server.address().port}`;
  browser=await chromium.launch({headless:true,args:['--no-sandbox','--disable-dev-shm-usage','--enable-unsafe-swiftshader'],...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{})});
  const errors=[],contexts=await Promise.all([browser.newContext({viewport:{width:1280,height:900}}),browser.newContext({viewport:{width:844,height:390},isMobile:true,hasTouch:true})]);
- const pages=[];for(const [i,context]of contexts.entries()){const page=await context.newPage();pages.push(page);page.on('pageerror',e=>errors.push(e.message));await page.goto(base);await page.selectOption('#mode','online');await page.fill('#player-name',i?'Winta':'Silent');await page.click('#lounge-enter');await page.waitForFunction(()=>document.querySelector('#online-status').textContent.includes('in the player lounge'));}
+ const pages=[];for(const [i,context]of contexts.entries()){const page=await context.newPage();pages.push(page);page.on('pageerror',e=>errors.push(e.message));await page.goto(base);await selectGame(page,'#mode','online');await page.fill('#player-name',i?'Winta':'Silent');await page.click('#lounge-enter');await page.waitForFunction(()=>document.querySelector('#online-status').textContent.includes('in the player lounge'));}
  const [p,q]=pages;
  await p.waitForFunction(()=>document.querySelectorAll('.lounge-player').length===2);
  await p.locator('.lounge-player').filter({hasText:'Winta'}).getByText('View profile',{exact:true}).click();assert.match(await p.locator('.lounge-player').filter({hasText:'Winta'}).innerText(),/rating/);
@@ -24,7 +25,7 @@ try{
  await q.locator('[data-gesture=goodFight]').waitFor({state:'visible'});await q.locator('[data-gesture=goodFight]').click();await p.waitForFunction(()=>document.querySelector('#gesture-feed').textContent.includes('Winta: Good fight!'));
  await mkdir('test-results',{recursive:true});await p.screenshot({path:'test-results/social-desktop.png'});await q.screenshot({path:'test-results/social-mobile.png'});
  await p.click('#lounge-enter');await p.waitForFunction(()=>document.querySelector('#online-status').textContent.includes('in the player lounge'));await p.click('#online-cancel');
- await p.click('#account-profile');await p.locator('#profile-display-name').fill('Silent Prime');await p.getByRole('button',{name:'Save display name',exact:true}).click();await p.waitForFunction(()=>document.querySelector('.profile-card h2')?.textContent==='Silent Prime');await p.screenshot({path:'test-results/profile-desktop.png'});
+ await clickGame(p,'#account-profile');await p.locator('#profile-display-name').fill('Silent Prime');await p.getByRole('button',{name:'Save display name',exact:true}).click();await p.waitForFunction(()=>document.querySelector('.profile-card h2')?.textContent==='Silent Prime');await p.screenshot({path:'test-results/profile-desktop.png'});
  await p.click('#hub-close');assert.equal(await p.locator('#player-name').inputValue(),'Silent Prime');assert.deepEqual(errors,[]);
  console.log('Social desktop/mobile: presence, profiles, decline, accepted duel, pre/post gestures, return to lounge and saved profile name passed.');
 }finally{await browser?.close();await app.close();}

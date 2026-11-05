@@ -1,5 +1,11 @@
 # Release notes
 
+## 0.34.0
+
+- Grouped navigation into Menu and Settings, with persistent account status and battle-only Pause/Fullscreen.
+- Added explicit sign-in and guest choices and sequential character then stage selection in the same panel.
+- Fixed sprite/scenery canvas stacking in Story and Co-op survival.
+
 ## 0.33.0
 
 - Added Adventures with Northern Echoes, a three-encounter Silent/Winta story chapter with dialogue, an ending and device checkpoints.
