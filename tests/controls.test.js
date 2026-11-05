@@ -67,3 +67,8 @@ test('portrait deck fits narrow phones and its saved edits do not overwrite land
  settings.dockLayouts.portrait.attack.x=.7;const restored=readSettings(JSON.stringify(settings));
  assert.equal(restored.dockLayouts.portrait.attack.x,.7);assert.deepEqual(restored.dockLayouts.small,settings.dockLayouts.small);
 });
+
+ test('resize touch cleanup preserves keyboard holds and accepted taps',()=>{
+ const input=createInput();input.press('crouch','KeyS');input.press('block','KeyK');input.press('block','pointer:1');input.press('jump','pointer:2');input.releaseHeld(source=>source.startsWith('pointer:'));
+ assert.equal(input.snapshot().crouch,true);assert.equal(input.snapshot().block,true);assert.equal(input.snapshot().jump,false);assert.equal(input.consume().jump,true);input.release('KeyK');assert.equal(input.snapshot().block,false);input.release('KeyS');assert.equal(input.snapshot().crouch,false);
+});
