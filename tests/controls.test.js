@@ -68,12 +68,7 @@ test('portrait deck fits narrow phones and its saved edits do not overwrite land
  assert.equal(restored.dockLayouts.portrait.attack.x,.7);assert.deepEqual(restored.dockLayouts.small,settings.dockLayouts.small);
 });
 
-test('arena resize preserves held keyboard guard while releasing touch and stick sources',()=>{
- const input=createInput();input.press('crouch','KeyS');input.press('block','KeyK');input.press('attack','pointer:7');input.setAxis('stick',1);input.setDepth('stick',-1);
- input.consume();input.press('swapWeapon','pointer:8');input.release('pointer:8');
- input.releaseHeld(['KeyS','KeyK']);
- const held=input.snapshot();assert.equal(held.crouch,true);assert.equal(held.block,true);assert.equal(held.attack,false);assert.equal(held.moveX,0);assert.equal(held.moveZ,0);
- assert.equal(input.consume().swapWeapon,true,'accepted touch taps still reach the simulation');
- input.release('KeyK');assert.equal(input.snapshot().block,false);assert.equal(input.snapshot().crouch,true);
- input.reset();assert.equal(input.snapshot().crouch,false,'pause still clears keyboard holds');
+ test('resize touch cleanup preserves keyboard holds and accepted taps',()=>{
+ const input=createInput();input.press('crouch','KeyS');input.press('block','KeyK');input.press('block','pointer:1');input.press('jump','pointer:2');input.releaseHeld(source=>source.startsWith('pointer:'));
+ assert.equal(input.snapshot().crouch,true);assert.equal(input.snapshot().block,true);assert.equal(input.snapshot().jump,false);assert.equal(input.consume().jump,true);input.release('KeyK');assert.equal(input.snapshot().block,false);input.release('KeyS');assert.equal(input.snapshot().crouch,false);
 });

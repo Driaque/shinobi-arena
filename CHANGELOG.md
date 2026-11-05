@@ -2,8 +2,6 @@
 
 ## Unreleased
 
-- Preserve held keyboard actions through arena resizing while clearing touch holds, so starting practice or changing viewport size does not drop crouch guard.
-
 - Story and co-op survival now share normal fight controls, including the touch stick, equipped techniques, crouch guard, inventory actions, saved layouts and bindings, and gamepad settings.
 - Teammates start in separate lanes with clear spacing and face the enemy wave; the formation is restored when allies recover between waves.
 
