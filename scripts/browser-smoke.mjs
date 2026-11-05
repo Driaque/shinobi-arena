@@ -21,7 +21,7 @@ try {
  console.log('Browser stage: native picker and desktop');
  assert.equal(await page.locator('#difficulty').inputValue(),'easy','new players start on Easy');
  await page.evaluate(()=>{window.pickerCalls=0;HTMLSelectElement.prototype.showPicker=function(){window.pickerCalls++;};});
- await page.locator('.mode-label').click({position:{x:4,y:8}});
+ await openNavigation(page,'#mode');await page.locator('.mode-label').click({position:{x:4,y:8}});
  assert.equal(await page.evaluate(()=>window.pickerCalls),1,'label text opens the native select picker');
  await page.keyboard.press('Escape');
  assert.equal(await page.locator('#difficulty option').count(),4);
