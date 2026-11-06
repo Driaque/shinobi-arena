@@ -23,8 +23,8 @@ $('#story-next').onclick=()=>{$('#story-dialog').close();nextAction();};
 $('#story-dialog').addEventListener('cancel',e=>e.preventDefault());
 function active(){return state?.status==='playing'&&!paused&&!$('#story-dialog').open&&!controls.editing&&!document.querySelector('dialog[open]');}
 function closeConnection(){generation++;clearTimeout(timeout);clearInterval(pingTimer);const ws=socket;socket=null;if(ws){if(ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:'cancel'}));ws.close();}phase='';controls.reset();$('#host-coop').disabled=false;$('#join-coop').disabled=false;}
-function menu(){closeConnection();state=null;mode='';paused=true;$('#adventure-menu').hidden=false;$('#adventure-play').hidden=true;$('#control-settings').hidden=true;$('#pause-adventure').hidden=true;$('#leave-adventure').hidden=true;if($('#story-dialog').open)$('#story-dialog').close();saveCheckpoint();}
-function playView(){controls.reset();$('#control-settings').hidden=false;$('#adventure-menu').hidden=true;$('#adventure-play').hidden=false;$('#leave-adventure').hidden=false;$('#pause-adventure').hidden=mode!=='story';last=0;accumulator=0;}
+function menu(){document.body.classList.remove('adventure-active');closeConnection();state=null;mode='';paused=true;$('#adventure-menu').hidden=false;$('#adventure-play').hidden=true;$('#control-settings').hidden=true;$('#pause-adventure').hidden=true;$('#leave-adventure').hidden=true;if($('#story-dialog').open)$('#story-dialog').close();saveCheckpoint();}
+function playView(){document.body.classList.add('adventure-active');controls.reset();$('#control-settings').hidden=false;$('#adventure-menu').hidden=true;$('#adventure-play').hidden=false;$('#leave-adventure').hidden=false;$('#pause-adventure').hidden=mode!=='story';last=0;accumulator=0;}
 function beginEncounter(){state=createStoryFight(index,$('#story-difficulty').value);playView();const e=STORY_CHAPTER.encounters[index];$('#adventure-title').textContent=`${index+1}/3 · ${e.title}`;dialogue(STORY_CHAPTER.subtitle,e.speaker,e.before,'Fight',()=>{paused=false;last=0;});}
 $('#start-story').onclick=()=>{closeConnection();mode='story';index=checkpoint===3?0:checkpoint;status('');beginEncounter();};
 $('#restart-story').onclick=()=>{checkpoint=0;saveCheckpoint();$('#start-story').click();};
@@ -35,7 +35,7 @@ function finishStory(){paused=true;input.reset();if(state.status==='roundOver'){
 function pauseStory(){if(mode!=='story'||!active())return;dialogue('PAUSED','Your journey can wait.','Resume when you are ready.','Resume',()=>{paused=false;last=0;});}
 $('#pause-adventure').onclick=pauseStory;
 $('#leave-adventure').onclick=()=>{menu();status('Adventure ended. Story checkpoints are kept.');};
-function fail(text){closeConnection();paused=true;mode='';state=null;$('#adventure-menu').hidden=false;$('#adventure-play').hidden=true;$('#leave-adventure').hidden=true;$('#control-settings').hidden=true;$('#pause-adventure').hidden=true;status(text);}
+function fail(text){document.body.classList.remove('adventure-active');closeConnection();paused=true;mode='';state=null;$('#adventure-menu').hidden=false;$('#adventure-play').hidden=true;$('#leave-adventure').hidden=true;$('#control-settings').hidden=true;$('#pause-adventure').hidden=true;status(text);}
 async function join(room){
  if(!/^[A-Z0-9]{8}$/.test(room)){status('Enter the eight-character room code your friend shared.');return;}
  if(socket||phase==='connecting')return;closeConnection();const gen=generation;mode='coop';phase='connecting';status('Connecting to co-op…');$('#leave-adventure').hidden=false;$('#host-coop').disabled=true;$('#join-coop').disabled=true;

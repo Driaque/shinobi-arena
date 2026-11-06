@@ -8,6 +8,9 @@ export function createNavigation({hub,isBusy=()=>false}){
  const ranking=document.createElement('button');ranking.id='rankings';ranking.textContent='Rankings';ranking.onclick=()=>hub.open('leaderboard');menu.panel.querySelector('#account-profile').after(ranking);
  for(const selector of ['.difficulty-label','#control-settings','#audio-settings','#graphics-settings','#experience-settings','#training-settings','#training-reset']){const node=tools.querySelector(selector);if(node)settings.panel.append(node);}
  tools.prepend(menu.details,settings.details);
+ function placePanels(){for(const g of [menu,settings])if(g.details.open){const v=window.visualViewport,r=g.details.querySelector('summary').getBoundingClientRect(),left=v?.offsetLeft??0,top=v?.offsetTop??0,width=v?.width??innerWidth,height=v?.height??innerHeight;const y=Math.min(r.bottom+6,top+height-60);Object.assign(g.panel.style,{position:'fixed',left:Math.max(left+8,Math.min(r.left,left+width-Math.min(300,width-16)-8))+'px',right:'auto',top:y+'px',width:Math.min(300,width-16)+'px',maxHeight:Math.max(44,top+height-y-8)+'px'});}}
+ for(const g of [menu,settings])g.details.addEventListener('toggle',placePanels);
+ window.addEventListener('resize',placePanels);window.addEventListener('scroll',placePanels,true);window.visualViewport?.addEventListener('resize',placePanels);
  for(const current of [menu,settings]){current.details.addEventListener('toggle',()=>{if(current.details.open)for(const other of [menu,settings])if(other!==current)other.details.open=false;});current.panel.addEventListener('click',e=>{if(e.target.closest('button,a'))current.details.open=false;});}
  document.addEventListener('click',e=>{for(const g of [menu,settings])if(!g.details.contains(e.target))g.details.open=false;});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'){menu.details.open=false;settings.details.open=false;}});
