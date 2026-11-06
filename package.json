@@ -16,7 +16,7 @@
     "start": "node apps/server/index.js"
   },
   "devDependencies": {
-    "https-proxy-agent": "^7.0.6",
+    "https-proxy-agent": "^9.1.0",
     "playwright": "1.62.1"
   },
   "dependencies": {
