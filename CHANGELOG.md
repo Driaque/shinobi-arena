@@ -1,5 +1,12 @@
 # Release notes
 
+## 0.36.0
+
+- Keep navigation inside short landscape viewports with scrollable menus.
+- Share arena dimensions across Adventures and versus modes.
+- Apply the official wordmark, emblem and Iron Sharpens Iron banner.
+
+
 ## Unreleased
 
 ## 0.35.0
