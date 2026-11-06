@@ -43,7 +43,17 @@ try{
       const {createRenderer}=await import('./renderer.js'),{createMatch}=await import('./packages/engine/index.js');
       const host=document.createElement('div');host.style.cssText='width:800px;height:400px';const canvas=document.createElement('canvas');host.append(canvas);document.body.append(host);
       const render=createRenderer(canvas),state=createMatch();render(state);state.fighters[1].character='dora';render(state);
-      const identity=render.frame.state.fighters[1].character;render.dispose();host.remove();return identity;
+      const identity=render.frame.state.fighters[1].character;
+      // The real foreground renderer and external sprite scene must receive the
+      // same fixed scale through jump, double-jump, landing and four-actor scenes.
+      const zoom=render.frame.viewport.zoom;
+      for(const air of [80,165,330,0]){
+        state.tick++;state.fighters[0].y=air;render(state);
+        if(render.frame.viewport.zoom!==zoom)throw Error('Jump changed arena scale');
+      }
+      state.fighters.push({...state.fighters[0],id:2,y:330},{...state.fighters[1],id:3});state.tick++;render(state);
+      if(render.frame.viewport.zoom!==zoom)throw Error('Survival fighter changed arena scale');
+      render.dispose();host.remove();return identity;
     });
     assert.equal(second,'dora','Player 2 model changes at the same tick');assert.deepEqual(errors,[]);await context.close();
   }

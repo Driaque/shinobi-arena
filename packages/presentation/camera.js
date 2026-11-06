@@ -16,7 +16,7 @@ export function cameraForScene(scene, width, height) {
   }
   const scale = Math.min(
     width / WORLD.width,
-    (height * 0.75) / (Math.max(...scene.fighters.map((f) => f.air)) + 175),
+    (height * 0.84) / 540,
   );
   return {
     scale,

@@ -75,7 +75,7 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
     const action=f.action, move=action?MOVES[action.move]:null;
     const attacking=action && action.age>=move.startup && action.age<move.startup+move.active;
     const pose=fighterPose(f,state.tick,move,reducedMotion.matches),phase=state.tick*.29,stride=pose.stride;
-    c.translate(0,-pose.bob);if(!reducedMotion.matches&&state.tick-f.landedAt>=0&&state.tick-f.landedAt<6)c.scale(1.03,.95);if(f.crouching)c.scale(1,.63);c.transform(1,0,-pose.lean,1,0,0);
+    c.translate(0,-pose.bob);if(f.crouching)c.scale(1,.63);c.transform(1,0,-pose.lean,1,0,0);
     const orange=f.character==='naruto',character=CHARACTERS[f.character];
     if(f.invulnerable>0)c.globalAlpha*=.5;
     const shade=(hex,k)=>'#'+[1,3,5].map(i=>Math.max(0,Math.min(255,parseInt(hex.slice(i,i+2),16)+k)).toString(16).padStart(2,'0')).join('');
@@ -115,7 +115,8 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
     if(['lee','hinata','sakura'].includes(character.id)){for(let wrap=0;wrap<3;wrap++){line(-19+stride,-18+pose.foot+wrap*4,-9+stride,-18+pose.foot+wrap*4,'#d5d9cd',2);line(15-stride,-18+pose.foot+wrap*4,24-stride,-18+pose.foot+wrap*4,'#d5d9cd',2);}}
     if(pose.weight>.2&&(action?.move==='attack3'||action?.move==='airAttack3')){line(10,-48,66,-66,cloth,16);line(66,-66,93,-96,dark,13);}
     if(f.charging||move?.projectile||move?.ground||move?.buff){line(-14,-86,8,-96,dark,13);line(8,-96,pose.armX-9,pose.armY+7,skin,10);circle(pose.armX-9,pose.armY+7,5,skin);}else{line(-14,-86,-27,-64,dark,13);line(-27,-64,-16,-52,skin,11);}
-    line(12,-87,32,armY-6,cloth,14);line(32,armY-6,armX,armY,skin,11);circle(armX,armY,7,'#273848');circle(armX+2,armY-1,4,skin);line(armX,armY+2,armX+5,armY+1,'#b18d75',1);
+    const elbow=pose.elbow??{x:32,y:armY-6};
+    line(13,-89,elbow.x,elbow.y,cloth,14);line(elbow.x,elbow.y,armX,armY,skin,11);circle(armX,armY,7,'#273848');circle(armX+2,armY-1,4,skin);line(armX,armY+2,armX+5,armY+1,'#b18d75',1);
     const face=c.createRadialGradient(-7,-119,2,0,-108,22);face.addColorStop(0,shade(skin,18));face.addColorStop(.65,skin);face.addColorStop(1,shade(skin,-28));c.fillStyle=face;c.beginPath();c.ellipse(0,-111,16,18,0,0,Math.PI*2);c.fill();c.strokeStyle='#322c32';c.lineWidth=1;c.stroke();
     c.fillStyle=character.hair;c.beginPath();
     if(character.id==='dora'){c.ellipse(-3,-127,22,15,-.2,Math.PI,Math.PI*2);c.lineTo(18,-113);c.lineTo(8,-124);c.lineTo(-19,-112);}
@@ -220,8 +221,8 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
     const width=worldWidth*dpr,height=Math.round(viewHeight*dpr);
     if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height;}
     if(layers?.background===false){c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,canvas.width,canvas.height);}
-    const needed=Math.min(1,viewHeight*.68/(Math.max(...state.fighters.map(f=>f.y))+150));
-    zoom+=(needed-zoom)*.3;
+    // Reserve aerial headroom once per viewport, never resize the world on jump.
+    zoom=Math.min(1,viewHeight*.9/540);
     c.setTransform(dpr*zoom,0,0,dpr*zoom,worldWidth*dpr*.5*(1-zoom),(viewHeight*.9-ARENA.floor*zoom)*dpr);
     c.save();
     let shakeX=0,shakeY=0;
