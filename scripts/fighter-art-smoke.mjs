@@ -17,12 +17,18 @@ try{
       const host=document.createElement('div');host.id='art-evidence';host.style.cssText='position:fixed;inset:0;z-index:9999;background:#101e30';document.body.append(host);
       let state,backend;const draw=(renderer='pixi')=>backend.draw(state,{worldWidth:1280,viewHeight:600,zoom:1,shakeX:0,shakeY:0},renderer,{preview:false});
       backend=await createPracticeBackends(host,()=>draw('canvas'),()=>draw());
-      window.art={backend,host,draw,select(id){state=createTraining([0,1].map(()=>({character:id,weapon:id==='dora'?'fans':'tachi'})));state.fighters[0].x=480;state.fighters[1].x=800;draw();}};
+      window.art={backend,host,draw,run(travel=0,equipped=false){for(const f of state.fighters){f.vx=3;f.travel=travel;f.landedAt=-100;f.items=[{id:'poison',count:equipped?1:0},{id:'smokeBomb',count:equipped?1:0}];if(f.character==='silent'){f.weapon='tachi';f.weapons=['tachi','kaiken'];}}draw();},select(id){state=createTraining([0,1].map(()=>({character:id,weapon:({dora:'fans',veyra:'fans',nyra:'kaiken',aren:'katana',eira:'katana',oryn:'katana'})[id]??'tachi'})));state.fighters[0].x=480;state.fighters[1].x=800;draw();}};
     });
     for(const id of ['silent','winta','dora','aren','eira','kael','nyra','rook','veyra','oryn']){
       await page.evaluate(id=>window.art.select(id),id);
-      await page.waitForFunction(id=>window.art.backend.fighterIds().includes(id),id);
+      await page.waitForFunction(id=>window.art.backend.fighterIds().includes(id)&&window.art.backend.runningFighterIds().includes(id),id);
       assert.equal(await page.evaluate(()=>{window.art.draw();return document.querySelector('#art-evidence [data-practice-art=pixi]').dataset.fighterModels;}),`${id},${id}`);
+      await page.evaluate(()=>window.art.run(0));
+      assert.equal(await page.locator('#art-evidence [data-practice-art=pixi]').getAttribute('data-running-models'),`${id}:empty:0,${id}:empty:0`);
+      await page.evaluate(()=>window.art.run(40,true));
+      assert.equal(await page.locator('#art-evidence [data-practice-art=pixi]').getAttribute('data-running-models'),`${id}:equipped:10,${id}:equipped:10`);
+      await page.evaluate(()=>window.art.draw('canvas'));
+      assert.equal(await page.locator('#art-evidence [data-practice-art=canvas]').getAttribute('data-running-models'),`${id}:equipped:10,${id}:equipped:10`);
       if(['silent','dora','aren'].includes(id))await page.screenshot({path:`test-results/fighter-art-${id}-${mobile?'portrait':'desktop'}.png`});
     }
     assert.equal(await page.evaluate(()=>window.art.draw('canvas')),'canvas');
@@ -30,7 +36,7 @@ try{
     await page.evaluate(()=>document.querySelector('#art-evidence [data-practice-art=pixi]').dispatchEvent(new Event('webglcontextlost',{cancelable:true})));
     assert.equal(await page.evaluate(()=>window.art.draw('pixi')),'canvas');
     await page.evaluate(()=>{window.art.backend.destroy();window.art.host.remove();});
-    await page.evaluate(()=>localStorage.setItem('fabled.fighter.style.v1','painted'));await page.reload();await page.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-pixi');
+    await page.evaluate(()=>localStorage.setItem('fabled.fighter.style.v2','painted'));await page.reload();await page.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-pixi');
     await page.route('**/assets/originals/nyra.webp*',route=>route.abort());
     await selectGame(page,'#mode','training');await page.locator('#character0 input[value=nyra]').check();await clickGame(page,'#play');
     await page.waitForFunction(()=>document.querySelector('#practice-graphics-status').textContent.includes('nyra'));

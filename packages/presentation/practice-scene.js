@@ -1,6 +1,7 @@
 import { sceneFor } from "./visual-lab.js";
 import { MOVES } from '../engine/index.js';
 import { FIGHTER_FRAMES, fighterAtlasData } from './fighter-atlases.js';
+import {runningFrameFor,runningAtlasData} from './running-atlases.js';
 
 // Presentation only: the selected character IDs, loadouts, physics and results stay intact.
 export function practiceSceneFor(state, viewport, settings = {}) {
@@ -18,6 +19,13 @@ export function practiceSceneFor(state, viewport, settings = {}) {
       actor.frame=FIGHTER_FRAMES[actor.frameIndex];
       actor.blendFrame=FIGHTER_FRAMES[actor.blendIndex];
       actor.scale=120/fighterAtlasData(fighter.character).standingHeight*(fighter.scale??1);
+      const run=actor.pose==='Run'&&settings.runningFighters?.includes(fighter.character)&&runningFrameFor(fighter,settings);
+      if(run){
+        actor.runAtlas=true;actor.runVariant=run.variant;actor.frameIndex=actor.blendIndex=run.frameIndex;
+        actor.frame=actor.blendFrame=FIGHTER_FRAMES[run.frameIndex];actor.blend=1;
+        actor.scale=120/runningAtlasData(fighter.character).standingHeight*(fighter.scale??1);
+        actor.bob=0;actor.motion={x:0,y:0,rotation:0,trail:false};
+      }
     }
   }
   // Fluid bodies are drawn continuously by the original foreground renderer.

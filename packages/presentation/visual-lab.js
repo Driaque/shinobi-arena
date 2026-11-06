@@ -118,6 +118,8 @@ export function poseFor(f, tick, reduced = false) {
   if (
     Math.abs(f.vx ?? 0) > 0.3 ||
     Math.abs(f.previous?.moveX ?? 0) > 0.1 ||
+    Math.abs(f.previous?.moveZ ?? 0) > 0.1 ||
+    (Boolean(f.previous?.depthUp)!==Boolean(f.previous?.depthDown)) ||
     f.previous?.left ||
     f.previous?.right
   )
