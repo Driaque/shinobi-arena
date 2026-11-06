@@ -51,7 +51,7 @@ export function createCanvasLab(canvas, art, resolution) {
     ctx.rotate(f.motion?.rotation ?? 0);
     ctx.scale(f.facing * f.scale, f.scale);
     ctx.drawImage(
-      f.atlasId ? art.sheets.get(f.atlasId) : art.fighter,
+      f.atlasId ? (f.runAtlas?art.runSheets:art.sheets).get(f.atlasId) : art.fighter,
       a.x,
       a.y,
       a.w,
@@ -176,14 +176,15 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
         }),
     );
   const sheetTextures=new Map();
-  function texturesFor(id){
+  function texturesFor(id,run=false){
     if(!id)return textures;
-    if(!sheetTextures.has(id)){
-      const source=Texture.from(art.sheets.get(id));
+    const key=run?id+':run':id;
+    if(!sheetTextures.has(key)){
+      const source=Texture.from((run?art.runSheets:art.sheets).get(id));
       const views=FIGHTER_FRAMES.map(f=>new Texture({source:source.source,frame:new Rectangle(f.x,f.y,f.w,f.h)}));
-      sheetTextures.set(id,{source,views});
+      sheetTextures.set(key,{source,views});
     }
-    return sheetTextures.get(id).views;
+    return sheetTextures.get(key).views;
   }
   const actors = new Map();
   function actorFor(id) {
@@ -212,7 +213,7 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
   function paintSprite(sprite, f, offset = 0) {
     const frame = f.frame,
       index = FRAMES.indexOf(frame);
-    sprite.texture = texturesFor(f.atlasId)[f.atlasId?f.frameIndex:index];
+    sprite.texture = texturesFor(f.atlasId,f.runAtlas)[f.atlasId?f.frameIndex:index];
     sprite.pivot.set(frame.rootX, frame.rootY);
     sprite.position.set(offset + (f.motion?.x ?? 0), f.bob + (f.motion?.y ?? 0));
     sprite.rotation = f.motion?.rotation ?? 0;

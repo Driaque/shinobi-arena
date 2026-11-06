@@ -24,7 +24,12 @@ export async function createPracticeBackends(parent, onLost, onArtChange=()=>{})
     url.search=new URL(import.meta.url).search;
     const image=new Image();image.src=url.href;await image.decode();return image;
   },onArtChange);
-  art.sheets=sheets;
+  const runs=createFighterAtlasStore(async id=>{
+    const url=new URL('./assets/originals/runs/'+id+'.webp',import.meta.url);
+    url.search=new URL(import.meta.url).search;
+    const image=new Image();image.src=url.href;await image.decode();return image;
+  },onArtChange);
+  art.sheets=sheets;art.runSheets=runs;
   function add(name) {
     const c = document.createElement("canvas");
     c.className = "practice-art-canvas";
@@ -62,7 +67,7 @@ export async function createPracticeBackends(parent, onLost, onArtChange=()=>{})
       }
     }
     for (const c of Object.values(canvases)) c.remove();
-    sheets.destroy();
+    sheets.destroy();runs.destroy();
   }
   function hide() {
     for (const c of Object.values(canvases)) c.hidden = true;
@@ -71,11 +76,12 @@ export async function createPracticeBackends(parent, onLost, onArtChange=()=>{})
   return {
     hasPixi: () => pixiAvailable,
     fighterIds:()=>sheets.readyIds(),
-    failedFighters:()=>sheets.failedIds().filter(id=>selectedFighters.includes(id)),
+    runningFighterIds:()=>runs.readyIds(),
+    failedFighters:()=>[...new Set([...sheets.failedIds(),...runs.failedIds()])].filter(id=>selectedFighters.includes(id)),
     draw(state, viewport, requested, {preview=true,catalog={},fluid=false}={}) {
       if (disposed) return;
       selectedFighters=preview||fluid?[]:state.fighters.map(f=>f.character);
-      if(!preview&&!fluid)sheets.request(state.fighters.map(f=>f.character));
+      if(!preview&&!fluid){sheets.request(selectedFighters);runs.request(selectedFighters);}
       const selected =
         requested === "pixi" && pixiAvailable ? "pixi" : "canvas";
       if(visible!==selected){hide();canvases[selected].hidden=false;visible=selected;}
@@ -91,10 +97,11 @@ export async function createPracticeBackends(parent, onLost, onArtChange=()=>{})
       const scene = practiceSceneFor(state, viewport, {
         reduced,
         effects: document.documentElement.dataset.effects !== "off",
-        selected:!preview,catalog,atlasFighters:sheets.readyIds(),fluid,
+        selected:!preview,catalog,atlasFighters:sheets.readyIds(),runningFighters:runs.readyIds(),fluid,
       });
       renderers[selected].draw(scene);
       canvases[selected].dataset.fighterModels=scene.fighters.map(f=>f.atlasId??'aren-preview').join(',');
+      canvases[selected].dataset.runningModels=scene.fighters.map(f=>f.runAtlas?f.atlasId+':'+f.runVariant+':'+f.frameIndex:'none').join(',');
       return selected;
     },
     hide,

@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 0.35.0
+
+- Approved eight-frame full-body running cycles for all ten originals, with empty-handed and matching equipped carries in Canvas and PixiJS.
+- Painted fighters are the new default; failed run sheets retain existing poses and can be retried.
+
+- Stable jump framing with fixed arena scale and reserved aerial headroom.
+- Distance-driven articulated gait, planted stance feet, connected arms across the roster, and fractional attack posing.
+- Continuous painted-sprite anticipation, strike and recovery offsets, with shared stride timing.
+
 - Story and co-op survival now share normal fight controls, including the touch stick, equipped techniques, crouch guard, inventory actions, saved layouts and bindings, and gamepad settings.
 - Teammates start in separate lanes with clear spacing and face the enemy wave; the formation is restored when allies recover between waves.
 

@@ -3,9 +3,8 @@ const ease=n=>{n=clamp(n);return n*n*(3-2*n);};
 const mix=(a,b,t)=>a+(b-a)*ease(t);
 // Cosmetic authored keys. Combat phase boundaries remain engine-owned.
 export function livingPose(f,tick,move,base,reduced=false){
- if(!['aren','silent'].includes(f.character))return base;
- const p={...base},silent=f.character==='silent',run=!f.action&&!f.blocking&&!f.stun&&!f.crouching&&Math.abs(f.vx??0)>.2;
- const sway=reduced?0:Math.sin(tick*.055),gait=reduced?0:Math.sin((f.travel??0)/10.2);
+ const p={...base},silent=f.character==='silent',run=!f.action&&!f.blocking&&!f.stun&&!f.crouching&&(Math.abs(f.vx??0)>.2||Math.abs(f.previous?.moveZ??0)>.1);
+ const sway=reduced?0:Math.sin(tick*.055),gait=reduced?0:Math.sin((f.travel??0)/64*Math.PI*2);
  p.weaponAngle=-.65;p.elbow=null;
  p.trail=reduced?0:(run?12:3)+Math.sin(tick*.09-(f.vx??0)*.06)*3;
  if(!f.action){

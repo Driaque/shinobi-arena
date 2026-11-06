@@ -28,10 +28,10 @@ try{
   for(const mode of ['cpu','local','training','online']){await selectGame(p,'#mode',mode);if(mode!=='online'){await clickGame(p,'#play');await p.waitForTimeout(100);}await p.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-pixi');assert.doesNotMatch(await p.locator('#name1').innerText(),/SPARRING ECHO/);}
   await selectGame(p,'#mode','training');await clickGame(p,'#play');await clickGame(p,'#training-settings');assert.equal(await p.locator('#training-charge').isDisabled(),true,'Aren has no awakening to charge');await p.click('#training-close');await clickGame(p,'#play');await p.screenshot({path:`test-results/global-pixi-${mobile?'portrait':'desktop'}.png`});
   await clickGame(p,'#graphics-settings');
-  assert.equal(await p.locator('#fighter-style').inputValue(),'fluid');
-  assert.equal(await p.locator('#canvas').getAttribute('data-fighter-style'),'fluid');
-  await p.selectOption('#fighter-style','painted');await p.waitForFunction(()=>document.querySelector('#canvas').dataset.fighterStyle==='painted');
+  assert.equal(await p.locator('#fighter-style').inputValue(),'painted');
+  assert.equal(await p.locator('#canvas').getAttribute('data-fighter-style'),'painted');
   await p.selectOption('#fighter-style','fluid');await p.waitForFunction(()=>document.querySelector('#canvas').dataset.fighterStyle==='fluid');
+  await p.selectOption('#fighter-style','painted');await p.waitForFunction(()=>document.querySelector('#canvas').dataset.fighterStyle==='painted');
   await p.selectOption('#battle-renderer','canvas');await p.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-canvas');await p.selectOption('#battle-renderer','pixi');await p.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-pixi');await p.click('#graphics-close');
   await p.evaluate(()=>document.querySelector('[data-practice-art=pixi]').dispatchEvent(new Event('webglcontextlost',{cancelable:true})));await p.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-canvas');
   await clickGame(p,'#graphics-settings');await p.click('#battle-graphics-retry');await p.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-pixi');await p.click('#graphics-close');
