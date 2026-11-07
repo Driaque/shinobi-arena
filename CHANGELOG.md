@@ -1,5 +1,11 @@
 # Release notes
 
+## 0.39.1
+
+- In local versus with a second controller connected, each pad selects only its own fighter, weapons, items and techniques.
+- Add independent player cursors and D-pad focus; shared loadout dialogs are controlled only by their owner.
+- Scroll vertical and horizontal lists near cursor edges; D-pad focus scrolls choices into view.
+
 ## 0.39.0
 
 - Add responsive painted PNG portraits for all ten originals and scenery for all five arenas.
