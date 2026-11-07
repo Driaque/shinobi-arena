@@ -14,7 +14,7 @@ const checks=await request(`actions/runs?head_sha=${sha}&per_page=100`);if(!chec
 const runs=(await checks.json()).workflow_runs;
 for(const name of ['CI','Deploy Render']){
  const allowedEvents=name==='Deploy Render'?['push','workflow_dispatch','workflow_run']:['push','workflow_dispatch'];
- const run=runs.find(r=>r.name===name&&r.head_sha===sha&&allowedEvents.includes(r.event));
+ const run=runs.find(r=>r.name===name&&r.head_sha===sha&&allowedEvents.includes(r.event)&&r.status==='completed'&&r.conclusion==='success');
  if(!run||run.status!=='completed'||run.conclusion!=='success'){console.log(`Waiting for successful ${name}; its completion will trigger another release check.`);process.exit(0);}
 }
 const response=await request('releases',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tag_name:`v${version}`,target_commitish:sha,name:`Fabled Rivals v${version}`,body,draft:false,prerelease:false,make_latest:'true'})});
