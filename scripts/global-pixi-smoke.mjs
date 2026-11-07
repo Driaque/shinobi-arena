@@ -12,15 +12,14 @@ try{
    await p.waitForFunction(id=>document.querySelector('#canvas').dataset.stage===id,stage);
   }
   await p.reload();await p.waitForFunction(()=>document.querySelector('#canvas').dataset.stage==='skyglass');
-  await p.waitForSelector('#character0 canvas[data-animated-portrait=aren]');
-  const portrait=p.locator('#character0 canvas[data-animated-portrait=aren]');
-  await portrait.scrollIntoViewIfNeeded();
-  const before=await portrait.evaluate(c=>c.toDataURL());
-  await p.waitForTimeout(180);
-  assert.notEqual(await portrait.evaluate(c=>c.toDataURL()),before,'Pixi portrait advances while visible');
-  await p.emulateMedia({reducedMotion:'reduce'});await p.waitForTimeout(150);
-  const still=await portrait.evaluate(c=>c.toDataURL());await p.waitForTimeout(150);
-  assert.equal(await portrait.evaluate(c=>c.toDataURL()),still,'reduced motion freezes the portrait');
+  const portrait=p.locator('#character0 img[data-painted-portrait=aren]');
+  await portrait.scrollIntoViewIfNeeded();await portrait.evaluate(img=>img.decode());
+  assert.ok(await portrait.evaluate(img=>img.naturalWidth>0),'painted PNG portrait decodes');
+  const source=await portrait.evaluate(img=>img.currentSrc);
+  assert.match(source,/painted-v1\/portraits\/aren-\d+\.png$/);
+  assert.equal(await p.locator('#character0 canvas[data-animated-portrait]').count(),0,'original PNG portraits retain full detail');
+  await p.emulateMedia({reducedMotion:'reduce'});
+  assert.equal(await portrait.evaluate(img=>img.currentSrc),source,'reduced motion preserves the painted portrait');
   await p.emulateMedia({reducedMotion:'no-preference'});
   assert.equal(await p.locator('#include-anime').isChecked(),false);assert.equal(await p.locator('#character0 .character-card:visible').count(),10);assert.ok(await p.locator('#character0').evaluate(el=>el.clientHeight>=260),'original grid exposes more rows');assert.equal(await p.locator('#character0 input:checked').inputValue(),'aren');assert.equal(await p.locator('#character1 input:checked').inputValue(),'winta');
   for(const c of ['silent','winta','dora','aren','eira','kael','nyra','rook','veyra','oryn']){await p.locator(`#character0 input[value=${c}]`).check();assert.match(await p.locator('#kit0').innerText(),/Story & connections/);}

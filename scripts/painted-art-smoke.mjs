@@ -22,7 +22,7 @@ try{
    assert.ok(await card.locator('img').evaluate(img=>img.naturalWidth>0));
   }
   await page.locator('.stage-card[data-stage=court]').click();await page.click('#play');
-  await page.waitForFunction(()=>document.querySelector('#canvas')?.dataset.paintedStage==='court');
+  await page.waitForFunction(()=>document.querySelector('[data-practice-art]:not([hidden])')?.dataset.paintedStage==='court');
   await page.screenshot({path:`test-results/painted-art-${viewport.width}x${viewport.height}.png`});
   assert.deepEqual(errors,[]);await context.close();
  }
