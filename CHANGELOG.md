@@ -1,5 +1,11 @@
 # Release notes
 
+## 0.38.0
+
+- Add a right-stick menu cursor with hover highlighting, selection, panel-edge scrolling and controller-friendly select options.
+- Keep D-pad focus navigation and combat aiming; hide the cursor when combat resumes or another input device takes over.
+- Add saved cursor speed under Feel settings.
+
 ## 0.37.1
 
 - Keep controller shortcuts in a separate rail below the rendered fight.
