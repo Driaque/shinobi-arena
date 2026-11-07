@@ -144,6 +144,14 @@
       "name": "Prism Tether"
     },
     {
+      "id": "rimeflash",
+      "name": "Rimeflash"
+    },
+    {
+      "id": "eclipseDrain",
+      "name": "Eclipse Drain"
+    },
+    {
       "id": "resonanceDrone",
       "name": "Resonance Drone"
     },
@@ -152,15 +160,47 @@
       "name": "Shard Minefield"
     },
     {
+      "id": "venomDart",
+      "name": "Venom Dart"
+    },
+    {
+      "id": "bindingThreads",
+      "name": "Binding Threads"
+    },
+    {
+      "id": "harmoniousSlash",
+      "name": "Harmonious Slash"
+    },
+    {
+      "id": "aetherSiphon",
+      "name": "Aether Siphon"
+    },
+    {
+      "id": "stoneSnare",
+      "name": "Stone Snare"
+    },
+    {
+      "id": "venomMist",
+      "name": "Venom Mist"
+    },
+    {
       "id": "horizonRush",
       "name": "Horizon Rush"
     },
     {
-      "id": "spiralDrive",
+      "id": "fireball",
+      "name": "Fireball"
+    },
+    {
+      "id": "dissonanceMark",
+      "name": "Dissonance Mark"
+    },
+    {
+      "id": "special1",
       "name": "Spiral Drive"
     },
     {
-      "id": "echoFormation",
+      "id": "clone",
       "name": "Echo Formation"
     },
     {
@@ -174,10 +214,6 @@
     {
       "id": "pulsebreaker",
       "name": "Pulsebreaker"
-    },
-    {
-      "id": "dissonanceMark",
-      "name": "Dissonance Mark"
     },
     {
       "id": "fractureLens",
@@ -264,50 +300,88 @@
       "name": "Gale Razor"
     },
     {
+      "id": "bodyBlade",
+      "name": "Body Blade"
+    },
+    {
+      "id": "energyBlast",
+      "name": "Energy Blast"
+    },
+    {
+      "id": "echoingRift",
+      "name": "Echoing Rift"
+    },
+    {
+      "id": "skyforgedAegis",
+      "name": "Skyforged Aegis · Middle Guard"
+    },
+    {
+      "id": "stormheart",
+      "name": "Stormheart"
+    },
+    {
+      "id": "tidalEdict",
+      "name": "Tidal Edict"
+    },
+    {
+      "id": "royalTempest",
+      "name": "Royal Tempest · Undertow"
+    },
+    {
+      "id": "triuneFlow",
+      "name": "Triune Flow"
+    },
+    {
+      "id": "risingGale",
+      "name": "Rising Gale"
+    },
+    {
+      "id": "skyCleave",
+      "name": "Sky Cleave"
+    },
+    {
+      "id": "floodField",
+      "name": "Flood Field"
+    },
+    {
       "id": "skyfallNeedles",
       "name": "Skyfall Needles"
     },
     {
-      "id": "aetherSiphon",
-      "name": "Aether Siphon"
+      "id": "emberField",
+      "name": "Ember Field"
     },
     {
-      "id": "sunforgeDrive",
-      "name": "Sunforge Drive"
+      "id": "divingFlame",
+      "name": "Diving Flame"
     },
     {
-      "id": "prismaticDrive",
-      "name": "Prismatic Drive"
+      "id": "stoneWard",
+      "name": "Stone Ward"
     },
     {
-      "id": "sunforgeRend",
-      "name": "Sunforge Rend"
-    }
-  ],
-  "AWAKENINGS": [
-    {
-      "id": "sunforge",
-      "name": "Sunforge Ascendant"
+      "id": "windVeil",
+      "name": "Wind Veil"
     },
     {
-      "id": "colossusMantle",
-      "name": "Colossus Mantle"
+      "id": "galePush",
+      "name": "Gale Push"
     },
     {
-      "id": "ironstepOverdrive",
-      "name": "Ironstep Overdrive"
+      "id": "waterAbsorption",
+      "name": "Water Absorption"
     },
     {
-      "id": "prismOverdrive",
-      "name": "Prism Overdrive"
+      "id": "innerPeace",
+      "name": "Inner Peace"
     },
     {
-      "id": "cinderOverdrive",
-      "name": "Cinder Overdrive"
+      "id": "purifyingCurrent",
+      "name": "Purifying Current"
     },
     {
-      "id": "tempestAttunement",
-      "name": "Tempest Attunement"
+      "id": "razorTorrent",
+      "name": "Razor Torrent"
     }
   ],
   "WEAPONS": [
@@ -358,7 +432,7 @@
       "name": "Orbit Pack"
     },
     {
-      "id": "thornVial",
+      "id": "poison",
       "name": "Thorn Vial"
     },
     {

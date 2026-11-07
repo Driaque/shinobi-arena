@@ -18,7 +18,10 @@ for group,folder,prefix,sizes in [('moves','move-masters','',[64,128,256]),('wea
    record={'source':source.name,'sourceSha256':hashlib.sha256(source.read_bytes()).hexdigest(),'sourceWidth':image.width,'sourceHeight':image.height,'alpha':image.mode=='RGBA','focalPoint':[.5,.32 if group=='fighters' else .5],'exports':[]}
    for width in sizes:
     resized=image.resize((width,round(image.height*width/image.width)),Image.Resampling.LANCZOS)
-    file=dest/f'{key}-{width}.png';resized.save(file,optimize=True,compress_level=9)
+    file=dest/f'{key}-{width}.png';temporary=file.with_suffix('.tmp.png');resized.save(temporary,optimize=True,compress_level=9)
+    with Image.open(temporary) as check:check.verify()
+    assert temporary.stat().st_size>0,f'Empty export: {temporary}'
+    temporary.replace(file)
     record['exports'].append({'file':str(file.relative_to(out)),'width':resized.width,'height':resized.height,'bytes':file.stat().st_size})
    entries[key]=record
  manifest['groups'][group]=entries
