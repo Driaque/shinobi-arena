@@ -1,5 +1,10 @@
 # Release notes
 
+## 0.39.0
+
+- Add responsive painted PNG portraits for all ten originals and scenery for all five arenas.
+- Retire GitHub Pages publishing; verify production releases on Render only.
+
 ## 0.38.1
 
 - Move the menu cursor and panel-edge scrolling to the left stick.

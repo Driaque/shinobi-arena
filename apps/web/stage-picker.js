@@ -1,5 +1,6 @@
 import {STAGES,stageFor,resolveStage} from './packages/engine/stages.js';
 import {stageShapes} from './packages/presentation/stages.js';
+import {stageSources} from './packages/presentation/artwork.js';
 export const STAGE_KEY='fabled.stage.v1';
 export function createStagePicker(onChange){
  let selected='skyglass';try{const saved=localStorage.getItem(STAGE_KEY);if(saved==='random'||STAGES.some(s=>s.id===saved))selected=saved;}catch{}
@@ -14,7 +15,7 @@ export function createStagePicker(onChange){
    if(shape.kind==='ellipse')for(const [k,v]of Object.entries({cx:shape.x,cy:shape.y,rx:shape.rx,ry:shape.ry}))node.setAttribute(k,v);else node.setAttribute('points',shape.points.join(' '));
    node.setAttribute('fill','#'+shape.color.toString(16).padStart(6,'0'));node.setAttribute('opacity',shape.alpha);thumb.append(node);
   }
-  const title=document.createElement('strong'),desc=document.createElement('span');title.textContent=s.name;desc.textContent=s.description;b.append(thumb,title,desc);b.onclick=()=>{selected=s.id;try{localStorage.setItem(STAGE_KEY,selected);}catch{}sync();onChange();};section.querySelector('.stage-grid').append(b);buttons.push(b);
+  const title=document.createElement('strong'),desc=document.createElement('span');title.textContent=s.name;desc.textContent=s.description;const art=stageSources(s.id==='random'?'skyglass':s.id),image=document.createElement('img');image.className='stage-art';image.src=art.src;image.srcset=art.srcset;image.sizes='(max-width: 600px) 44vw, 320px';image.width=640;image.height=360;image.alt='';image.loading='lazy';image.decoding='async';image.addEventListener('error',()=>image.replaceWith(thumb),{once:true});b.append(image,title,desc);b.onclick=()=>{selected=s.id;try{localStorage.setItem(STAGE_KEY,selected);}catch{}sync();onChange();};section.querySelector('.stage-grid').append(b);buttons.push(b);
  }
  function sync(){for(const b of buttons)b.setAttribute('aria-pressed',String(b.dataset.stage===selected));section.querySelector('#stage-current').textContent='Next fight: '+(selected==='random'?'Random stage':stageFor(selected).name);}
  sync();return {element:section,value:()=>selected,resolve:()=>resolveStage(selected),lock:locked=>buttons.forEach(b=>{if(b.disabled!==locked)b.disabled=locked;})};
