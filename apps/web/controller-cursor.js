@@ -8,13 +8,13 @@ export function createControllerCursor({settings}){
  function hide(){cursor.hidden=true;highlight(null);closeOptions();last=performance.now();}
  function tick(intent,scope){
   const now=performance.now(),dt=(now-last)/1000;last=now;
-  const moving=Math.hypot(intent.aimX,intent.aimZ)>.1;
+  const moving=Math.hypot(intent.moveX,intent.moveZ)>.1;
   if(cursor.hidden&&!moving)return false;
   if(owner!==scope){closeOptions();owner=scope;}
   const modal=scope instanceof HTMLDialogElement;
   if(cursor.parentElement!==(modal?scope:document.body))(modal?scope:document.body).append(cursor);
   const view=window.visualViewport,left=view?.offsetLeft??0,top=view?.offsetTop??0,width=view?.width??innerWidth,height=view?.height??innerHeight;
-  position=cursorStep(position,{x:intent.aimX,y:intent.aimZ},dt,settings().cursorSpeed,{left:left+6,top:top+6,right:left+width-6,bottom:top+height-6});
+  position=cursorStep(position,{x:intent.moveX,y:intent.moveZ},dt,settings().cursorSpeed,{left:left+6,top:top+6,right:left+width-6,bottom:top+height-6});
   cursor.hidden=false;cursor.style.left=position.x+'px';cursor.style.top=position.y+'px';
   const hit=document.elementFromPoint(position.x,position.y),node=hit?.closest(SELECTABLE);
   const overlay=document.querySelector('#overlay:not([hidden])');
@@ -23,7 +23,7 @@ export function createControllerCursor({settings}){
   // Scroll the nearest panel beneath the cursor, only while pushing toward its edge.
   if(moving){let panel=hit;while(panel&&panel!==document.body){const style=getComputedStyle(panel);if(/auto|scroll/.test(style.overflowY)&&panel.scrollHeight>panel.clientHeight+1)break;panel=panel.parentElement;}
    const scroll=panel&&panel!==document.body?panel:document.scrollingElement,rect=panel&&panel!==document.body?panel.getBoundingClientRect():{top,bottom:top+height};
-   if(scroll){const direction=position.y<rect.top+35&&intent.aimZ<0?-1:position.y>rect.bottom-35&&intent.aimZ>0?1:0;scroll.scrollTop+=direction*450*Math.min(.05,dt);}
+   if(scroll){const direction=position.y<rect.top+35&&intent.moveZ<0?-1:position.y>rect.bottom-35&&intent.moveZ>0?1:0;scroll.scrollTop+=direction*450*Math.min(.05,dt);}
   }
   return true;
  }

@@ -1,3 +1,4 @@
+import {menuDirection} from './packages/input/cursor.js';
 import {createControllerCursor} from './controller-cursor.js';
 import {createGamepads,PAD_ABILITIES} from './packages/input/gamepad.js';
 import {experience,padBindings,padAbilityBindings} from './experience.js';
@@ -41,8 +42,7 @@ export function createControllerUI({inputs,isPlaying,isLocal,onPause}){
   onMenu({slot,intent,fresh}){
    if(slot!==0)return;
    if(method!=='controller'){pointer.hide();return;}
-   const x=intent.moveX,y=intent.moveZ;
-   const direction=fresh[12]?-1:fresh[13]?1:fresh[14]?-1:fresh[15]?1:Math.abs(y)>.55?Math.sign(y):Math.abs(x)>.55?Math.sign(x):0;
+   const direction=menuDirection(intent.buttons);
    const modal=document.querySelector('dialog[open]'),overlay=document.querySelector('#overlay:not([hidden])'),scope=modal??document;
    const nodes=Array.from(scope.querySelectorAll('button:not(:disabled),a[href],summary,select:not(:disabled),input:not(:disabled),[tabindex="0"]')).filter(n=>n.getClientRects().length&&!n.closest('[hidden],[inert]')&&(!overlay||modal||!n.closest('.arena')||overlay.contains(n)));
    if(!nodes.length)return;
@@ -50,7 +50,7 @@ export function createControllerUI({inputs,isPlaying,isLocal,onPause}){
    const current=document.activeElement,now=performance.now();
    if(direction&&(direction!==navAxis||now-lastMenu>220)){
     // A focused native select changes value without requiring a pointer.
-    const horizontal=fresh[14]||fresh[15]||Math.abs(x)>.55&&Math.abs(x)>Math.abs(y);
+    const horizontal=intent.buttons[14]||intent.buttons[15];
     if(current?.matches('input[type=range]')&&horizontal){
      if(direction>0)current.stepUp();else current.stepDown();current.dispatchEvent(new Event('input',{bubbles:true}));current.dispatchEvent(new Event('change',{bubbles:true}));
     }else if(current?.tagName==='SELECT'){
