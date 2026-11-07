@@ -53,7 +53,7 @@ export function createControllerUI({inputs,isPlaying,isLocal,onPause}){
    const nodes=Array.from(scope.querySelectorAll('button:not(:disabled),a[href],summary,select:not(:disabled),input:not(:disabled),[tabindex="0"]')).filter(n=>allowed(slot,n)&&n.getClientRects().length&&!n.closest('[hidden],[inert]')&&(!overlay||modal||!n.closest('.arena')||overlay.contains(n)));
    if(!nodes.length)return;
    if(direction)pointer.hide();else pointer.tick(intent,scope);
-   const current=nodes.includes(menu.focus)?menu.focus:slot===0&&nodes.includes(document.activeElement)?document.activeElement:null,now=performance.now();
+   const current=nodes.includes(document.activeElement)?document.activeElement:nodes.includes(menu.focus)?menu.focus:null,now=performance.now();
    if(direction&&(direction!==menu.axis||now-menu.last>220)){
     // A focused native select changes value without requiring a pointer.
     const horizontal=intent.buttons[14]||intent.buttons[15];
