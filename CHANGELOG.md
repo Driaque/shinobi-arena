@@ -1,5 +1,11 @@
 # Release notes
 
+## 0.38.0
+
+- Add rich painted PNG selection portraits for all ten original fighters.
+- Add responsive painted stage previews and matching backgrounds across Canvas and PixiJS.
+- Keep PNG portraits at native display resolution, with lazy loading and procedural fallbacks.
+
 ## 0.37.1
 
 - Keep controller shortcuts in a separate rail below the rendered fight.

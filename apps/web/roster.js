@@ -1,4 +1,5 @@
 import { CHARACTERS } from './packages/engine/index.js';
+import {portraitSources} from './packages/presentation/artwork.js';
 function portrait(canvas, character) {
   const c=canvas.getContext('2d');canvas.width=144;canvas.height=152;c.scale(2,2);
   const bg=c.createLinearGradient(0,0,72,76);bg.addColorStop(0,character.color+'80');bg.addColorStop(1,'#101e30');c.fillStyle=bg;c.fillRect(0,0,72,76);
@@ -36,9 +37,9 @@ export function createRoster(container, player, initial, onChange) {
     const style=document.createElement('small');style.textContent=`${character.era} · ${character.title}`;copy.append(name,style);
     const selected=document.createElement('span');selected.className='pick-mark';selected.setAttribute('aria-hidden','true');selected.textContent=player===0?'P1':'CPU';
     let visual=canvas;
-    if(character.portrait){const img=document.createElement('img');img.className='character-portrait concept-portrait';img.src=character.portrait;img.alt='';img.width=144;img.height=152;img.addEventListener('error',()=>img.replaceWith(canvas),{once:true});visual=img;}
+    if(character.classification==='original'||character.portrait){const img=document.createElement('img');img.className='character-portrait concept-portrait';const art=character.classification==='original'?portraitSources(character.id):null;img.src=art?.src??character.portrait;if(art){img.srcset=art.srcset;img.sizes='(max-height: 520px) 72px, (max-width: 620px) 88px, 112px';img.dataset.paintedPortrait=character.id;}img.loading='lazy';img.decoding='async';img.alt='';img.width=144;img.height=152;img.addEventListener('error',()=>img.replaceWith(canvas),{once:true});visual=img;}
     card.append(input,visual,copy,selected);input.addEventListener('change',onChange);container.append(card);
-    import('./roster-pixi.js').then(({animatePortrait})=>animatePortrait(card,visual,character)).catch(()=>{/* Keep the static portrait when graphics or art loading is unavailable. */});
+    if(character.classification!=='original')import('./roster-pixi.js').then(({animatePortrait})=>animatePortrait(card,visual,character)).catch(()=>{/* Keep the static portrait when graphics or art loading is unavailable. */});
   }
   const empty=document.createElement('p');empty.className='roster-empty';empty.textContent='No matching fighters.';empty.hidden=true;container.after(empty);
 }

@@ -228,7 +228,7 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
     let shakeX=0,shakeY=0;
     if(!reducedMotion.matches&&document.documentElement.dataset.shake!=='off'){const recent=state.fighters.find(f=>state.tick-f.lastHit<4);if(recent){const decay=Math.max(0,1-(state.tick-recent.lastHit)/4),strength=(recent.blockedHit?1:Math.min(4,1+(recent.lastDamage??0)/50))*decay;shakeX=Math.sin(state.tick*13)*strength;shakeY=Math.cos(state.tick*9)*strength*.5;c.translate(shakeX,shakeY);}}
     render.frame={state,viewport:{worldWidth,viewHeight,zoom,shakeX,shakeY}};
-    if(layers?.background!==false){if(state.stage&&state.stage!=='skyglass')paintStageCanvas(c,state.stage);else background(state.tick,(state.fighters[0].x+state.fighters[1].x)/2);}
+    if(layers?.background!==false){paintStageCanvas(c,state.stage??'skyglass');}
     // Ground lanes and narrow/sweeping windups make depth separation readable.
     for(const depth of [-64,0,64]){line(46,ARENA.floor+depth*.65,worldWidth-46,ARENA.floor+depth*.65,'#a7d9cc22',1);}
     for(const f of state.fighters){const ground=ARENA.floor+(f.depth??0)*.65;circle(f.x,ground,4,f.id===0?'#80e3d3':'#efb0b0');if(f.action){const m=MOVES[f.action.move],phase=actionPhase(f);if(phase.name==='Startup'&&m.damage>0){const end=f.x+f.facing*(m.reach||130);line(f.x,ground,end,ground,'#ffd78b77',3);c.font='bold 11px system-ui';c.textAlign='center';c.fillStyle='#ffe0a1';c.fillText(m.projectile?'RANGED':m.pierce?'PIERCE':m.launch?'LAUNCH':m.spike?'DIVE':'STRIKE',f.x,ground-155*(f.scale??1));}else if(phase.name==='Recovery'){c.font='10px system-ui';c.textAlign='center';c.fillStyle='#b4c8d9';c.fillText('RECOVERY',f.x,ground-150*(f.scale??1));}}}

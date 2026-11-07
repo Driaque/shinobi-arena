@@ -1,3 +1,4 @@
+import {stageArtwork,paintedStageRect} from './packages/presentation/artwork.js';
 import {stageShapes} from './packages/presentation/stages.js';
 import {sceneryFor,projectileShapes} from './packages/presentation/battlefield.js';
 import {
@@ -71,7 +72,9 @@ export function createCanvasLab(canvas, art, resolution) {
     const view = camera(scene, canvas.width, canvas.height);
     ctx.setTransform(view.scale, 0, 0, view.scale, view.x, view.y);
     const bg = backgroundRect(art.arena, scene);
-    if(!scene.stage||scene.stage==='skyglass')ctx.drawImage(art.arena, bg.x, bg.y, bg.w, bg.h);else shapes(stageShapes(scene.stage));
+    const painted=scene.stage&&stageArtwork(scene.stage);
+    canvas.dataset.paintedStage=painted?scene.stage:'';
+    if(painted){const r=paintedStageRect;ctx.drawImage(painted,r.x,r.y,r.w,r.h);}else if(!scene.stage||scene.stage==='skyglass')ctx.drawImage(art.arena, bg.x, bg.y, bg.w, bg.h);else shapes(stageShapes(scene.stage));
     shapes(sceneryFor(scene));
     const ellipse = (x, y, rx, ry, color) => {
       ctx.fillStyle = color;
@@ -200,6 +203,7 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
     container.addChild(sprite);
     const actor={container,ghosts,sprite};actors.set(id,actor);return actor;
   }
+  const paintedTextures=new Map();
   let terrainStage=null;
   let lost = false;
   const contextLost = (e) => {
@@ -226,12 +230,17 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
   function draw(scene) {
     if (lost) return;
     const stage=scene.stage??'skyglass';
-    bg.visible=stage==='skyglass';
-    if(terrainStage!==stage){terrain.clear();if(stage!=='skyglass')shapes(terrain,stageShapes(stage));shapes(terrain,staticScenery);terrainStage=stage;}
+    const painted=scene.stage&&stageArtwork(stage);
+    if(painted&&!paintedTextures.has(painted))paintedTextures.set(painted,Texture.from(painted));
+    canvas.dataset.paintedStage=painted?stage:'';
+    bg.texture=painted?paintedTextures.get(painted):bgTexture;
+    bg.visible=Boolean(painted)||stage==='skyglass';
+    const terrainKey=stage+Boolean(painted);
+    if(terrainStage!==terrainKey){terrain.clear();if(!painted&&stage!=='skyglass')shapes(terrain,stageShapes(stage));shapes(terrain,staticScenery);terrainStage=terrainKey;}
     const view = camera(scene, app.screen.width, app.screen.height);
     root.scale.set(view.scale);
     root.position.set(view.x, view.y);
-    const rect = backgroundRect(art.arena, scene);
+    const rect = painted?paintedStageRect:backgroundRect(art.arena, scene);
     bg.position.set(rect.x, rect.y);
     bg.width = rect.w;
     bg.height = rect.h;
@@ -303,6 +312,7 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
       for(const {source,views} of sheetTextures.values()){for(const view of views)view.destroy();source.destroy(true);}
       atlas.destroy(true);
       bgTexture.destroy(true);
+      for(const texture of paintedTextures.values())texture.destroy(true);
     },
   };
 }

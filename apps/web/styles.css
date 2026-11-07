@@ -273,3 +273,18 @@ label:has(select){cursor:pointer}label:has(select)>select{flex:1;min-width:0}
 #resources-dialog .release-link{display:flex!important;flex-direction:column;gap:14px;font-size:13px;line-height:1.7}
 #resources-dialog #help{display:block!important;margin:16px 0}
 #resources-dialog footer{display:flex!important;flex-direction:column;line-height:1.6}
+
+/* Painted selection art retains native image resolution on every display. */
+.character-card:has([data-painted-portrait]){padding:0 0 8px;gap:7px;background:#0b1626}
+.character-portrait[data-painted-portrait]{width:100%;height:112px;object-fit:cover;object-position:50% 32%;border-radius:6px 6px 0 0}
+.character-card:has([data-painted-portrait]) .character-copy{padding:0 5px}
+.stage-card .stage-art{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;background:#132636}
+.character-card:has([data-painted-portrait]):hover{border-color:var(--character-color)}
+@media(max-width:620px){.character-portrait[data-painted-portrait]{height:88px}.character-card:has([data-painted-portrait]){min-height:122px}}
+@media(max-height:520px) and (orientation:landscape){.character-portrait[data-painted-portrait]{height:72px}.character-card:has([data-painted-portrait]){min-height:96px;padding-bottom:5px;gap:4px}}
+
+.character-roster{max-height:min(45svh,420px)}
+@media(max-height:520px) and (orientation:landscape){.character-roster{max-height:min(43svh,200px)}}
+/* Preserve health and resource contrast over bright painted scenery. */
+.hud{isolation:isolate}
+.hud::before{content:'';position:absolute;inset:-12px -16px -18px;z-index:-1;pointer-events:none;background:linear-gradient(#07111ee8,#07111e99 75%,transparent);border-radius:10px}

@@ -1,3 +1,4 @@
+import {stageArtwork,paintedStageRect} from './artwork.js';
 import {stageFor} from '../engine/stages.js';
 const color=h=>parseInt(h.slice(1),16);
 // Static vector scenery shared by Canvas, Pixi and selection thumbnails.
@@ -27,4 +28,4 @@ export function stageShapes(id){
  for(let i=0;i<13;i++){const x=i*150;poly([x,640,x+60,640,x+40,643,x-10,643],s.accent,.13);}
  return out;
 }
-export function paintStageCanvas(ctx,id){for(const s of stageShapes(id)){ctx.save();ctx.globalAlpha=s.alpha;ctx.fillStyle='#'+s.color.toString(16).padStart(6,'0');ctx.beginPath();if(s.kind==='ellipse')ctx.ellipse(s.x,s.y,s.rx,s.ry,0,0,Math.PI*2);else{s.points.forEach((v,i)=>{if(i%2===0)(i?ctx.lineTo:ctx.moveTo).call(ctx,v,s.points[i+1]);});ctx.closePath();}ctx.fill();ctx.restore();}}
+export function paintStageCanvas(ctx,id){const image=stageArtwork(id);if(image){const r=paintedStageRect;ctx.drawImage(image,r.x,r.y,r.w,r.h);return true;}for(const s of stageShapes(id)){ctx.save();ctx.globalAlpha=s.alpha;ctx.fillStyle='#'+s.color.toString(16).padStart(6,'0');ctx.beginPath();if(s.kind==='ellipse')ctx.ellipse(s.x,s.y,s.rx,s.ry,0,0,Math.PI*2);else{s.points.forEach((v,i)=>{if(i%2===0)(i?ctx.lineTo:ctx.moveTo).call(ctx,v,s.points[i+1]);});ctx.closePath();}ctx.fill();ctx.restore();}}

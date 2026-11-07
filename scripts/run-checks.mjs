@@ -2,9 +2,9 @@ import {spawnSync} from 'node:child_process';
 // Never let hosted build credentials select a production store in a test process.
 const env={...process.env,DATABASE_URL:'',ARENA_DB_FILE:'',RENDER:''};
 const browser=process.argv[2]==='--browser';
-const suites=['gamepad','navigation','adventures','social','progression','discord','fighter-art','global-pixi','practice-pixi','visual-lab','character-league','browser','training','online','inventory','dora','strategy-arena','aerial','shield-scale','experience','startup-history','tactical-experience','tournaments'];
+const suites=['painted-art','gamepad','navigation','adventures','social','progression','discord','fighter-art','global-pixi','practice-pixi','visual-lab','character-league','browser','training','online','inventory','dora','strategy-arena','aerial','shield-scale','experience','startup-history','tactical-experience','tournaments'];
 const groups={
- graphics:['fighter-art','global-pixi','practice-pixi','visual-lab'],
+ graphics:['painted-art','fighter-art','global-pixi','practice-pixi','visual-lab'],
  combat:['browser','training','shield-scale'],
  network:['gamepad','navigation','adventures','social','progression','discord','online','inventory'],
  arena:['character-league','strategy-arena'],

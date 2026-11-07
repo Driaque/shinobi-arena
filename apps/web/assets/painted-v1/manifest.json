@@ -1,0 +1,487 @@
+{
+  "revision": 1,
+  "portraits": {
+    "silent": {
+      "source": "silent.png",
+      "sourceWidth": 1254,
+      "sourceHeight": 1254,
+      "alpha": false,
+      "focalPoint": [
+        0.5,
+        0.32
+      ],
+      "exports": [
+        {
+          "file": "portraits/silent-192.png",
+          "width": 192,
+          "height": 192,
+          "bytes": 82221
+        },
+        {
+          "file": "portraits/silent-384.png",
+          "width": 384,
+          "height": 384,
+          "bytes": 300378
+        },
+        {
+          "file": "portraits/silent-768.png",
+          "width": 768,
+          "height": 768,
+          "bytes": 1104424
+        }
+      ]
+    },
+    "winta": {
+      "source": "winta.png",
+      "sourceWidth": 1254,
+      "sourceHeight": 1254,
+      "alpha": false,
+      "focalPoint": [
+        0.5,
+        0.32
+      ],
+      "exports": [
+        {
+          "file": "portraits/winta-192.png",
+          "width": 192,
+          "height": 192,
+          "bytes": 80052
+        },
+        {
+          "file": "portraits/winta-384.png",
+          "width": 384,
+          "height": 384,
+          "bytes": 292215
+        },
+        {
+          "file": "portraits/winta-768.png",
+          "width": 768,
+          "height": 768,
+          "bytes": 1063549
+        }
+      ]
+    },
+    "dora": {
+      "source": "dora.png",
+      "sourceWidth": 1254,
+      "sourceHeight": 1254,
+      "alpha": false,
+      "focalPoint": [
+        0.5,
+        0.32
+      ],
+      "exports": [
+        {
+          "file": "portraits/dora-192.png",
+          "width": 192,
+          "height": 192,
+          "bytes": 79364
+        },
+        {
+          "file": "portraits/dora-384.png",
+          "width": 384,
+          "height": 384,
+          "bytes": 286420
+        },
+        {
+          "file": "portraits/dora-768.png",
+          "width": 768,
+          "height": 768,
+          "bytes": 1032115
+        }
+      ]
+    },
+    "aren": {
+      "source": "aren.png",
+      "sourceWidth": 1254,
+      "sourceHeight": 1254,
+      "alpha": false,
+      "focalPoint": [
+        0.5,
+        0.32
+      ],
+      "exports": [
+        {
+          "file": "portraits/aren-192.png",
+          "width": 192,
+          "height": 192,
+          "bytes": 81062
+        },
+        {
+          "file": "portraits/aren-384.png",
+          "width": 384,
+          "height": 384,
+          "bytes": 296627
+        },
+        {
+          "file": "portraits/aren-768.png",
+          "width": 768,
+          "height": 768,
+          "bytes": 1102362
+        }
+      ]
+    },
+    "eira": {
+      "source": "eira.png",
+      "sourceWidth": 1254,
+      "sourceHeight": 1254,
+      "alpha": false,
+      "focalPoint": [
+        0.5,
+        0.32
+      ],
+      "exports": [
+        {
+          "file": "portraits/eira-192.png",
+          "width": 192,
+          "height": 192,
+          "bytes": 80721
+        },
+        {
+          "file": "portraits/eira-384.png",
+          "width": 384,
+          "height": 384,
+          "bytes": 292621
+        },
+        {
+          "file": "portraits/eira-768.png",
+          "width": 768,
+          "height": 768,
+          "bytes": 1058822
+        }
+      ]
+    },
+    "kael": {
+      "source": "kael.png",
+      "sourceWidth": 1254,
+      "sourceHeight": 1254,
+      "alpha": false,
+      "focalPoint": [
+        0.5,
+        0.32
+      ],
+      "exports": [
+        {
+          "file": "portraits/kael-192.png",
+          "width": 192,
+          "height": 192,
+          "bytes": 67543
+        },
+        {
+          "file": "portraits/kael-384.png",
+          "width": 384,
+          "height": 384,
+          "bytes": 240821
+        },
+        {
+          "file": "portraits/kael-768.png",
+          "width": 768,
+          "height": 768,
+          "bytes": 909527
+        }
+      ]
+    },
+    "nyra": {
+      "source": "nyra.png",
+      "sourceWidth": 1254,
+      "sourceHeight": 1254,
+      "alpha": false,
+      "focalPoint": [
+        0.5,
+        0.32
+      ],
+      "exports": [
+        {
+          "file": "portraits/nyra-192.png",
+          "width": 192,
+          "height": 192,
+          "bytes": 73427
+        },
+        {
+          "file": "portraits/nyra-384.png",
+          "width": 384,
+          "height": 384,
+          "bytes": 262614
+        },
+        {
+          "file": "portraits/nyra-768.png",
+          "width": 768,
+          "height": 768,
+          "bytes": 969834
+        }
+      ]
+    },
+    "rook": {
+      "source": "rook.png",
+      "sourceWidth": 1086,
+      "sourceHeight": 1448,
+      "alpha": false,
+      "focalPoint": [
+        0.5,
+        0.32
+      ],
+      "exports": [
+        {
+          "file": "portraits/rook-192.png",
+          "width": 192,
+          "height": 256,
+          "bytes": 91015
+        },
+        {
+          "file": "portraits/rook-384.png",
+          "width": 384,
+          "height": 512,
+          "bytes": 334554
+        },
+        {
+          "file": "portraits/rook-768.png",
+          "width": 768,
+          "height": 1024,
+          "bytes": 458865
+        }
+      ]
+    },
+    "veyra": {
+      "source": "veyra.png",
+      "sourceWidth": 1086,
+      "sourceHeight": 1448,
+      "alpha": false,
+      "focalPoint": [
+        0.5,
+        0.32
+      ],
+      "exports": [
+        {
+          "file": "portraits/veyra-192.png",
+          "width": 192,
+          "height": 256,
+          "bytes": 105826
+        },
+        {
+          "file": "portraits/veyra-384.png",
+          "width": 384,
+          "height": 512,
+          "bytes": 387938
+        },
+        {
+          "file": "portraits/veyra-768.png",
+          "width": 768,
+          "height": 1024,
+          "bytes": 1438389
+        }
+      ]
+    },
+    "oryn": {
+      "source": "oryn.png",
+      "sourceWidth": 1086,
+      "sourceHeight": 1448,
+      "alpha": false,
+      "focalPoint": [
+        0.5,
+        0.32
+      ],
+      "exports": [
+        {
+          "file": "portraits/oryn-192.png",
+          "width": 192,
+          "height": 256,
+          "bytes": 86876
+        },
+        {
+          "file": "portraits/oryn-384.png",
+          "width": 384,
+          "height": 512,
+          "bytes": 316115
+        },
+        {
+          "file": "portraits/oryn-768.png",
+          "width": 768,
+          "height": 1024,
+          "bytes": 1169381
+        }
+      ]
+    }
+  },
+  "stages": {
+    "skyglass": {
+      "source": "stage-skyglass.png",
+      "sourceWidth": 1672,
+      "sourceHeight": 941,
+      "alpha": false,
+      "focalPoint": [
+        0.5,
+        0.5
+      ],
+      "exports": [
+        {
+          "file": "stages/skyglass-320.png",
+          "width": 320,
+          "height": 180,
+          "bytes": 127973
+        },
+        {
+          "file": "stages/skyglass-640.png",
+          "width": 640,
+          "height": 360,
+          "bytes": 473635
+        },
+        {
+          "file": "stages/skyglass-1280.png",
+          "width": 1280,
+          "height": 720,
+          "bytes": 196673
+        },
+        {
+          "file": "stages/skyglass-1600.png",
+          "width": 1600,
+          "height": 900,
+          "bytes": 2499188
+        }
+      ]
+    },
+    "frost": {
+      "source": "stage-frost.png",
+      "sourceWidth": 1672,
+      "sourceHeight": 941,
+      "alpha": false,
+      "focalPoint": [
+        0.5,
+        0.5
+      ],
+      "exports": [
+        {
+          "file": "stages/frost-320.png",
+          "width": 320,
+          "height": 180,
+          "bytes": 103713
+        },
+        {
+          "file": "stages/frost-640.png",
+          "width": 640,
+          "height": 360,
+          "bytes": 373104
+        },
+        {
+          "file": "stages/frost-1280.png",
+          "width": 1280,
+          "height": 720,
+          "bytes": 1335049
+        },
+        {
+          "file": "stages/frost-1600.png",
+          "width": 1600,
+          "height": 900,
+          "bytes": 1993385
+        }
+      ]
+    },
+    "forge": {
+      "source": "stage-forge.png",
+      "sourceWidth": 1672,
+      "sourceHeight": 941,
+      "alpha": false,
+      "focalPoint": [
+        0.5,
+        0.5
+      ],
+      "exports": [
+        {
+          "file": "stages/forge-320.png",
+          "width": 320,
+          "height": 180,
+          "bytes": 98442
+        },
+        {
+          "file": "stages/forge-640.png",
+          "width": 640,
+          "height": 360,
+          "bytes": 361587
+        },
+        {
+          "file": "stages/forge-1280.png",
+          "width": 1280,
+          "height": 720,
+          "bytes": 1334332
+        },
+        {
+          "file": "stages/forge-1600.png",
+          "width": 1600,
+          "height": 900,
+          "bytes": 1638729
+        }
+      ]
+    },
+    "grove": {
+      "source": "stage-grove.png",
+      "sourceWidth": 1672,
+      "sourceHeight": 941,
+      "alpha": false,
+      "focalPoint": [
+        0.5,
+        0.5
+      ],
+      "exports": [
+        {
+          "file": "stages/grove-320.png",
+          "width": 320,
+          "height": 180,
+          "bytes": 116149
+        },
+        {
+          "file": "stages/grove-640.png",
+          "width": 640,
+          "height": 360,
+          "bytes": 439187
+        },
+        {
+          "file": "stages/grove-1280.png",
+          "width": 1280,
+          "height": 720,
+          "bytes": 1592431
+        },
+        {
+          "file": "stages/grove-1600.png",
+          "width": 1600,
+          "height": 900,
+          "bytes": 2382046
+        }
+      ]
+    },
+    "court": {
+      "source": "stage-court.png",
+      "sourceWidth": 1672,
+      "sourceHeight": 941,
+      "alpha": false,
+      "focalPoint": [
+        0.5,
+        0.5
+      ],
+      "exports": [
+        {
+          "file": "stages/court-320.png",
+          "width": 320,
+          "height": 180,
+          "bytes": 134220
+        },
+        {
+          "file": "stages/court-640.png",
+          "width": 640,
+          "height": 360,
+          "bytes": 501312
+        },
+        {
+          "file": "stages/court-1280.png",
+          "width": 1280,
+          "height": 720,
+          "bytes": 1797889
+        },
+        {
+          "file": "stages/court-1600.png",
+          "width": 1600,
+          "height": 900,
+          "bytes": 2680689
+        }
+      ]
+    }
+  }
+}
