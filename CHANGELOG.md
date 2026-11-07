@@ -1,5 +1,12 @@
 # Release notes
 
+## 0.37.0
+
+- Controller input expands the battle view by reclaiming the touch dock; touch restores it immediately.
+- Add connection status, PlayStation/Xbox prompts, seven-ability shortcuts, right-stick aim and controller menu navigation across arena and Adventures.
+- Preserve player assignments on disconnect, clear held/pending controller input safely, and prevent menu-confirm buttons from leaking into combat.
+- Add a saved option to keep touch controls visible alongside a controller.
+
 ## 0.36.0
 
 - Keep navigation inside short landscape viewports with scrollable menus.

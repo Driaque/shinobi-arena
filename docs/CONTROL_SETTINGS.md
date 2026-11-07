@@ -96,3 +96,7 @@ Feel opens analog dead-zone/sensitivity/double-pull timing, left-handed/floating
 ## v0.20 visual controls
 
 Show hints / Hide hints toggles the Practice coach without resetting the dummy or drill; the preference survives reload. Hide is also available on the panel. Jutsus use the same original SVG pictograms in selection, the equipped row, expanded menu and signature controls. Coarse-pointer devices show compact icons and cooldown/key indicators; names remain accessible labels/tooltips. Unused slots stay hidden, and all existing visibility/opacity controls continue to apply.
+
+## Controller viewport (v0.37.0)
+
+Controller input activates an expanded battle viewport and controller button prompts. A connected but idle pad leaves the current input layout in place. Touching the screen or disconnecting the active pad restores touch controls. Feel → Show touch controls with controller preserves the dock if desired. Controller remapping remains device-local; Restore default controller mapping installs the R1/RB ability layer described in the v0.37.0 release notes. D-pad/left stick navigates menu focus and select options; Cross/A confirms and Circle/B closes. Online play does not pause when a controller disconnects.
