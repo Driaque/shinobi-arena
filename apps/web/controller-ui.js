@@ -33,13 +33,16 @@ export function createControllerUI({inputs,isPlaying,isLocal,onPause}){
    if(slot!==0)return;
    const x=intent.moveX,y=intent.moveZ;
    const direction=fresh[12]?-1:fresh[13]?1:fresh[14]?-1:fresh[15]?1:Math.abs(y)>.55?Math.sign(y):Math.abs(x)>.55?Math.sign(x):0;
-   const scope=document.querySelector('dialog[open]')??document.querySelector('#overlay:not([hidden])')??document;
-   const nodes=Array.from(scope.querySelectorAll('button:not(:disabled),a[href],summary,select:not(:disabled),input:not(:disabled),[tabindex="0"]')).filter(n=>n.getClientRects().length&&!n.closest('[hidden],[inert]'));
+   const modal=document.querySelector('dialog[open]'),overlay=document.querySelector('#overlay:not([hidden])'),scope=modal??document;
+   const nodes=Array.from(scope.querySelectorAll('button:not(:disabled),a[href],summary,select:not(:disabled),input:not(:disabled),[tabindex="0"]')).filter(n=>n.getClientRects().length&&!n.closest('[hidden],[inert]')&&(!overlay||modal||!n.closest('.arena')||overlay.contains(n)));
    if(!nodes.length)return;
    const current=document.activeElement,now=performance.now();
    if(direction&&(direction!==navAxis||now-lastMenu>220)){
     // A focused native select changes value without requiring a pointer.
-    if(current?.tagName==='SELECT'){
+    const horizontal=fresh[14]||fresh[15]||Math.abs(x)>.55&&Math.abs(x)>Math.abs(y);
+    if(current?.matches('input[type=range]')&&horizontal){
+     if(direction>0)current.stepUp();else current.stepDown();current.dispatchEvent(new Event('input',{bubbles:true}));current.dispatchEvent(new Event('change',{bubbles:true}));
+    }else if(current?.tagName==='SELECT'){
      const options=Array.from(current.options).filter(o=>!o.disabled),index=options.indexOf(current.selectedOptions[0]);
      current.value=options[(index+direction+options.length)%options.length].value;current.dispatchEvent(new Event('input',{bubbles:true}));current.dispatchEvent(new Event('change',{bubbles:true}));
     }else{const index=nodes.indexOf(current);const next=nodes[(index+direction+nodes.length)%nodes.length];next.focus();next.scrollIntoView({block:'nearest',inline:'nearest'});}
@@ -54,6 +57,7 @@ export function createControllerUI({inputs,isPlaying,isLocal,onPause}){
    if(fresh[1]){
     const dialog=document.querySelector('dialog[open]');
     if(dialog){const event=new Event('cancel',{cancelable:true});if(dialog.dispatchEvent(event))dialog.close();}
+    else if(arena.classList.contains('editing-controls'))document.querySelector('#cancel-controls').click();
     else {const details=document.querySelector('details[open]');if(details){details.open=false;details.querySelector('summary')?.focus();}}
    }
   }

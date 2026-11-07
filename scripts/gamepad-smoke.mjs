@@ -32,6 +32,12 @@ try{
   await page.evaluate(()=>document.querySelector('#experience-settings').click());await page.locator('[data-experience=showTouchWithController]').check();
   await page.locator('#experience-close').click();assert.equal(await page.locator('#joystick').isVisible(),true);
   await page.evaluate(()=>document.querySelector('#experience-settings').click());await page.locator('[data-experience=showTouchWithController]').uncheck();await page.locator('#experience-close').click();
+  // Controller navigation can reach toolbar settings even while a battle overlay is open.
+  const pulse=async button=>{await page.evaluate(button=>{window.testPads[0].buttons[button].pressed=false;},button);await page.waitForTimeout(50);await page.evaluate(button=>{window.testPads[0].buttons[button].pressed=true;},button);await page.waitForTimeout(80);await page.evaluate(button=>{window.testPads[0].buttons[button].pressed=false;},button);await page.waitForTimeout(50);};
+  await page.locator('#game-settings > summary').focus();await pulse(0);assert.equal(await page.locator('#game-settings').getAttribute('open')!==null,true);
+  await page.locator('#experience-settings').focus();await pulse(0);assert.equal(await page.locator('#experience-dialog').isVisible(),true);
+  const slider=page.locator('[data-experience=deadZone]'),before=Number(await slider.inputValue());await slider.focus();await pulse(15);assert.ok(Number(await slider.inputValue())>before,'D-pad changes a focused sensitivity slider');
+  await pulse(1);assert.equal(await page.locator('#experience-dialog').isVisible(),false);
   // Simulated disconnection immediately restores the touch deck.
   await page.evaluate(()=>window.testPads=[]);await page.waitForFunction(()=>!document.querySelector('.arena').classList.contains('controller-view'));
   assert.equal(await page.locator('#joystick').isVisible(),true);assert.deepEqual(errors,[]);

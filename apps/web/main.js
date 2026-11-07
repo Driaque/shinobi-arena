@@ -272,7 +272,7 @@ function paintHud(){
     b.classList.toggle('unavailable',b.disabled||player.chakra<cost||player.stamina<staminaCost(key)||(key==='bloodline'&&!move)||(key==='awakening'&&!awakeningReady(player))||(key==='swapWeapon'&&!player.weapons[1])||(key==='useItem'&&!move));
   });
 }
-const gamepads=createControllerUI({inputs,isPlaying:()=>started&&!paused&&state.status==='playing'&&!controls.editing&&$('#rotate').hidden&&!document.querySelector('dialog[open]'),isLocal:()=>mode==='local',onPause:pause});
+const gamepads=createControllerUI({inputs,isPlaying:()=>started&&!paused&&state.status==='playing'&&!controls.editing&&$('#rotate').hidden&&!document.querySelector('dialog[open],.nav-group[open]'),isLocal:()=>mode==='local',onPause:()=>{if(mode==='online'){clearInputs();$('#game-settings').open=!$('#game-settings').open;}else pause();}});
 function frame(now){
   stages.lock((started&&state.status!=='matchOver')||mode==='online'&&online?.busy);
   gamepads.poll();
