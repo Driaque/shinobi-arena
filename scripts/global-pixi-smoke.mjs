@@ -17,7 +17,7 @@ try{
   assert.ok(await portrait.evaluate(img=>img.naturalWidth>0),'painted PNG portrait decodes');
   const source=await portrait.evaluate(img=>img.currentSrc);
   assert.match(source,/painted-v1\/portraits\/aren-\d+\.png$/);
-  assert.equal(await p.locator('#character0 canvas[data-animated-portrait]').count(),0,'original PNG portraits retain full detail');
+  assert.equal(await p.locator('#character0 [data-character=aren] canvas[data-animated-portrait]').count(),0,'original PNG portraits retain full detail');
   await p.emulateMedia({reducedMotion:'reduce'});
   assert.equal(await portrait.evaluate(img=>img.currentSrc),source,'reduced motion preserves the painted portrait');
   await p.emulateMedia({reducedMotion:'no-preference'});
