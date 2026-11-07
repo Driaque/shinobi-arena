@@ -17,7 +17,7 @@ try{
       const host=document.createElement('div');host.id='art-evidence';host.style.cssText='position:fixed;inset:0;z-index:9999;background:#101e30';document.body.append(host);
       let state,backend;const draw=(renderer='pixi')=>backend.draw(state,{worldWidth:1280,viewHeight:600,zoom:1,shakeX:0,shakeY:0},renderer,{preview:false});
       backend=await createPracticeBackends(host,()=>draw('canvas'),()=>draw());
-      window.art={backend,host,draw,run(travel=0,equipped=false){for(const f of state.fighters){f.vx=3;f.travel=travel;f.landedAt=-100;f.items=[{id:'poison',count:equipped?1:0},{id:'smokeBomb',count:equipped?1:0}];if(f.character==='silent'){f.weapon='tachi';f.weapons=['tachi','kaiken'];}}draw();},select(id){state=createTraining([0,1].map(()=>({character:id,weapon:({dora:'fans',veyra:'fans',nyra:'kaiken',aren:'katana',eira:'katana',oryn:'katana'})[id]??'tachi'})));state.fighters[0].x=480;state.fighters[1].x=800;draw();}};
+      window.art={backend,host,draw,run(travel=0,equipped=false){for(const f of state.fighters){f.vx=3;f.travel=travel;f.landedAt=-100;f.items=[{id:'poison',count:equipped?1:0},{id:'veilCanister',count:equipped?1:0}];if(f.character==='silent'){f.weapon='frostmereSaber';f.weapons=['frostmereSaber','oathknife'];}}draw();},select(id){state=createTraining([0,1].map(()=>({character:id,weapon:({dora:'tideglassFans',veyra:'tideglassFans',nyra:'oathknife',aren:'skyforgedBlade',eira:'skyforgedBlade',oryn:'skyforgedBlade'})[id]??'frostmereSaber'})));state.fighters[0].x=480;state.fighters[1].x=800;draw();}};
     });
     for(const id of ['silent','winta','dora','aren','eira','kael','nyra','rook','veyra','oryn']){
       await page.evaluate(id=>window.art.select(id),id);

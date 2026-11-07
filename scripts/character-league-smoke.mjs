@@ -9,7 +9,7 @@ try{
  // Fixtures stay in this local test store; production has no client result-submission API.
  while(current.status==='running'){
   for(const pair of current.rounds.at(-1)){
-   const context=await s.tournaments.prepare(t.id,pair.players[0],chars.get(pair.players[0]));await s.tournaments.prepare(t.id,pair.players[1],chars.get(pair.players[1]));const players=pair.players.map(id=>({playerId:id,name:members.find(m=>m.player.id===id).player.name,character:chars.get(id),weapon:'kunai'})),state=createMatch(players),last=structuredClone(state);last.wins=[2,0];last.status='matchOver';last.metrics[0].damage=2000;
+   const context=await s.tournaments.prepare(t.id,pair.players[0],chars.get(pair.players[0]));await s.tournaments.prepare(t.id,pair.players[1],chars.get(pair.players[1]));const players=pair.players.map(id=>({playerId:id,name:members.find(m=>m.player.id===id).player.name,character:chars.get(id),weapon:'conduitSpike'})),state=createMatch(players),last=structuredClone(state);last.wins=[2,0];last.status='matchOver';last.metrics[0].damage=2000;
    await s.save({id:context.matchId,tournament:context,createdAt:Date.now(),mode:'tournament',players,winner:0,reason:'completed',wins:[2,0],playedTicks:1500,replay:{schema:1,id:context.matchId,rules:RULES_VERSION,tickRate:60,duration:120,players,catalog:{characters:CHARACTERS,moves:MOVES,awakenings:AWAKENINGS},loadouts:state.loadouts,frames:[{at:0,state},{at:120,state:last}]}});
   }
   current=await s.tournaments.get(t.id);

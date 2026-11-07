@@ -6,7 +6,7 @@ export const EXTRA_MOVES=Object.freeze({
  risingGale:strike('Rising Gale',{startup:9,active:5,recovery:25,damage:85,reach:150,cost:25,cooldown:240,launch:14,hitstun:30,knockback:8,element:'wind',color:'#a5ecdc',aerial:'both',airCombo:true}),
  skyCleave:strike('Sky Cleave',{startup:7,active:5,recovery:22,damage:75,reach:155,cost:20,cooldown:180,launch:6,hitstun:24,knockback:10,element:'metal',sword:true,color:'#d5efff',aerial:'air',airCombo:true}),
  divingFlame:strike('Diving Flame',{startup:9,active:7,recovery:30,damage:110,reach:155,cost:30,cooldown:270,dash:4,dive:12,spike:true,hitstun:20,knockback:35,effect:'burn',duration:120,potency:6,element:'fire',color:'#ffb17d',aerial:'air'}),
- aerialSenbon:shot('Aerial Water Senbon',{startup:10,damage:28,cost:25,cooldown:240,fan:true,effect:'slow',potency:.2,duration:90,element:'water',color:'#83dfef',aerial:'air'}),
+ skyfallNeedles:shot('Skyfall Needles',{startup:10,damage:28,cost:25,cooldown:240,fan:true,effect:'slow',potency:.2,duration:90,element:'water',color:'#83dfef',aerial:'air'}),
  emberField:field('Ember Field','fire','burn',8),
  floodField:field('Flood Field','water','slow',.35),
  stoneSnare:field('Stone Snare','earth','bind',1),
@@ -14,7 +14,7 @@ export const EXTRA_MOVES=Object.freeze({
  galePush:shot('Gale Push',{damage:65,knockback:140,element:'wind',color:'#a4e8dc'}),
  bindingThreads:shot('Binding Threads',{damage:35,cost:30,cooldown:330,effect:'bind',duration:45,potency:1,knockback:0,element:'earth',color:'#d6bf85'}),
  venomDart:shot('Venom Dart',{damage:40,cost:25,cooldown:300,effect:'poisonslow',duration:240,potency:6,element:'poison',color:'#b6d97b'}),
- chakraSiphon:shot('Chakra Siphon',{damage:45,cost:20,cooldown:300,energyDrain:18,element:'water',color:'#8abaf5'}),
+ aetherSiphon:shot('Aether Siphon',{damage:45,cost:20,cooldown:300,energyDrain:18,element:'water',color:'#8abaf5'}),
  waterAbsorption:strike('Water Absorption',{startup:12,active:1,recovery:18,damage:0,reach:0,cost:30,cooldown:480,buff:'absorb',duration:180}),
  windVeil:strike('Wind Veil',{startup:12,active:1,recovery:18,damage:0,reach:0,cost:25,cooldown:480,buff:'haste',duration:240}),
  stoneWard:strike('Stone Ward',{startup:20,active:1,recovery:22,damage:0,reach:0,cost:30,cooldown:600,buff:'ward',duration:240}),
@@ -30,7 +30,7 @@ export function effectDescription(m){
  if(m.energyDrain)return `Steal up to ${m.energyDrain} chakra on a clean hit${m.lifesteal?' + '+Math.round(m.lifesteal*100)+'% lifesteal':''}; guard prevents gains`;
  if(m.selfHeal)return `Restore ${m.selfHeal} HP after a long, interruptible startup`;
  if(m.cleanse)return 'Clear harmful effects after startup; cannot escape hitstun';
- if(m.buff)return ({absorb:'Guard absorbs ordinary projectiles into chakra; melee/pierce counter it',haste:'15% faster movement for 4s',ward:'25% less HP damage for 4s',skyforgedAegis:'Guard chip absorption, reflect and sword counter',aquaGuard:'Guard a hit to ready a fan/sword counter',stormheart:'Boost lightning damage',byakugan:'Temporary guard penetration'})[m.buff]??m.buff;
+ if(m.buff)return ({absorb:'Guard absorbs ordinary projectiles into chakra; melee/pierce counter it',haste:'15% faster movement for 4s',ward:'25% less HP damage for 4s',skyforgedAegis:'Guard chip absorption, reflect and sword counter',aquaGuard:'Guard a hit to ready a fan/sword counter',stormheart:'Boost lightning damage',fractureLens:'Temporary guard penetration'})[m.buff]??m.buff;
  const effect=m.effect?({poisonslow:`Poison-slow: ${m.potency} HP/s + 40% slower movement for ${m.duration/60}s`,bind:`Bind: immobilize for ${m.duration/60}s; guard or Replacement still work`,weaken:`Weaken: ${Math.round(m.potency*100)}% less attack damage for ${m.duration/60}s`,burn:`Burn: ${m.potency} HP/s for ${m.duration/60}s`,poison:`Poison: ${m.potency} HP/s for ${m.duration/60}s`,bleed:`Bleed: ${m.potency} HP/s for ${m.duration/60}s`,metalVulnerable:`Metal vulnerability: +${Math.round(m.potency*100)}% incoming metal damage`})[m.effect]??m.effect:null;
  return [effect,m.pull?'pull':null,m.knockback>=100?'heavy knockback':null,m.lifesteal?Math.round(m.lifesteal*100)+'% lifesteal':null,m.pierce?Math.round(m.pierce*100)+'% guard penetration':null,m.launch?'launch':null,m.followUp?'defendable heavy follow-up':null].filter(Boolean).join(' · ')||'Direct damage · punish recovery or confirm a basic combo';
 }

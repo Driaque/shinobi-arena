@@ -31,7 +31,7 @@ test('a learner using spaced basics can win on Easy',()=>{
 });
 test('all difficulty/character combinations respect attack budgets',()=>{
  for(const difficulty of Object.keys(DIFFICULTIES))for(const character of Object.keys(CHARACTERS)){
-  const s=createMatch([{character:'naruto',weapon:'kunai'},{character,weapon:'katana'}],{difficulty});
+  const s=createMatch([{character:'solan',weapon:'conduitSpike'},{character,weapon:'skyforgedBlade'}],{difficulty});
   for(let t=0;t<900&&s.status==='playing';t++){stepMatch(s,[{},computerInput(s)]);assert.ok(!s.events.some(e=>['empty','cooldown','exhausted'].includes(e.type)),`${difficulty}/${character} overspent`);for(const f of s.fighters){assert.ok(f.stamina>=0&&f.stamina<=100);assert.ok(f.chakra>=0&&f.chakra<=100);}}
  }
 });

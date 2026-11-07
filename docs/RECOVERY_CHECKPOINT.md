@@ -60,3 +60,11 @@ PR #57 head 68fc0c3 is mergeable and its build/unit CI passed. Reviewing the bro
 ## Wide landscape scenery fix
 
 Hosted artwork checks passed all four viewports and fallback; detailed fighter art passed. Screenshot inspection revealed dark side margins on the short/wide landscape camera. Expand painted scenery with its aspect ratio and combat ground anchor preserved to cover the visible camera in Canvas/Pixi/classic fallback. Add camera coverage/ground-anchor regression coverage. Scope original PNG assertion to Aren; optional hidden anime portraits still animate. Full CI/browser verification must rerun before release.
+
+## Active original-world expansion, v0.40.0
+
+Branch feat/painted-move-icons, based on released v0.39.0. User requested responsive painted move PNGs, then expanded scope to remove all first-party references to external ninja franchises and redesign the optional hidden roster, weapons and items. User chose elite, balanced future rivals, not higher PvP stats. Keep twenty-five unreleased original rivals behind Include unreleased rivals; retain core ten as default. Do not deploy before the complete naming/artwork update is reviewable. No Blob tool uploads.
+
+Current source has original names/IDs, 25 original future identities/lore/appearance briefs, a neutral articulated future-body renderer, optional roster toggle, responsive art UI and one-way saved-loadout migration. Protocol 8 / duel-0.40.0. Updated historical help/release text in the working tree; Git history is not rewritten.
+
+Generated masters: /workspace/scratch/51863306bb15/move-masters (9), equipment-masters (14), future-masters (8 so far). Existing masters must be reused. Responsive exports and metadata: apps/web/assets/painted-v2/manifest.json; exporter scripts/export-original-world-art.py. Every final master has a unique semantic brief in docs/move-art-briefs.json or future-fighters.js. Outstanding: 55 move masters and 17 future portraits, complete export/visual QA, browser checks and clean first-party reference scan. Code changes are not deployed.

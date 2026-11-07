@@ -1,0 +1,974 @@
+{
+  "revision": 1,
+  "groups": {
+    "moves": {
+      "echoingRift": {
+        "source": "echoingRift.png",
+        "sourceSha256": "cb9f64853cb45c9e5ee6d55a9e5b340f073dd05ccc1e2bd8165750a796a4737d",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "moves/echoingRift-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 10128
+          },
+          {
+            "file": "moves/echoingRift-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 35597
+          },
+          {
+            "file": "moves/echoingRift-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 123316
+          }
+        ]
+      },
+      "harmoniousSlash": {
+        "source": "harmoniousSlash.png",
+        "sourceSha256": "c3a7dd02ed9f610bd24c1381ff37bacd7349b7fecd28324fe9ad02d37e7776c7",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "moves/harmoniousSlash-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 10031
+          },
+          {
+            "file": "moves/harmoniousSlash-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 34607
+          },
+          {
+            "file": "moves/harmoniousSlash-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 119365
+          }
+        ]
+      },
+      "rimeflash": {
+        "source": "rimeflash.png",
+        "sourceSha256": "2dae2e3501bfc2005d4ecf3d82a5b281cc6dccc70ee70c88470587c9ddf35002",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "moves/rimeflash-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 8928
+          },
+          {
+            "file": "moves/rimeflash-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 30812
+          },
+          {
+            "file": "moves/rimeflash-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 105268
+          }
+        ]
+      },
+      "risingGale": {
+        "source": "risingGale.png",
+        "sourceSha256": "46224172aad001eada5e76cd5141535a15ded2ff6e06e12b5e1056f7eeac58a8",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "moves/risingGale-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 9858
+          },
+          {
+            "file": "moves/risingGale-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 34234
+          },
+          {
+            "file": "moves/risingGale-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 118481
+          }
+        ]
+      },
+      "royalTempest": {
+        "source": "royalTempest.png",
+        "sourceSha256": "0888fda854eaea347f61e85522d5c17456818215ce4bfb5e6683d6ac6864bc07",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "moves/royalTempest-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 10906
+          },
+          {
+            "file": "moves/royalTempest-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 39385
+          },
+          {
+            "file": "moves/royalTempest-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 137830
+          }
+        ]
+      },
+      "skyforgedAegis": {
+        "source": "skyforgedAegis.png",
+        "sourceSha256": "bd30c6fb5b1ef603f3879913387782960b5c920fa0be70ae205e1e8f755a04b6",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "moves/skyforgedAegis-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 10293
+          },
+          {
+            "file": "moves/skyforgedAegis-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 37213
+          },
+          {
+            "file": "moves/skyforgedAegis-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 133189
+          }
+        ]
+      },
+      "stormheart": {
+        "source": "stormheart.png",
+        "sourceSha256": "3561cf81950c59c9c2aacc1073475d276983bc14fb8a09b4bf28de66f561b67b",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "moves/stormheart-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 10154
+          },
+          {
+            "file": "moves/stormheart-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 35697
+          },
+          {
+            "file": "moves/stormheart-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 124837
+          }
+        ]
+      },
+      "tidalEdict": {
+        "source": "tidalEdict.png",
+        "sourceSha256": "6cfa5515a930821b8b9c95883da69e26f08111123c09821dac20e2d843704847",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "moves/tidalEdict-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 10459
+          },
+          {
+            "file": "moves/tidalEdict-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 37518
+          },
+          {
+            "file": "moves/tidalEdict-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 130981
+          }
+        ]
+      },
+      "triuneFlow": {
+        "source": "triuneFlow.png",
+        "sourceSha256": "06f65944e7f7a1dd94355aa772d282ce437aa1b23aac08231a6b58c769adbc66",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "moves/triuneFlow-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 10526
+          },
+          {
+            "file": "moves/triuneFlow-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 37641
+          },
+          {
+            "file": "moves/triuneFlow-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 131626
+          }
+        ]
+      }
+    },
+    "weapons": {
+      "concordLaureate": {
+        "source": "weapon-concordLaureate.png",
+        "sourceSha256": "42161f8b714c1c7b7489c63e16784d847df782785d3fb3812ffccaa4a21d0906",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "weapons/concordLaureate-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 4666
+          },
+          {
+            "file": "weapons/concordLaureate-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 15780
+          },
+          {
+            "file": "weapons/concordLaureate-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 63223
+          }
+        ]
+      },
+      "conduitSpike": {
+        "source": "weapon-conduitSpike.png",
+        "sourceSha256": "7cec9e58dbacdec2d6cedb946d3513ed512ac6781a8d236e955066211f6b3c07",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "weapons/conduitSpike-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 4339
+          },
+          {
+            "file": "weapons/conduitSpike-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 15542
+          },
+          {
+            "file": "weapons/conduitSpike-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 62264
+          }
+        ]
+      },
+      "frostmereSaber": {
+        "source": "weapon-frostmereSaber.png",
+        "sourceSha256": "05c936f52c16b57b6980f91be2c9f10f8749c18ef2d2bec9b72f68f10bff7d30",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "weapons/frostmereSaber-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 4371
+          },
+          {
+            "file": "weapons/frostmereSaber-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 15046
+          },
+          {
+            "file": "weapons/frostmereSaber-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 60376
+          }
+        ]
+      },
+      "oathknife": {
+        "source": "weapon-oathknife.png",
+        "sourceSha256": "7328f29caff5415444469bb3022e1cda7076bb21ca63007121bd9738335b7b91",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "weapons/oathknife-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 4767
+          },
+          {
+            "file": "weapons/oathknife-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 17410
+          },
+          {
+            "file": "weapons/oathknife-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 70385
+          }
+        ]
+      },
+      "orbitDisc": {
+        "source": "weapon-orbitDisc.png",
+        "sourceSha256": "70ee233ae016692d4ae7b8d0192e4ed0b51f6053e51be419b6223133b628f13d",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "weapons/orbitDisc-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 7046
+          },
+          {
+            "file": "weapons/orbitDisc-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 24386
+          },
+          {
+            "file": "weapons/orbitDisc-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 91767
+          }
+        ]
+      },
+      "skyforgedBlade": {
+        "source": "weapon-skyforgedBlade.png",
+        "sourceSha256": "a7eb62ba8401ca40c9e58faebdf43e99e9f53ec374bed00e5477ac436a93abec",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "weapons/skyforgedBlade-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 3787
+          },
+          {
+            "file": "weapons/skyforgedBlade-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 13118
+          },
+          {
+            "file": "weapons/skyforgedBlade-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 58188
+          }
+        ]
+      },
+      "tideglassFans": {
+        "source": "weapon-tideglassFans.png",
+        "sourceSha256": "b8e21ff56333d80337f339ee28f125bd0a2832adcf04a3901cebeec079308c79",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "weapons/tideglassFans-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 7005
+          },
+          {
+            "file": "weapons/tideglassFans-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 24502
+          },
+          {
+            "file": "weapons/tideglassFans-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 93082
+          }
+        ]
+      }
+    },
+    "items": {
+      "cinderCharge": {
+        "source": "item-cinderCharge.png",
+        "sourceSha256": "e295f9b336e9f9ce7c83a31b29dde2dea3cc99506303b1e3aa4c9caf7902134c",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "items/cinderCharge-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 6819
+          },
+          {
+            "file": "items/cinderCharge-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 23276
+          },
+          {
+            "file": "items/cinderCharge-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 84428
+          }
+        ]
+      },
+      "laureateShroud": {
+        "source": "item-laureateShroud.png",
+        "sourceSha256": "85495098f1eec985f1f4f4be6ea04969043816d587ed417fe1f078f61c4979ec",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "items/laureateShroud-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 5713
+          },
+          {
+            "file": "items/laureateShroud-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 20149
+          },
+          {
+            "file": "items/laureateShroud-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 78861
+          }
+        ]
+      },
+      "orbitPack": {
+        "source": "item-orbitPack.png",
+        "sourceSha256": "de864604e1dbf8ceac5823587263b5a3698d9dc61b7f6201b1349b7d8458501c",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "items/orbitPack-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 7826
+          },
+          {
+            "file": "items/orbitPack-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 27130
+          },
+          {
+            "file": "items/orbitPack-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 100119
+          }
+        ]
+      },
+      "poison": {
+        "source": "item-poison.png",
+        "sourceSha256": "207e33b75e34ac63380ee3f92eb295db6f34afee29c558de10a23c7c4b7275fd",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "items/poison-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 5221
+          },
+          {
+            "file": "items/poison-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 19248
+          },
+          {
+            "file": "items/poison-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 76277
+          }
+        ]
+      },
+      "spikeCapsule": {
+        "source": "item-spikeCapsule.png",
+        "sourceSha256": "32afd7f8091499739ee28d63ca66786a751d1496660de4554b9decf7a02cec0b",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "items/spikeCapsule-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 8430
+          },
+          {
+            "file": "items/spikeCapsule-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 28675
+          },
+          {
+            "file": "items/spikeCapsule-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 101551
+          }
+        ]
+      },
+      "veilCanister": {
+        "source": "item-veilCanister.png",
+        "sourceSha256": "c1545fe33c4a3abd4dcdf245e91c9b7eaa4d7760c17fb65da4177f5225f0be3d",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "items/veilCanister-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 6704
+          },
+          {
+            "file": "items/veilCanister-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 23425
+          },
+          {
+            "file": "items/veilCanister-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 86780
+          }
+        ]
+      },
+      "waypointAnchor": {
+        "source": "item-waypointAnchor.png",
+        "sourceSha256": "750f589d63af33fdd551a2b30f0f677b4ba13a59f76ff55274c0aaf9705241df",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "items/waypointAnchor-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 7100
+          },
+          {
+            "file": "items/waypointAnchor-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 24316
+          },
+          {
+            "file": "items/waypointAnchor-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 84923
+          }
+        ]
+      }
+    },
+    "fighters": {
+      "brannik": {
+        "source": "brannik.png",
+        "sourceSha256": "2de809acfec17dedd98340dfa8d62d04d75bb70e6ae7e2991b011cd0091957fe",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.32
+        ],
+        "exports": [
+          {
+            "file": "fighters/brannik-192.png",
+            "width": 192,
+            "height": 192,
+            "bytes": 78283
+          },
+          {
+            "file": "fighters/brannik-384.png",
+            "width": 384,
+            "height": 384,
+            "bytes": 285335
+          },
+          {
+            "file": "fighters/brannik-768.png",
+            "width": 768,
+            "height": 768,
+            "bytes": 1058262
+          }
+        ]
+      },
+      "corvin": {
+        "source": "corvin.png",
+        "sourceSha256": "5e82651b288279e6361b41b393b9c6f95e10d38a33e0479635f00d82348804d6",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.32
+        ],
+        "exports": [
+          {
+            "file": "fighters/corvin-192.png",
+            "width": 192,
+            "height": 192,
+            "bytes": 75353
+          },
+          {
+            "file": "fighters/corvin-384.png",
+            "width": 384,
+            "height": 384,
+            "bytes": 272755
+          },
+          {
+            "file": "fighters/corvin-768.png",
+            "width": 768,
+            "height": 768,
+            "bytes": 992046
+          }
+        ]
+      },
+      "drevan": {
+        "source": "drevan.png",
+        "sourceSha256": "1c1add29bfbb78a382596e50920593faef5234c73c847628fce0a411d9f9278c",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.32
+        ],
+        "exports": [
+          {
+            "file": "fighters/drevan-192.png",
+            "width": 192,
+            "height": 192,
+            "bytes": 69596
+          },
+          {
+            "file": "fighters/drevan-384.png",
+            "width": 384,
+            "height": 384,
+            "bytes": 251123
+          },
+          {
+            "file": "fighters/drevan-768.png",
+            "width": 768,
+            "height": 768,
+            "bytes": 922588
+          }
+        ]
+      },
+      "maelis": {
+        "source": "maelis.png",
+        "sourceSha256": "f01369ed9164c24fb5c5e072cdc098a0932e69c5cfb798210de15ba87a0cd466",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.32
+        ],
+        "exports": [
+          {
+            "file": "fighters/maelis-192.png",
+            "width": 192,
+            "height": 192,
+            "bytes": 73335
+          },
+          {
+            "file": "fighters/maelis-384.png",
+            "width": 384,
+            "height": 384,
+            "bytes": 261227
+          },
+          {
+            "file": "fighters/maelis-768.png",
+            "width": 768,
+            "height": 768,
+            "bytes": 937224
+          }
+        ]
+      },
+      "sylven": {
+        "source": "sylven.png",
+        "sourceSha256": "20cbfc2b573e36fb7e27fa933a7f0fb460e9e363e1bb39d62aafecb5803e7844",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.32
+        ],
+        "exports": [
+          {
+            "file": "fighters/sylven-192.png",
+            "width": 192,
+            "height": 192,
+            "bytes": 79169
+          },
+          {
+            "file": "fighters/sylven-384.png",
+            "width": 384,
+            "height": 384,
+            "bytes": 287554
+          },
+          {
+            "file": "fighters/sylven-768.png",
+            "width": 768,
+            "height": 768,
+            "bytes": 1049296
+          }
+        ]
+      },
+      "tessara": {
+        "source": "tessara.png",
+        "sourceSha256": "4e44404c608947264c68f506dfc697ad15305b6fadddfbbf3560699cfdf9bea9",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.32
+        ],
+        "exports": [
+          {
+            "file": "fighters/tessara-192.png",
+            "width": 192,
+            "height": 192,
+            "bytes": 79926
+          },
+          {
+            "file": "fighters/tessara-384.png",
+            "width": 384,
+            "height": 384,
+            "bytes": 290845
+          },
+          {
+            "file": "fighters/tessara-768.png",
+            "width": 768,
+            "height": 768,
+            "bytes": 1059849
+          }
+        ]
+      },
+      "torven": {
+        "source": "torven.png",
+        "sourceSha256": "19ddc266c59089af618a8403d1e95f2dd6bc8a9f6c7e61e4117b3c2712e71855",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.32
+        ],
+        "exports": [
+          {
+            "file": "fighters/torven-192.png",
+            "width": 192,
+            "height": 192,
+            "bytes": 76153
+          },
+          {
+            "file": "fighters/torven-384.png",
+            "width": 384,
+            "height": 384,
+            "bytes": 274089
+          },
+          {
+            "file": "fighters/torven-768.png",
+            "width": 768,
+            "height": 768,
+            "bytes": 1017051
+          }
+        ]
+      },
+      "vael": {
+        "source": "vael.png",
+        "sourceSha256": "351919bd27dc14c8eebd3d44ba8c3fb9ec93eeb5bf50e817b13b9528e33d7353",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.32
+        ],
+        "exports": [
+          {
+            "file": "fighters/vael-192.png",
+            "width": 192,
+            "height": 192,
+            "bytes": 73149
+          },
+          {
+            "file": "fighters/vael-384.png",
+            "width": 384,
+            "height": 384,
+            "bytes": 261398
+          },
+          {
+            "file": "fighters/vael-768.png",
+            "width": 768,
+            "height": 768,
+            "bytes": 954755
+          }
+        ]
+      }
+    }
+  }
+}

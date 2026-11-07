@@ -13,7 +13,7 @@ Local validation on October 26, 2026:
 - Browser scenarios: keyboard movement and damage, frozen timer while paused, complete local match,
   next round, rematch/reset, CPU round completion, simultaneous touch movement+attack, individual
   finger release, touch cancellation, portrait input gate, landscape explicit resume, control bounds
-  at-least-48px touch targets at 844×390 and 667×375, character/weapon selection reaching the simulation, Byakugan activation and Replacement cooldown display. No browser page errors were observed.
+  at-least-48px touch targets at 844×390 and 667×375, character/weapon selection reaching the simulation, Fracture Lens activation and Replacement cooldown display. No browser page errors were observed.
 - Screenshots of desktop and landscape mobile were visually inspected locally.
 - New control tests cover proportional analog movement/dead zone, axis reset, keyboard/axis arbitration,
   default layout bounds/overlap detection, key conflicts/reserved keys, settings round trips and corrupt-data fallback.
@@ -22,12 +22,12 @@ Local validation on October 26, 2026:
 - New combo/form checks cover hit-confirm chains, combo scaling, guard/whiff/Replacement breaks, actual
   HP-loss charging, awakening eligibility, one-use/expiry/reset rules, stat modifiers, signature overrides,
   deterministic transformed replays, and migration of existing control preferences.
-- Browser combat checks include a visible three-hit combo and charging/activating/expiring Kurama through
-  real combat inputs, plus name search and Naruto/Boruto filtering.
+- Browser combat checks include a visible three-hit combo and charging/activating/expiring Sunforge through
+  real combat inputs, plus name search and Solan/Lumen filtering.
 - Browser control checks cover stick + attack multi-touch, release/cancel, drag/resize, rebind/duplicate rejection,
   reload persistence, old/new key behaviour, Cancel rollback, overlap-save rejection and small-screen bounds.
 - New mechanics tests cover double jumping, both directional dashes, Replacement costs/cooldowns/immunity,
-  guard penetration, poison/burn ticks and expiry, weakening, Byakugan, unavailable bloodlines, loadout
+  guard penetration, poison/burn ticks and expiry, weakening, Fracture Lens, unavailable bloodlines, loadout
   preservation/validation, cooldown rejection and effect reapplication without stacking.
 - Tests also cover action timing, one-hit swings, block chip, double KO, insufficient chakra, fireball/jump
   interactions, interruption, collision, round lifecycle, deterministic replay equivalence and computer play.
@@ -41,7 +41,7 @@ online-play claims are made. Browser smoke automation does not replace interacti
 
 ## v0.7.0 — Silent and Winta
 
-Engine checks cover individual sword chains, guard absorption/reflect and counter expiry, full-pierce bypass, pull/metal vulnerability without accidental DOT, guard/Replacement avoidance, lightning-only amplification, actual-damage lifesteal/HP cap/overkill, awakening expiry/reset/faster chains, and deterministic replay. Browser smoke covers all 18 roster entries, Fabled Rivals Originals filter, both concept images, selected Tachi/Kaiken loadouts, real guard reflect/counter HUD and the existing desktop/mobile suite. Mobile screenshots include the original portraits at landscape size. Prototype art and playtest balance remain limitations.
+Engine checks cover individual sword chains, guard absorption/reflect and counter expiry, full-pierce bypass, pull/metal vulnerability without accidental DOT, guard/Replacement avoidance, lightning-only amplification, actual-damage lifesteal/HP cap/overkill, awakening expiry/reset/faster chains, and deterministic replay. Browser smoke covers all 18 roster entries, Fabled Rivals Originals filter, both concept images, selected Frostmere Saber/Oathknife loadouts, real guard reflect/counter HUD and the existing desktop/mobile suite. Mobile screenshots include the original portraits at landscape size. Prototype art and playtest balance remain limitations.
 
 ## v0.8.0 — movement, tactics and mobile controls
 
@@ -98,15 +98,15 @@ Hosted CI also exposed an unrelated fullscreen-test timing assumption: a native 
 
 ## v0.13.0 — inventory and control visibility
 
-Syntax checks, release-note validation, **157 unit/integration tests** and the static build pass. New inventory coverage includes loadout cardinality/ID validation and copying, authoritative input whitelists, committed/edge-triggered swapping, finite charges, shared cooldown and stamina, hitstun/attack rejection, timed bomb hit/avoid/guard behavior, smoke interception and bypasses, poison coating and guard waste, Raijin mark/warp costs/expiry and non-invulnerability, round refill, deterministic replays, preference migration and hidden-control collision exclusion.
+Syntax checks, release-note validation, **157 unit/integration tests** and the static build pass. New inventory coverage includes loadout cardinality/ID validation and copying, authoritative input whitelists, committed/edge-triggered swapping, finite charges, shared cooldown and stamina, hitstun/attack rejection, timed bomb hit/avoid/guard behavior, smoke interception and bypasses, poison coating and guard waste, Waypoint mark/warp costs/expiry and non-invulnerability, round refill, deterministic replays, preference migration and hidden-control collision exclusion.
 
-Browser checks cover the existing desktop/mobile/training paths, online two-device weapon swaps and inventory use, and a dedicated inventory suite. The latter selects two weapons/four slots, uses poison and a marked warp, creates smoke, hides/restores controls, checks Save/Cancel/reload behavior and hidden keyboard access, tests landscape touch actions and panel bounds, and opens the generated versioned release notes. Native option disabling is checked through its DOM property so the browser's actual duplicate-Raijin restriction is verified.
+Browser checks cover the existing desktop/mobile/training paths, online two-device weapon swaps and inventory use, and a dedicated inventory suite. The latter selects two weapons/four slots, uses poison and a marked warp, creates smoke, hides/restores controls, checks Save/Cancel/reload behavior and hidden keyboard access, tests landscape touch actions and panel bounds, and opens the generated versioned release notes. Native option disabling is checked through its DOM property so the browser's actual duplicate-Waypoint restriction is verified.
 
 Leaderboard, spectating and stored replay playback remain deferred in issue #7. Engine replay-determinism tests do not mean a user-facing replay feature exists. Physical phones, internet latency compensation and production capacity remain outside emulated/local browser proof.
 
 ## v0.14 Dora coverage
 
-`tests/dora.test.js` covers catalog/profile acceptance, three-hit fan chains, exact weaken damage, guarded/replaced setups, committed pull/finisher counterplay, Triune Flow counters, Limit Release expiry/reset and deterministic Dora CPU mirrors. `scripts/dora-smoke.mjs` covers desktop/mobile selection, portrait decode, fan/katana defaults, real-input jutsus, weapon swapping and awakening. The online browser suite now pairs desktop Silent with mobile Dora and verifies her water weaken effect across independent sessions. All five browser suites are included in `npm run test:browser` and CI.
+`tests/dora.test.js` covers catalog/profile acceptance, three-hit fan chains, exact weaken damage, guarded/replaced setups, committed pull/finisher counterplay, Triune Flow counters, Limit Release expiry/reset and deterministic Dora CPU mirrors. `scripts/dora-smoke.mjs` covers desktop/mobile selection, portrait decode, fan/Skyforged Blade defaults, real-input jutsus, weapon swapping and awakening. The online browser suite now pairs desktop Silent with mobile Dora and verifies her water weaken effect across independent sessions. All five browser suites are included in `npm run test:browser` and CI.
 
 ## v0.15 strategy and online arena validation
 
@@ -122,7 +122,7 @@ The v0.17 suite adds held crouch-guard recovery, repeated chip hits, release exp
 
 ## v0.18 responsiveness, lane and sound
 
-Regression tests cover zero-delay local presentation, snapshot depth interpolation, travel-linked planted feet, authoritative lane collision, CPU lane tracking, queued movement coalescing without losing attack pulses, replay reconstruction, new Akatsuki loadouts and settings migration. The experience browser suite samples rendered fighter pixels to detect movement lag, verifies visible equipped slots/default chakra charging, tests mobile lane movement plus separate jumping, and renders combat sounds through OfflineAudioContext to compare PCM energy, distinct layers and headroom. User-gesture sound unlock and persisted mute/music/SFX sliders are tested too.
+Regression tests cover zero-delay local presentation, snapshot depth interpolation, travel-linked planted feet, authoritative lane collision, CPU lane tracking, queued movement coalescing without losing attack pulses, replay reconstruction, new Concord Challengers loadouts and settings migration. The experience browser suite samples rendered fighter pixels to detect movement lag, verifies visible equipped slots/default chakra charging, tests mobile lane movement plus separate jumping, and renders combat sounds through OfflineAudioContext to compare PCM energy, distinct layers and headroom. User-gesture sound unlock and persisted mute/music/SFX sliders are tested too.
 
 Startup/history browser checks simulate repeated 503 health responses, automatic warmup retries and readiness, offline play with an unavailable backend, and no matchmaking writes during startup. Archive navigation covers latest and historical permanent notes. The suite now contains ten desktop/mobile browser programs alongside 212 engine/server tests.
 

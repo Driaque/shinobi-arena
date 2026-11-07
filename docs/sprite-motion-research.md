@@ -19,7 +19,7 @@ Fixed camera scale derived only from viewport size, with 540 world units of aeri
 
 The approved art pass takes the frame-animation alternative: eight coherent full-body run frames per carry variant for all ten originals. The production atlases use transparent backgrounds, a common root and a fixed scale within each character, with per-character standing-height metadata to match the prior run silhouette size. Canvas and PixiJS sample the same distance-driven frame index. The scene disables its procedural bob/root offsets during authored running so the sheet's motion is not applied twice. Only selected characters load. Load failures retain existing poses.
 
-Equipped art is specific to a painted carry set, so presentation checks the actual active weapon and remaining poison/smoke items before selecting it. Silent additionally needs both Tachi and Kaiken. Unsupported sets use the empty-handed sprint. Equipment rendering for arbitrary combinations remains future work.
+Equipped art is specific to a painted carry set, so presentation checks the actual active weapon and remaining poison/smoke items before selecting it. Silent additionally needs both Frostmere Saber and Oathknife. Unsupported sets use the empty-handed sprint. Equipment rendering for arbitrary combinations remains future work.
 
 ## Next art investment, not implemented
 

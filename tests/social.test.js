@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createArena} from '../apps/server/arena.js';
 import {PROTOCOL_VERSION,RULES_VERSION} from '../packages/network/protocol.js';
-function setup(){let at=0;const a=createArena({countdownTicks:180,now:()=>at++});const make=name=>{const messages=[];const c=a.connect(m=>messages.push(structuredClone(m)));a.message(c,{type:'lounge',protocol:PROTOCOL_VERSION,rules:RULES_VERSION,profile:{name,character:'silent',weapon:'tachi'}});return {c,messages,last:type=>messages.findLast(m=>m.type===type)};};return {a,make};}
+function setup(){let at=0;const a=createArena({countdownTicks:180,now:()=>at++});const make=name=>{const messages=[];const c=a.connect(m=>messages.push(structuredClone(m)));a.message(c,{type:'lounge',protocol:PROTOCOL_VERSION,rules:RULES_VERSION,profile:{name,character:'silent',weapon:'frostmereSaber'}});return {c,messages,last:type=>messages.findLast(m=>m.type===type)};};return {a,make};}
 test('presence exposes guests and availability without credentials; duels require target acceptance and stay casual',()=>{
  const {a,make}=setup(),p=make('Silent'),q=make('Winta'),r=make('Other');
  assert.equal(p.last('presence').players.length,3);assert.equal(p.last('presence').players[0].kind,'guest');assert.equal(a.stats().queued,0);

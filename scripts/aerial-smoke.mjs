@@ -11,7 +11,7 @@ try{
  for(const mobile of [false,true]){
   const context=await browser.newContext({viewport:mobile?{width:844,height:390}:{width:1440,height:960},isMobile:mobile,hasTouch:mobile}),page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
   await page.clock.install({time:new Date('2030-01-01T00:00:00Z')});await page.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));await page.goto('http://127.0.0.1:4192');await legacyRoster(page);await page.click('#edit-loadout0');
-  for(const [i,id]of ['risingGale','skyCleave','divingFlame','aerialSenbon'].entries()){await page.locator(`[data-loadout-slot="${i}"]`).click();await page.locator(`[data-pick-id=${id}]`).click();}
+  for(const [i,id]of ['risingGale','skyCleave','divingFlame','skyfallNeedles'].entries()){await page.locator(`[data-loadout-slot="${i}"]`).click();await page.locator(`[data-pick-id=${id}]`).click();}
   await page.fill('#loadout-search','aerial only');assert.equal(await page.locator('[data-pick-kind=jutsu]').count(),3);assert.match(await page.locator('#loadout-grid').innerText(),/AIR COMBO/);await page.screenshot({path:`test-results/aerial-library-${mobile?'mobile':'desktop'}.png`});await page.click('#loadout-save');await selectGame(page,'#mode','training');await clickGame(page,'#play');await page.clock.runFor(32);await clickGame(page,'#training-settings');await page.uncheck('#training-ranges');await page.click('#training-start');await page.clock.runFor(32);
   if(!mobile){
    const press=async(key,after=0)=>{await page.keyboard.down(key);await page.clock.runFor(16);await page.keyboard.up(key);if(after)await page.clock.runFor(after);};

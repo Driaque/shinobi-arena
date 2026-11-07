@@ -7,7 +7,7 @@ import {createArena} from '../apps/server/arena.js';
 import {playerProfile,cleanInput,PROTOCOL_VERSION,RULES_VERSION} from '../packages/network/protocol.js';
 import {createOnlineServer} from '../apps/server/index.js';
 import {WebSocket} from 'ws';
-const profile=(name='Silent')=>({name,character:'silent',weapon:'tachi'});
+const profile=(name='Silent')=>({name,character:'silent',weapon:'frostmereSaber'});
 const join=(a,c,name)=>a.message(c,{type:'join',protocol:PROTOCOL_VERSION,rules:RULES_VERSION,profile:profile(name)});
 function fixture(options={}){const a=createArena({countdownTicks:1,...options});const make=()=>{const messages=[];const c=a.connect(msg=>messages.push(structuredClone(msg)));return {c,messages,last:type=>messages.findLast(m=>m.type===type)};};return {a,make};}
 function paired(){const f=fixture(),p=f.make(),q=f.make();join(f.a,p.c,'Silent');join(f.a,q.c,'Winta');f.a.advance();return {...f,p,q};}

@@ -8,9 +8,9 @@ export function runningFrameFor(f,{reduced=false}={}){
  const p=f.previous??{},moving=Math.abs(f.vx??0)>.2||Math.abs(p.moveX??0)>.1||Math.abs(p.moveZ??0)>.1||Boolean(p.left)!==Boolean(p.right)||Boolean(p.depthUp)!==Boolean(p.depthDown);
  if(!moving)return null;
  const hasItem=id=>(f.items??[]).some(item=>item?.id===id&&item.count>0);
- const weapon=f.character==='silent'?'tachi':ORIGINAL_FIGHTERS[f.character].defaultWeapon;
- const armed=f.character==='silent'?(f.weapons??[]).includes('tachi')&&(f.weapons??[]).includes('kaiken')&&['tachi','kaiken'].includes(f.weapon):f.weapon===weapon;
- const equipped=armed&&hasItem('poison')&&hasItem('smokeBomb');
+ const weapon=f.character==='silent'?'frostmereSaber':ORIGINAL_FIGHTERS[f.character].defaultWeapon;
+ const armed=f.character==='silent'?(f.weapons??[]).includes('frostmereSaber')&&(f.weapons??[]).includes('oathknife')&&['frostmereSaber','oathknife'].includes(f.weapon):f.weapon===weapon;
+ const equipped=armed&&hasItem('poison')&&hasItem('veilCanister');
  const step=reduced?0:Math.floor(Math.max(0,f.travel??0)/18.75)%8;
  return {frameIndex:(equipped?8:0)+step,variant:equipped?'equipped':'empty'};
 }

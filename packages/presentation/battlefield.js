@@ -18,11 +18,11 @@ export function projectileShapes(scene){
  for(const p of scene.projectiles??[]){
   const x=p.x,y=650+(p.depth??0)*.65-p.y,color=colorOf(p),direction=p.direction??1;
   if(p.move==='itemBomb'){shapes.push({kind:'ellipse',x,y,rx:12,ry:12,color:0x332d2b,alpha:1},{kind:'ellipse',x,y,rx:7,ry:7,color:0xf5b65f,alpha:1},{kind:'line',x:x+5,y:y-9,x2:x+12,y2:y-18,color:0xffdfa1,width:2,alpha:1});continue;}
-  if(['itemKunai','itemRaijin'].includes(p.move)){
+  if(['itemSpike','itemWaypoint'].includes(p.move)){
    shapes.push({kind:'poly',points:[x+18*direction,y,x-4*direction,y-5,x-4*direction,y+5],color:0xdcecf2,alpha:1},{kind:'line',x:x-4*direction,y,x2:x-20*direction,y2:y,color:0x7c8d9e,width:4,alpha:1});
-   if(p.move==='itemRaijin')shapes.push({kind:'ellipse',x,y,rx:22,ry:13,color:0xffcf78,alpha:.25});continue;
+   if(p.move==='itemWaypoint')shapes.push({kind:'ellipse',x,y,rx:22,ry:13,color:0xffcf78,alpha:.25});continue;
   }
-  if(['shuriken','itemShuriken'].includes(p.move)){
+  if(['orbitDisc','itemOrbit'].includes(p.move)){
    const points=[];for(let i=0;i<8;i++){const a=i*Math.PI/4+(scene.reduced?0:scene.tick*.3),r=i%2?5:19;points.push(x+Math.cos(a)*r,y+Math.sin(a)*r);}shapes.push({kind:'poly',points,color:0xc4dce7,alpha:1});continue;
   }
   shapes.push({kind:'ellipse',x,y,rx:19,ry:14,color,alpha:.9},{kind:'ellipse',x:x+3*direction,y,rx:8,ry:7,color:0xf1fff7,alpha:.9});

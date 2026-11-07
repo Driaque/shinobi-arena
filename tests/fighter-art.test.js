@@ -9,7 +9,7 @@ const image={width:1536,height:1536};
 
 test('detailed sheets load only requested originals, once per identity including mirrors',async()=>{
   const calls=[],store=createFighterAtlasStore(async id=>{calls.push(id);return image;});
-  store.request(['silent','silent','winta','naruto']);store.request(['silent']);
+  store.request(['silent','silent','winta','solan']);store.request(['silent']);
   assert.equal(store.get('silent'),null);await settle();
   assert.deepEqual(calls,['silent','winta']);assert.deepEqual(store.readyIds(),['silent','winta']);
   assert.equal(store.get('silent'),image);assert.deepEqual(store.failedIds(),[]);
@@ -34,6 +34,6 @@ test('ten native identities retain body scale, player slots and simulation state
     assert.equal(original.fighters.length,c.id==='aren'?2:0,'unloaded sheets retain compatibility bodies');
     assert.equal(state.tick,before.tick);assert.deepEqual(state.fighters.map(f=>f.hp),before.fighters.map(f=>f.hp));
   }
-  const state=createMatch([{character:'aren',weapon:'katana'},{character:'winta',weapon:'tachi'}]);state.fighters[1].character='dora';
+  const state=createMatch([{character:'aren',weapon:'skyforgedBlade'},{character:'winta',weapon:'frostmereSaber'}]);state.fighters[1].character='dora';
   assert.equal(practiceSceneFor(state,{}, {selected:true,atlasFighters:['aren','dora']}).fighters[1].atlasId,'dora');
 });

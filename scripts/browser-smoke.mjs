@@ -35,19 +35,19 @@ try {
  assert.match(await page.locator('#kit0').innerText(),/Cold Metal Ascendant.*proposed/);
  await page.screenshot({path:'test-results/originals-roster.png'});
  await page.selectOption('#roster-era','all');
- await page.locator('#roster-search').fill('Boruto');assert.equal(await page.locator('.character-card:not([hidden])').count(),2);
- await page.locator('#roster-search').fill('');await page.selectOption('#roster-era','Boruto');assert.equal(await page.locator('.character-card:not([hidden])').count(),8);
- await page.locator('#character0 input[value="boruto"]').check();await page.locator('#character1 input[value="kawaki"]').check();
- assert.equal(await page.locator('#selected0').innerText(),'Boruto');assert.equal(await page.locator('#selected1').innerText(),'Kawaki');
- await page.selectOption('#roster-era','all');await page.locator('#character1 input[value="sasuke"]').check();
- await page.locator('#character0 input[value="hinata"]').check();
- assert.equal(await page.locator('#selected0').innerText(),'Hinata');
- assert.equal(await page.locator('#character1 input:checked').inputValue(),'sasuke','P1 selection does not change opponent');
- await page.locator('#character0 input[value="naruto"]').check();
+ await page.locator('#roster-search').fill('Lumen');assert.equal(await page.locator('.character-card:not([hidden])').count(),2);
+ await page.locator('#roster-search').fill('');await page.selectOption('#roster-era','Lumen');assert.equal(await page.locator('.character-card:not([hidden])').count(),8);
+ await page.locator('#character0 input[value="lumen"]').check();await page.locator('#character1 input[value="vorrik"]').check();
+ assert.equal(await page.locator('#selected0').innerText(),'Lumen');assert.equal(await page.locator('#selected1').innerText(),'Vorrik');
+ await page.selectOption('#roster-era','all');await page.locator('#character1 input[value="vesper"]').check();
+ await page.locator('#character0 input[value="ilyra"]').check();
+ assert.equal(await page.locator('#selected0').innerText(),'Ilyra');
+ assert.equal(await page.locator('#character1 input:checked').inputValue(),'vesper','P1 selection does not change opponent');
+ await page.locator('#character0 input[value="solan"]').check();
  await page.locator('#character0 input:checked').focus();await page.keyboard.press('ArrowRight');
- assert.equal(await page.locator('#selected0').innerText(),'Sasuke','native keyboard navigation selects a character');
- assert.equal(await page.locator('#character1 input:checked').inputValue(),'sasuke');
- await page.locator('#character0 input[value="naruto"]').check();
+ assert.equal(await page.locator('#selected0').innerText(),'Vesper','native keyboard navigation selects a character');
+ assert.equal(await page.locator('#character1 input:checked').inputValue(),'vesper');
+ await page.locator('#character0 input[value="solan"]').check();
  await selectGame(page,'#mode','local');
  assert.equal(await page.locator('#opponent-label').innerText(),'PLAYER TWO');
  assert.equal(await page.locator('#difficulty').isDisabled(),true,'local P2 ignores CPU difficulty');
@@ -75,7 +75,7 @@ try {
      await page.keyboard.down('KeyJ');await page.clock.runFor(40);await page.keyboard.up('KeyJ');await page.clock.runFor(1100);
    }
    assert.equal(await page.locator('#overlay').isVisible(),true,'round ends');
-   assert.match(await page.locator('#overlay-title').innerText(),/Naruto wins/);
+   assert.match(await page.locator('#overlay-title').innerText(),/Solan wins/);
    const coach=page.locator('#match-coach');assert.ok((await coach.boundingBox()).height<=101,'post-fight tip stays compact');assert.equal(await coach.locator('details').getAttribute('open'),null);await coach.locator('summary').click();assert.match(await coach.innerText(),/Direct damage dealt/);await coach.locator('summary').click();
    assert.equal(await page.locator('#play').innerText(),round===0?'Next round':'Continue to battle stage');
    await clickGame(page,'#play');
@@ -84,22 +84,22 @@ try {
  assert.equal(await page.locator('#hp0').innerText(),'1000');assert.equal(await page.locator('#hp1').innerText(),'1000');
  await page.screenshot({path:'test-results/desktop.png'});
  // Pre-battle choices are used by the simulation and action HUD.
- await selectGame(page,'#mode','cpu');await page.locator('#character0 input[value="hinata"]').check();await equip(page,'#weapon0','katana');
- await page.locator('#character1 input[value="orochimaru"]').check();await equip(page,'#weapon1','shuriken');
+ await selectGame(page,'#mode','cpu');await page.locator('#character0 input[value="ilyra"]').check();await equip(page,'#weapon0','skyforgedBlade');
+ await page.locator('#character1 input[value="sereth"]').check();await equip(page,'#weapon1','orbitDisc');
  await page.screenshot({path:'test-results/loadouts.png'});await clickGame(page,'#play');await page.clock.runFor(32);
- assert.equal(await page.locator('#name0').innerText(),'HINATA');assert.equal(await page.locator('#name1').innerText(),'OROCHIMARU');
- assert.match(await page.locator('#weapon-label').innerText(),/KATANA/);assert.equal(await page.locator('#bl-name').innerText(),'BYAKUGAN');
+ assert.equal(await page.locator('#name0').innerText(),'ILYRA');assert.equal(await page.locator('#name1').innerText(),'SERETH');
+ assert.match(await page.locator('#weapon-label').innerText(),/SKYFORGED BLADE/);assert.equal(await page.locator('#bl-name').innerText(),'FRACTURE LENS');
  await page.keyboard.down('KeyO');await page.clock.runFor(180);await page.keyboard.up('KeyO');
- assert.match(await page.locator('#effects0').innerText(),/BYAKUGAN/);
+ assert.match(await page.locator('#effects0').innerText(),/FRACTURE LENS/);
  await page.keyboard.down('KeyR');await page.clock.runFor(32);await page.keyboard.up('KeyR');
  assert.match(await page.locator('#replacement-cd').innerText(),/s/);
- await selectGame(page,'#mode','local');await page.locator('#character0 input[value="naruto"]').check();await equip(page,'#weapon0','kunai');
- await page.locator('#character1 input[value="sasuke"]').check();await equip(page,'#weapon1','kunai');
+ await selectGame(page,'#mode','local');await page.locator('#character0 input[value="solan"]').check();await equip(page,'#weapon0','conduitSpike');
+ await page.locator('#character1 input[value="vesper"]').check();await equip(page,'#weapon1','conduitSpike');
  // CPU actually wins a round against an idle player, using the full browser loop.
  await selectGame(page,'#mode','cpu');await selectGame(page,'#difficulty','xtreme');await clickGame(page,'#play');await page.clock.runFor(25000);
  assert.equal(await page.locator('#overlay').isVisible(),true);
- assert.match(await page.locator('#overlay-title').innerText(),/Sasuke wins/);
- // Actual damage from seven basic hits charges Naruto's form; no debug state injection.
+ assert.match(await page.locator('#overlay-title').innerText(),/Vesper wins/);
+ // Actual damage from seven basic hits charges Solan's form; no debug state injection.
  await selectGame(page,'#mode','local');await clickGame(page,'#play');
  await page.keyboard.down('ArrowLeft');await page.clock.runFor(1700);await page.keyboard.up('ArrowLeft');
  for(let n=0;n<7;n++){
@@ -108,16 +108,16 @@ try {
  }
  assert.match(await page.locator('#awakening-label0').innerText(),/READY/);
  await page.keyboard.down('KeyT');await page.clock.runFor(40);await page.keyboard.up('KeyT');
- assert.match(await page.locator('#awakening-label0').innerText(),/KURAMA CHAKRA MODE/);
- assert.match(await page.locator('#s1-name').innerText(),/KURAMA/);assert.match(await page.locator('#s2-name').innerText(),/CHAKRA CLAW/);
- await page.screenshot({path:'test-results/kurama.png'});await page.clock.runFor(10100);
- assert.equal(await page.locator('#awakening-label0').innerText(),'AWAKENING USED');assert.equal(await page.locator('#s1-name').innerText(),'RASENGAN');
+ assert.match(await page.locator('#awakening-label0').innerText(),/SUNFORGE ASCENDANT/);
+ assert.match(await page.locator('#s1-name').innerText(),/SUNFORGE/);assert.match(await page.locator('#s2-name').innerText(),/SUNFORGE REND/);
+ await page.screenshot({path:'test-results/sunforge.png'});await page.clock.runFor(10100);
+ assert.equal(await page.locator('#awakening-label0').innerText(),'AWAKENING USED');assert.equal(await page.locator('#s1-name').innerText(),'SPIRAL DRIVE');
  // Original fighters use their selected weapons, signatures and bloodlines in live gameplay.
  await selectGame(page,'#mode','cpu');await selectGame(page,'#mode','local');
  await page.selectOption('#roster-era','Original');await page.locator('#character0 input[value="silent"]').check();await page.locator('#character1 input[value="winta"]').check();
- await equip(page,'#weapon0','tachi');await equip(page,'#weapon1','kaiken');await clickGame(page,'#play');await page.clock.runFor(32);
+ await equip(page,'#weapon0','frostmereSaber');await equip(page,'#weapon1','oathknife');await clickGame(page,'#play');await page.clock.runFor(32);
  assert.equal(await page.locator('#name0').innerText(),'SILENT');assert.equal(await page.locator('#name1').innerText(),'WINTA');
- assert.equal(await page.locator('#bl-name').innerText(),'SKYFORGED AEGIS');assert.match(await page.locator('#weapon-label').innerText(),/TACHI/);
+ assert.equal(await page.locator('#bl-name').innerText(),'SKYFORGED AEGIS');assert.match(await page.locator('#weapon-label').innerText(),/FROSTMERE SABER/);
  await page.keyboard.down('KeyO');await page.clock.runFor(450);await page.keyboard.up('KeyO');assert.match(await page.locator('#effects0').innerText(),/SKYFORGED AEGIS GUARD/);
  await page.keyboard.down('ArrowLeft');await page.clock.runFor(1550);await page.keyboard.up('ArrowLeft');
  await page.keyboard.down('KeyK');await page.keyboard.down('KeyN');await page.clock.runFor(140);await page.keyboard.up('KeyN');
@@ -135,9 +135,9 @@ try {
    const r=await card.boundingBox();assert.ok(r.x>=0&&r.x+r.width<=667&&r.height>=48,'roster cards fit a small landscape phone');
  }
  await mobile.setViewportSize({width:844,height:390});await mobile.clock.runFor(32);
- await mobile.locator('#character0 input[value="sasuke"]').check();await mobile.locator('#character1 input[value="sasuke"]').check();
- assert.equal(await mobile.locator('#selected0').innerText(),'Sasuke');assert.equal(await mobile.locator('#selected1').innerText(),'Sasuke');
- await mobile.locator('#character0 input[value="naruto"]').check();await clickGame(mobile,'#play');
+ await mobile.locator('#character0 input[value="vesper"]').check();await mobile.locator('#character1 input[value="vesper"]').check();
+ assert.equal(await mobile.locator('#selected0').innerText(),'Vesper');assert.equal(await mobile.locator('#selected1').innerText(),'Vesper');
+ await mobile.locator('#character0 input[value="solan"]').check();await clickGame(mobile,'#play');
  assert.equal(await mobile.locator('#difficulty').inputValue(),'easy');
  await mobile.clock.runFor(500);assert.equal(await mobile.locator('#hp0').innerText(),'1000','Easy opening leaves room to learn');
  await selectGame(mobile,'#difficulty','medium');await mobile.clock.runFor(32);assert.equal(await mobile.locator('#play').innerText(),'Resume match');

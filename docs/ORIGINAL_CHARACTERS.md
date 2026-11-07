@@ -4,11 +4,11 @@ Silent and Winta are original Fabled Rivals characters and blood brothers from F
 
 ## Silent — Cold Metal
 
-Frostmere; Skyforged Aegis bloodline. Light skin, long silver-grey hair, ice-blue eyes, dark face mask, Frostmere crest headband and navy/silver/black northern shinobi armor. Tachi-style sword and Kaiken dagger. Elements: Metal, Water, Earth, Fire, Wind and Lightning.
+Frostmere; Skyforged Aegis bloodline. Light skin, long silver-grey hair, ice-blue eyes, dark face mask, Frostmere crest headband and navy/silver/black northern shinobi armor. Frostmere Saber-style sword and Oathknife dagger. Elements: Metal, Water, Earth, Fire, Wind and Lightning.
 
 Established ability pool: Middle Guard Stance, Harmonious Slash, Equilibrium Guard Strike, Vacuum Fan, Phantom Step, Dragon King's Impact, Blazing Fang Strike, Chakra Resonance, Echoing Rift, Stone of the Withering, Rimeflash, Abyssal Surge.
 
-Archetype: precision counterattacker. Three metal sword basics replace the generic unarmed chain. Tachi and Kaiken are selectable before battle; selecting another equipped weapon does not change the built-in sword basics.
+Archetype: precision counterattacker. Three metal sword basics replace the generic unarmed chain. Frostmere Saber and Oathknife are selectable before battle; selecting another equipped weapon does not change the built-in sword basics.
 
 | Input (default P1) | Technique | First playable rules |
 | --- | --- | --- |
@@ -48,4 +48,4 @@ Future kit expansion can add stance switching, explicit stun techniques and furt
 
 ## Dora — AquaPrincess (v0.14.0)
 
-Dora joins Fabled Rivals Originals as a selectable wind/water/fire counterattacker. Silent’s wife; bladed fans and katana. Water weakens, wind pulls into a defendable fire finisher, Triune Flow rewards guarded hits, and damage unlocks Limit Release. Her generated regal portrait follows the user’s appearance corrections. See [full Dora kit and adaptation notes](DORA.md).
+Dora joins Fabled Rivals Originals as a selectable wind/water/fire counterattacker. Silent’s wife; bladed Tideglass Fans and Skyforged Blade. Water weakens, wind pulls into a defendable fire finisher, Triune Flow rewards guarded hits, and damage unlocks Limit Release. Her generated regal portrait follows the user’s appearance corrections. See [full Dora kit and adaptation notes](DORA.md).

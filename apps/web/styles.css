@@ -190,7 +190,7 @@ label:has(select){cursor:pointer}label:has(select)>select{flex:1;min-width:0}
  .layout-editor{max-height:calc(100% - 300px);overflow:auto}
 }
 
-.replay-stage{position:relative;isolation:isolate;overflow:hidden}.replay-stage #replay-canvas{position:relative;z-index:0}.anime-opt-in{display:flex;align-items:center;gap:6px;font-size:11px;color:#d1bb91}.anime-opt-in input{width:18px;height:18px}.fighter-story{font-size:10px;line-height:1.5}.fighter-story p{margin:6px 0}.roster-toolbar{flex-wrap:wrap}#graphics-dialog select{width:100%;min-height:44px}#graphics-dialog label{display:block}#graphics-dialog button{margin:4px}
+.replay-stage{position:relative;isolation:isolate;overflow:hidden}.replay-stage #replay-canvas{position:relative;z-index:0}.unreleased-opt-in{display:flex;align-items:center;gap:6px;font-size:11px;color:#d1bb91}.unreleased-opt-in input{width:18px;height:18px}.fighter-story{font-size:10px;line-height:1.5}.fighter-story p{margin:6px 0}.roster-toolbar{flex-wrap:wrap}#graphics-dialog select{width:100%;min-height:44px}#graphics-dialog label{display:block}#graphics-dialog button{margin:4px}
 
 @media(max-width:900px){.topbar .tools{flex-wrap:wrap;min-width:0;max-width:100%}}
 
@@ -239,7 +239,7 @@ label:has(select){cursor:pointer}label:has(select)>select{flex:1;min-width:0}
 .dialog>.stage-selection{margin:14px 0;padding:0;border:0;background:none}.dialog .stage-grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}.dialog .stage-card{min-width:0}.dialog .stage-card svg{width:100%;height:auto}#setup-back{margin:12px;min-height:44px}
 @media(max-width:600px){.topbar{align-items:flex-start;flex-wrap:wrap}.topbar .tools{width:100%;justify-content:flex-start}.nav-panel{left:0;right:auto}#account-status{max-width:180px}}
 
-.nav-panel{overflow-y:auto;overscroll-behavior:contain;box-sizing:border-box}.nav-panel>*{flex-shrink:0}.brand-wordmark{display:block;width:190px;height:64px;object-fit:contain}.startup-seal img{width:75%;height:75%;object-fit:contain}.brand{letter-spacing:0}.topbar{position:relative;z-index:30}.dialog{border-color:#4bb5c066;background:linear-gradient(135deg,#102a38f5,#131c2af5)}button:focus-visible,summary:focus-visible{outline-color:#41d5e8}.adventure-brand-banner{box-shadow:0 8px 45px #00c4d111}.adventures-page .brand{margin-right:auto}@media(max-height:520px){.brand-wordmark{width:135px;height:38px}.topbar .tools{gap:4px}.nav-panel{box-shadow:0 10px 30px #000b}}
+.nav-panel{overflow-y:auto;overscroll-behavior:contain;box-sizing:border-box}.nav-panel>*{flex-shrink:0}.brand-wordmark{display:block;width:190px;height:64px;object-fit:contain}.startup-fivefoldLock img{width:75%;height:75%;object-fit:contain}.brand{letter-spacing:0}.topbar{position:relative;z-index:30}.dialog{border-color:#4bb5c066;background:linear-gradient(135deg,#102a38f5,#131c2af5)}button:focus-visible,summary:focus-visible{outline-color:#41d5e8}.adventure-brand-banner{box-shadow:0 8px 45px #00c4d111}.adventures-page .brand{margin-right:auto}@media(max-height:520px){.brand-wordmark{width:135px;height:38px}.topbar .tools{gap:4px}.nav-panel{box-shadow:0 10px 30px #000b}}
 
 /* Controller play reclaims the touch dock, preserving the simulation and arena width. */
 #controller-status{font-size:10px;color:#b1e5d3;align-self:center;max-width:150px}

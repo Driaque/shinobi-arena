@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {fighterPose} from '../apps/web/motion.js';
 import {MOVES,CHARACTERS} from '../packages/engine/index.js';
 test('authored sword poses keep both arm segments connected across every phase and do not mutate combat',()=>{
- for(const character of ['aren','silent'])for(const moveId of (CHARACTERS[character].basicChain??['katana','skyCleave'])){
+ for(const character of ['aren','silent'])for(const moveId of (CHARACTERS[character].basicChain??['skyforgedBlade','skyCleave'])){
   const m=MOVES[moveId];
   for(let age=0;age<m.startup+m.active+m.recovery;age+=.25){
    const f={character,action:{move:moveId,age},facing:1,y:0,travel:0},before=structuredClone(f),p=fighterPose(f,100,m);
@@ -15,7 +15,7 @@ test('authored sword poses keep both arm segments connected across every phase a
  }
 });
 test('sword keys meet continuously at startup and recovery boundaries',()=>{
- for(const character of ['aren','silent'])for(const id of (CHARACTERS[character].basicChain??['katana','skyCleave'])){
+ for(const character of ['aren','silent'])for(const id of (CHARACTERS[character].basicChain??['skyforgedBlade','skyCleave'])){
   const m=MOVES[id];
   for(const age of [m.startup,m.startup+m.active]){
    const f={character,action:{move:id,age:age-.001},y:0},a=fighterPose(f,100,m);f.action.age=age;

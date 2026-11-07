@@ -47,7 +47,7 @@ export function createLabState(dummy = "idle") {
   const state = createTraining(
     [0, 1].map(() => ({
       character: "silent",
-      weapon: "tachi",
+      weapon: "frostmereSaber",
       jutsus: ["risingGale", "skyCleave", "divingFlame", "floodField"],
     })),
     { dummy, showRanges: false },

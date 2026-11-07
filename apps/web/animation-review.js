@@ -9,14 +9,14 @@ function draw(){
  c.strokeStyle='#82bcab44';c.beginPath();c.moveTo(0,floor);c.lineTo(rect.width,floor);c.stroke();
  const statuses=[];
  for(const [i,id]of ['aren','silent'].entries()){
-  const character=CHARACTERS[id],f={character:id,facing:1,y:0,vy:0,vx:0,travel:0,weapon:id==='silent'?'tachi':'katana',landedAt:-100};
+  const character=CHARACTERS[id],f={character:id,facing:1,y:0,vy:0,vx:0,travel:0,weapon:id==='silent'?'frostmereSaber':'skyforgedBlade',landedAt:-100};
   let move=null,phase='Idle';
   if(sequence==='run'){f.vx=5;f.travel=tick*5;phase='Run';}
   if(sequence==='guard'){f.blocking=true;phase='Guard';}
   if(sequence==='hit'){f.stun=1;phase='Stagger';}
   if(sequence==='jump'){const t=tick%90;f.y=t<60?Math.sin(t/60*Math.PI)*90:0;f.vy=t<30?6:-6;f.landedAt=Math.floor(tick/90)*90+60;phase=t<30?'Rise':t<60?'Fall':'Landing';}
   if(sequence==='combo'){
-   const chain=character.basicChain??['katana','skyCleave','katana'],lengths=chain.map(key=>{const m=MOVES[key];return m.startup+m.active+m.recovery+12;});let age=tick%lengths.reduce((a,b)=>a+b,0),index=0;
+   const chain=character.basicChain??['skyforgedBlade','skyCleave','skyforgedBlade'],lengths=chain.map(key=>{const m=MOVES[key];return m.startup+m.active+m.recovery+12;});let age=tick%lengths.reduce((a,b)=>a+b,0),index=0;
    while(age>=lengths[index])age-=lengths[index++];
    const key=chain[index],m=MOVES[key];if(age<m.startup+m.active+m.recovery){move=m;f.action={move:key,age};phase=age<m.startup?'Startup':age<m.startup+m.active?'Contact':'Recovery';}else phase='Ready';
   }

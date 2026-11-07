@@ -8,12 +8,12 @@ test("Practice appearance preserves selected kits, consumables and simulated com
   const state = createTraining([
     {
       character: "silent",
-      weapons: ["fans", "katana"],
-      weapon: "fans",
-      items: ["paperBomb", "poison", "smokeBomb", "raijinKunai"],
+      weapons: ["tideglassFans", "skyforgedBlade"],
+      weapon: "tideglassFans",
+      items: ["cinderCharge", "poison", "veilCanister", "waypointAnchor"],
       jutsus: ["risingGale", "skyCleave", "divingFlame", "floodField"],
     },
-    { character: "sasuke", weapon: "tachi" },
+    { character: "vesper", weapon: "frostmereSaber" },
   ]);
   for (let n = 0; n < 40; n++)
     stepTraining(state, n === 0 ? { special1: true } : {});
@@ -29,7 +29,7 @@ test("Practice appearance preserves selected kits, consumables and simulated com
   assert.deepEqual(state, before);
   assert.deepEqual(scene.viewport, viewport);
   assert.equal(state.loadouts[0].character, "silent");
-  assert.deepEqual(state.loadouts[0].weapons, ["fans", "katana"]);
+  assert.deepEqual(state.loadouts[0].weapons, ["tideglassFans", "skyforgedBlade"]);
   assert.equal(scene.fighters[0].scale * 302, 120 * state.fighters[0].scale);
   assert.equal(scene.projectiles.length, 0);
   assert.equal(scene.zones.length, 0);
@@ -57,7 +57,7 @@ test("Practice sprite camera aligns with the main engine floor, depth and shake 
 });
 
 test('native fields retain element, depth and expiry while smoke stays in the compatibility overlay',()=>{
- const state=createTraining([{character:'silent',weapon:'tachi'},{character:'sasuke',weapon:'katana'}]);
+ const state=createTraining([{character:'silent',weapon:'frostmereSaber'},{character:'vesper',weapon:'skyforgedBlade'}]);
  state.zones=[{kind:'elemental',move:'floodField',x:500,depth:18,radius:140,remaining:24},{kind:'smoke',x:600,remaining:30}];
  const before=structuredClone(state), scene=practiceSceneFor(state,{});
  assert.deepEqual(state,before);assert.equal(scene.zones.length,1);
@@ -65,7 +65,7 @@ test('native fields retain element, depth and expiry while smoke stays in the co
 });
 
 test('fluid fighters retain effects and authoritative state without loading painted bodies',()=>{
- const state=createTraining([{character:'silent',weapon:'tachi'},{character:'aren',weapon:'katana'}]);
+ const state=createTraining([{character:'silent',weapon:'frostmereSaber'},{character:'aren',weapon:'skyforgedBlade'}]);
  const before=structuredClone(state),scene=practiceSceneFor(state,{}, {selected:true,fluid:true});
  assert.equal(scene.fighters.length,0);
  assert.deepEqual(state,before);

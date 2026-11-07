@@ -37,7 +37,7 @@ test('a timed parry stops a non-piercing hit and opens a real punish window',()=
 });
 test('parry cannot be spammed during cooldown or stop full pierce',()=>{
  const s=close();s.fighters[1].parryCooldown=60;stepMatch(s,[{attack:true},{}]);advance(s,3);advance(s,2,[{}, {block:true}]);assert.equal(s.fighters[1].hp,994);
- const p=createMatch([{character:'sasuke',weapon:'kunai'},{character:'naruto',weapon:'kunai'}]);p.fighters[0].x=600;p.fighters[1].x=670;stepMatch(p,[{special1:true},{}]);advance(p,10);advance(p,2,[{}, {block:true}]);assert.equal(p.fighters[1].hp,850);assert.ok(!p.events.some(e=>e.type==='parry'));
+ const p=createMatch([{character:'vesper',weapon:'conduitSpike'},{character:'solan',weapon:'conduitSpike'}]);p.fighters[0].x=600;p.fighters[1].x=670;stepMatch(p,[{special1:true},{}]);advance(p,10);advance(p,2,[{}, {block:true}]);assert.equal(p.fighters[1].hp,850);assert.ok(!p.events.some(e=>e.type==='parry'));
 });
 test('sustained guard breaks under pressure and cannot form an infinite safe turtle',()=>{
  const s=close();s.fighters[1].guard=20;advance(s,6,[{attack:true},{block:true}]);assert.equal(s.fighters[1].hp,935);assert.ok(s.fighters[1].stun>=42);assert.equal(s.fighters[1].blocking,false);assert.ok(s.events.some(e=>e.type==='guardBreak'));

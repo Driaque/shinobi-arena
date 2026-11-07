@@ -1,3 +1,4 @@
+import {mountEquipmentIcon} from './packages/ui/painted-art.js';
 import {mountCombatControls} from './combat-controls-view.js';
 mountCombatControls(document.querySelector('.arena'));
 import {createNavigation} from './navigation.js';
@@ -37,7 +38,7 @@ let difficulty='easy';
 try{difficulty=difficultyFor(localStorage.getItem('shinobi-arena.difficulty.v1')).id;}catch{}
 $('#difficulty').value=difficulty;
 const stages=createStagePicker(()=>{if(!started&&mode!=='online')state=newMatch(readLoadouts());});
-const newMatch=(loadouts=DEFAULT_FIGHTERS.map(character=>({character,weapon:CHARACTERS[character].defaultWeapon??'katana'})))=>{const next=$('#mode').value==='training'&&trainingUI?trainingUI.create(loadouts):createMatch(loadouts,{difficulty,stage:stages.value()});if(next.training)next.stage=stages.resolve();return next;};
+const newMatch=(loadouts=DEFAULT_FIGHTERS.map(character=>({character,weapon:CHARACTERS[character].defaultWeapon??'skyforgedBlade'})))=>{const next=$('#mode').value==='training'&&trainingUI?trainingUI.create(loadouts):createMatch(loadouts,{difficulty,stage:stages.value()});if(next.training)next.stage=stages.resolve();return next;};
 let state=newMatch(), paused=true, started=false, mode='cpu', cpu={}, lastTime=0, accumulator=0, feedbackUntil=0;
 let setupStep='characters';
 const setupBack=document.createElement('button');setupBack.id='setup-back';setupBack.textContent='Back to characters';setupBack.hidden=true;$('#play').before(setupBack);
@@ -48,14 +49,14 @@ function showSetupStep(step,keepTitle=false){
  if(choosing&&!activeTournament){if(!keepTitle)$('#overlay-title').textContent=step==='characters'?'Choose your fighters.':'Choose your battle stage.';$('#play').textContent=step==='characters'?'Continue to battle stage':mode==='online'?'Find opponent':mode==='training'?'Start training':'Enter the arena';}
 }
 setupBack.onclick=()=>showSetupStep('characters');
-const shortNames={tidalEdict:'TIDAL EDICT',royalTempest:'ROYAL TEMPEST',triuneFlow:'TRIUNE FLOW',royalGale:'ROYAL GALE',releasedTempest:'SOVEREIGN',harmoniousSlash:'HARMONIOUS',echoingRift:'ECHOING RIFT',aquaGuard:'TRIUNE FLOW',skyforgedAegis:'SKYFORGED AEGIS',rimeflash:'RIMEFLASH',eclipseDrain:'ECLIPSE DRAIN',stormheart:'STORMHEART',ascendantSlash:'ASCENDANT CUT',ascendantRift:'METAL RIFT',dominionRimeflash:'DOMINION DASH',dominionDrain:'DOMINION DRAIN',special1:'RASENGAN',chidori:'CHIDORI',clone:'CLONE',fireball:'FIREBALL',lionFists:'TWIN LIONS',chakraStrike:'PALM STRIKE',snakeStrike:'SNAKES',seal:'SEAL',sharingan:'SHARINGAN',byakugan:'BYAKUGAN'};
+const shortNames={tidalEdict:'TIDAL EDICT',royalTempest:'ROYAL TEMPEST',triuneFlow:'TRIUNE FLOW',royalGale:'ROYAL GALE',releasedTempest:'SOVEREIGN',harmoniousSlash:'HARMONIOUS',echoingRift:'ECHOING RIFT',aquaGuard:'TRIUNE FLOW',skyforgedAegis:'SKYFORGED AEGIS',rimeflash:'RIMEFLASH',eclipseDrain:'ECLIPSE DRAIN',stormheart:'STORMHEART',ascendantSlash:'ASCENDANT CUT',ascendantRift:'METAL RIFT',dominionRimeflash:'DOMINION DASH',dominionDrain:'DOMINION DRAIN',special1:'SPIRAL DRIVE',voltaicLance:'VOLTAIC LANCE',clone:'ECHOES',fireball:'FIREBALL',prismRam:'PRISM RAM',pulsebreaker:'PALM STRIKE',thornlash:'THORNLASH',fivefoldLock:'SEAL',dissonanceMark:'DISSONANCE',fractureLens:'FRACTURE LENS'};
 function readLoadouts(){if(loadoutUI)return [0,1].map(i=>loadoutUI.read(i));return [0,1].map(i=>({character:$(`#character${i} input:checked`).value,weapon:$(`#weapon${i}`).value,weapons:[$(`#weapon${i}`).value,$(`#weapon-secondary${i}`).value||null],items:[0,1,2,3].map(slot=>$(`#item${i}-${slot}`).value||null)}));}
 function describeLoadouts(){
   for(const i of [0,1]){
     const character=CHARACTERS[$(`#character${i} input:checked`).value],weapon=WEAPONS[$(`#weapon${i}`).value];
     $(`#selected${i}`).textContent=character.name;
     const picks=[0,1,2,3].map(slot=>$(`#item${i}-${slot}`).value);
-    for(const slot of [0,1,2,3]){const select=$(`#item${i}-${slot}`);select.querySelector('option[value="raijinKunai"]').disabled=picks.some((id,n)=>n!==slot&&id==='raijinKunai');select.title=ITEMS[select.value]?.description??'Empty slot';}
+    for(const slot of [0,1,2,3]){const select=$(`#item${i}-${slot}`);select.querySelector('option[value="waypointAnchor"]').disabled=picks.some((id,n)=>n!==slot&&id==='waypointAnchor');select.title=ITEMS[select.value]?.description??'Empty slot';}
     $(`#inventory-hint${i}`).textContent=picks.filter(Boolean).length+' / 4 consumables · '+picks.filter(Boolean).map(id=>ITEMS[id].name).join(' · ');
 
     const form=awakeningFor({character:character.id});
@@ -65,29 +66,29 @@ function describeLoadouts(){
   if(!started&&mode!=='online')state=newMatch(readLoadouts());
 }
 for(const i of [0,1]){
-  createRoster($(`#character${i}`),i,DEFAULT_FIGHTERS[i],()=>{if(CHARACTERS[$(`#character${i} input:checked`).value].defaultWeapon)$(`#weapon${i}`).value=CHARACTERS[$(`#character${i} input:checked`).value].defaultWeapon;if($(`#character${i} input:checked`).value==='dora'){$(`#weapon${i}`).value='fans';$(`#weapon-secondary${i}`).value='katana';}loadoutUI?.resetCharacter(i);describeLoadouts();});
+  createRoster($(`#character${i}`),i,DEFAULT_FIGHTERS[i],()=>{if(CHARACTERS[$(`#character${i} input:checked`).value].defaultWeapon)$(`#weapon${i}`).value=CHARACTERS[$(`#character${i} input:checked`).value].defaultWeapon;if($(`#character${i} input:checked`).value==='dora'){$(`#weapon${i}`).value='tideglassFans';$(`#weapon-secondary${i}`).value='skyforgedBlade';}loadoutUI?.resetCharacter(i);describeLoadouts();});
   for(const weapon of Object.values(WEAPONS))$(`#weapon${i}`).add(new Option(weapon.name,weapon.id));
-  $(`#weapon${i}`).value=CHARACTERS[DEFAULT_FIGHTERS[i]].defaultWeapon??'katana';
+  $(`#weapon${i}`).value=CHARACTERS[DEFAULT_FIGHTERS[i]].defaultWeapon??'skyforgedBlade';
   $(`#weapon-secondary${i}`).add(new Option('None',''));
   for(const weapon of Object.values(WEAPONS))$(`#weapon-secondary${i}`).add(new Option(weapon.name,weapon.id));
-  $(`#weapon-secondary${i}`).value='katana';$(`#weapon-secondary${i}`).addEventListener('change',describeLoadouts);
-  for(const slot of [0,1,2,3]){const select=$(`#item${i}-${slot}`);select.add(new Option('Empty',''));for(const item of Object.values(ITEMS)){const option=new Option(item.name,item.id);option.title=item.description;select.add(option);}select.value=['paperBomb','throwingKunai','smokeBomb','poison'][slot];select.addEventListener('change',()=>{describeLoadouts();$(`#inventory-hint${i}`).textContent=ITEMS[select.value]?.description??'Empty consumable slot.';});}
+  $(`#weapon-secondary${i}`).value='skyforgedBlade';$(`#weapon-secondary${i}`).addEventListener('change',describeLoadouts);
+  for(const slot of [0,1,2,3]){const select=$(`#item${i}-${slot}`);select.add(new Option('Empty',''));for(const item of Object.values(ITEMS)){const option=new Option(item.name,item.id);option.title=item.description;select.add(option);}select.value=['cinderCharge','spikeCapsule','veilCanister','poison'][slot];select.addEventListener('change',()=>{describeLoadouts();$(`#inventory-hint${i}`).textContent=ITEMS[select.value]?.description??'Empty consumable slot.';});}
   $(`#weapon${i}`).addEventListener('change',describeLoadouts);
 }
 loadoutUI=createLoadouts({onChange:describeLoadouts});
 function filterRoster(){
   const query=$('#roster-search').value.trim().toLowerCase(),era=$('#roster-era').value;
-  for(const o of $('#roster-era').options)if(['Naruto','Boruto','Akatsuki'].includes(o.value))o.disabled=!$('#include-anime').checked;
+  for(const o of $('#roster-era').options)if(['Solan','Lumen','Concord Challengers'].includes(o.value))o.disabled=!$('#include-unreleased').checked;
   let count=0;for(const character of Object.values(CHARACTERS)){
-    const show=(isOriginalFighter(character.id)||$('#include-anime').checked)&&(!query||`${character.name} ${character.title}`.toLowerCase().includes(query))&&(era==='all'||character.era===era||era==='Akatsuki'&&character.faction==='Akatsuki');
+    const show=(isOriginalFighter(character.id)||$('#include-unreleased').checked)&&(!query||`${character.name} ${character.title}`.toLowerCase().includes(query))&&(era==='all'||character.era===era);
     for(const card of document.querySelectorAll(`.character-card[data-character="${character.id}"]`))card.hidden=!show;
     if(show)count++;
   }
   $('#roster-count').textContent=`${count} fighter${count===1?'':'s'}`;
   for(const empty of document.querySelectorAll('.roster-empty'))empty.hidden=count>0;
 }
-$('#include-anime').addEventListener('change',()=>{
- if(!$('#include-anime').checked){
+$('#include-unreleased').addEventListener('change',()=>{
+ if(!$('#include-unreleased').checked){
   if(!['all','Original'].includes($('#roster-era').value))$('#roster-era').value='all';
   for(const i of [0,1]){const selected=$(`#character${i} input:checked`);if(selected&&!isOriginalFighter(selected.value)){const fallback=$(`#character${i} input[value="${DEFAULT_FIGHTERS[i]}"]`);fallback.checked=true;fallback.dispatchEvent(new Event('change'));}}
  }
@@ -146,14 +147,14 @@ $('#mode').addEventListener('change',event=>{
   $('#mode-name').textContent=mode==='training'?'TRAINING':mode==='cpu'?`CPU · ${difficultyFor(difficulty).name.toUpperCase()}`:mode==='online'?`ONLINE · P${(online?.slot??0)+1}${online?.latency!==null?' · '+online.latency+'ms':''}`:'LOCAL TWO PLAYER';
   $('#opponent-label').textContent=mode==='training'?'TRAINING DUMMY':mode==='cpu'?'COMPUTER':'PLAYER TWO';
   document.querySelectorAll('#character1 .pick-mark').forEach(mark=>mark.textContent=mode==='training'?'DUMMY':mode==='cpu'?'CPU':'P2');
-  $('#p2-help').textContent=mode==='cpu'?'CPU Sasuke · Chidori + fireball':'P2 arrows · N hit · M guard · , Chidori · . fireball';
+  $('#p2-help').textContent=mode==='cpu'?'CPU Vesper · Voltaic Lance + fireball':'P2 arrows · N hit · M guard · , Voltaic Lance · . fireball';
   describeLoadouts();dialog('BUILD YOUR FIGHTING STYLE','Choose your shinobi.',mode==='training'?'Pick your fighter and training dummy. Practice opens challenges and training settings.':'Pick both fighters, two weapons and four consumables before the battle.',mode==='online'?'Find opponent':mode==='training'?'Start training':'Start match');
   if(mode==='online'){$('#overlay-description').textContent='Choose your fighter, two weapons and four consumables. Your opponent chooses their own.';$('#overlay-hint').textContent='Online fights continue when you open controls or leave the page. Leave match forfeits.';}
   trainingUI?.draw();
 });
 controls=createControls({inputs,onPause:pause,isPlaying:()=>!paused&&state.status==='playing'&&$('#rotate').hidden});
 function useTrainingState(next){
- state=next;started=true;if(next.loadouts.some(l=>!isOriginalFighter(l.character)))$('#include-anime').checked=true;filterRoster();
+ state=next;started=true;if(next.loadouts.some(l=>!isOriginalFighter(l.character)))$('#include-unreleased').checked=true;filterRoster();
  for(const i of [0,1]){$(`#character${i} input[value="${state.loadouts[i].character}"]`).checked=true;loadoutUI.update(i,state.loadouts[i]);$(`#weapon${i}`).value=state.loadouts[i].weapon;$(`#weapon-secondary${i}`).value=state.loadouts[i].weapons[1]??'';for(const slot of [0,1,2,3])$(`#item${i}-${slot}`).value=state.loadouts[i].items[slot]??'';}
  describeLoadouts();
 }
@@ -219,12 +220,14 @@ function paintHud(){
     $(`#${meta}`).textContent=move?`${controls?.binding(0,key)??bind} · ${cooldown>0?(cooldown/60).toFixed(1)+'s':MOVES[move].cost}`:`${controls?.binding(0,key)??bind} · NONE`;
   }
   $('#swap-meta').textContent=`${controls?.binding(0,'swapWeapon')??'F'} · ${player.weaponSlot+1}/2`;
-  const slot=player.items[player.itemSlot],mark=slot.id==='raijinKunai'&&player.raijinMark?.slot===player.itemSlot;
+  mountEquipmentIcon(document.querySelector('[data-action=weapon]'),'weapon',player.weapon);
+  mountEquipmentIcon(document.querySelector('[data-action=useItem]'),'item',player.items[player.itemSlot]?.id);
+  const slot=player.items[player.itemSlot],mark=slot.id==='waypointAnchor'&&player.waypointMark?.slot===player.itemSlot;
   $('#item-use-name').textContent=mark?'WARP':slot.id?ITEMS[slot.id].short:'EMPTY';
-  $('#item-use-meta').textContent=`${controls?.binding(0,'useItem')??'X'} · ${player.cooldowns.useItem>0?(player.cooldowns.useItem/60).toFixed(1)+'s':mark?(player.raijinMark.remaining/60).toFixed(1)+'s':slot.count?'READY':'USED'}`;
+  $('#item-use-meta').textContent=`${controls?.binding(0,'useItem')??'X'} · ${player.cooldowns.useItem>0?(player.cooldowns.useItem/60).toFixed(1)+'s':mark?(player.waypointMark.remaining/60).toFixed(1)+'s':slot.count?'READY':'USED'}`;
   $('#item-cycle-meta').textContent=`${controls?.binding(0,'cycleItem')??'C'} · ${player.itemSlot+1}/4`;
   $('[data-action=swapWeapon]').title=`Swap to ${WEAPONS[player.weapons[1-player.weaponSlot]]?.name??'no secondary weapon'} (startup and recovery apply)`;
-  $('[data-action=useItem]').title=mark?'Warp to your marked kunai: 15 chakra, no invulnerability.':ITEMS[slot.id]?.description??'No consumable in this slot';
+  $('[data-action=useItem]').title=mark?'Warp to your marked conduitSpike: 15 chakra, no invulnerability.':ITEMS[slot.id]?.description??'No consumable in this slot';
   $('#weapon-label').textContent=`${controls?.binding(0,'weapon')??'H'} · ${WEAPONS[player.weapon].name.toUpperCase()}`;
   $('#replacement-cd').textContent=player.cooldowns.replacement>0?`${controls?.binding(0,'replacement')??'R'} · ${(player.cooldowns.replacement/60).toFixed(1)}s`:`${controls?.binding(0,'replacement')??'R'} · 25`;
   $('#p2-help').textContent=mode==='cpu'?`CPU ${state.fighters[1].name} · ${difficultyFor(difficulty).name} · ${WEAPONS[state.fighters[1].weapon].name}`:'P2 arrows · N/B basic/weapon · M guard · ,/. signatures · / bloodline · V replace';
@@ -232,7 +235,7 @@ function paintHud(){
   $('#awakening-meta').textContent=`${controls?.binding(0,'awakening')??'T'} · ${currentForm?(player.awakeningTicks/60).toFixed(1)+'s':!playerForm?'NONE':player.awakeningUsed?'USED':awakeningReady(player)?'READY':Math.min(100,Math.floor(player.damageTaken/playerForm.threshold*100))+'%'}`;
   $('#basic-label').textContent=player.action?.confirmed&&player.action.chain<3?`COMBO ${player.action.chain+1}`:'BASIC ×3';
   state.fighters.forEach((f,i)=>{
-    $(`#inventory-status${i}`).textContent=`${WEAPONS[f.weapon].name.toUpperCase()} · ${f.items.reduce((n,slot)=>n+slot.count,0)}/4 ITEMS${f.raijinMark?' · RAIJIN MARK':''}`;
+    $(`#inventory-status${i}`).textContent=`${WEAPONS[f.weapon].name.toUpperCase()} · ${f.items.reduce((n,slot)=>n+slot.count,0)}/4 ITEMS${f.waypointMark?' · WAYPOINT MARK':''}`;
     $(`#stamina${i}`).value=f.stamina;$(`#guard${i}`).value=f.guard;
     const form=awakeningFor(f),active=activeAwakening(f),meter=$(`#awakening-fill${i}`);
     meter.style.width=`${active?f.awakeningTicks/form.duration*100:form?Math.min(100,f.damageTaken/form.threshold*100):0}%`;
@@ -285,8 +288,8 @@ function frame(now){
     while(accumulator>=1/TICK_RATE&&state.status==='playing'){
       if(mode==='cpu')cpu=computerInput(state);
       if(mode==='training')stepTraining(state,inputs[0].consume());else stepMatch(state,[inputs[0].consume(),mode==='cpu'?cpu:inputs[1].consume()]);accumulator-=1/TICK_RATE;
-      const event=state.events.find(e=>['jutsuLink','aerialBlocked','airChase','airFinish','airEscape','weaponSwap','raijinWarp','smokeBlocked','parry','guardBreak','punish','exhausted','hit','block','empty','pierce','replacement','unavailable','poison','burn','cooldown','awakeningBlocked'].includes(e.type));
-      if(event){const messages={jutsuLink:'JUTSU LINK · FULL COST / WATCH THE COUNTER',aerialBlocked:event.reason,airChase:'AIR CHASE · LINK BASIC OR AERIAL JUTSU',airFinish:'AERIAL FINISHER',airEscape:'JUGGLE LIMIT · AIR RECOVERY',weaponSwap:'WEAPON SWAPPED',raijinWarp:'FLYING RAIJIN · WARP',smokeBlocked:'SMOKE BLOCKED PROJECTILE',parry:'PARRY · COUNTER NOW',guardBreak:'GUARD BROKEN',punish:'RECOVERY PUNISH · +20%',exhausted:'LOW STAMINA · CREATE SPACE',empty:'NOT ENOUGH CHAKRA',block:'GUARDED',replacement:'REPLACEMENT JUTSU',unavailable:'NO TECHNIQUE OR ITEM AVAILABLE',cooldown:'TECHNIQUE ON COOLDOWN',awakeningBlocked:'AWAKENING NOT READY OR UNABLE TO ACT'};
+      const event=state.events.find(e=>['jutsuLink','aerialBlocked','airChase','airFinish','airEscape','weaponSwap','waypointWarp','smokeBlocked','parry','guardBreak','punish','exhausted','hit','block','empty','pierce','replacement','unavailable','poison','burn','cooldown','awakeningBlocked'].includes(e.type));
+      if(event){const messages={jutsuLink:'JUTSU LINK · FULL COST / WATCH THE COUNTER',aerialBlocked:event.reason,airChase:'AIR CHASE · LINK BASIC OR AERIAL JUTSU',airFinish:'AERIAL FINISHER',airEscape:'JUGGLE LIMIT · AIR RECOVERY',weaponSwap:'WEAPON SWAPPED',waypointWarp:'WAYPOINT · WARP',smokeBlocked:'SMOKE BLOCKED PROJECTILE',parry:'PARRY · COUNTER NOW',guardBreak:'GUARD BROKEN',punish:'RECOVERY PUNISH · +20%',exhausted:'LOW STAMINA · CREATE SPACE',empty:'NOT ENOUGH CHAKRA',block:'GUARDED',replacement:'REPLACEMENT JUTSU',unavailable:'NO TECHNIQUE OR ITEM AVAILABLE',cooldown:'TECHNIQUE ON COOLDOWN',awakeningBlocked:'AWAKENING NOT READY OR UNABLE TO ACT'};
         $('#feedback').textContent=messages[event.type]??`${event.type==='pierce'?'GUARD PIERCED · ':event.type==='poison'?'POISON · ':event.type==='burn'?'BURN · ':''}${event.damage} DAMAGE`;feedbackUntil=now+700;}
     }
     if(state.status!=='playing')finish();

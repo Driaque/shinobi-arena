@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import {createMatch,stepMatch,nextRound,moveFor,activeAwakening,computerInput} from '../packages/engine/index.js';
 import {playerProfile} from '../packages/network/protocol.js';
 const advance=(s,n,inputs=[{},{}])=>{for(let i=0;i<n;i++)stepMatch(s,inputs);};
-function duel(distance=70,opponent='sasuke'){const s=createMatch([{character:'dora',weapon:'fans',weapons:['fans','katana']},{character:opponent,weapon:'kunai'}]);s.fighters[0].x=600;s.fighters[1].x=600+distance;return s;}
+function duel(distance=70,opponent='vesper'){const s=createMatch([{character:'dora',weapon:'tideglassFans',weapons:['tideglassFans','skyforgedBlade']},{character:opponent,weapon:'conduitSpike'}]);s.fighters[0].x=600;s.fighters[1].x=600+distance;return s;}
 test('Dora and both weapons validate for online play; fan basics connect with normal scaling',()=>{
- const profile=playerProfile({name:'AquaPrincess',character:'dora',weapon:'fans',weapons:['fans','katana']});assert.equal(profile.character,'dora');assert.deepEqual(profile.weapons,['fans','katana']);
+ const profile=playerProfile({name:'AquaPrincess',character:'dora',weapon:'tideglassFans',weapons:['tideglassFans','skyforgedBlade']});assert.equal(profile.character,'dora');assert.deepEqual(profile.weapons,['tideglassFans','skyforgedBlade']);
  const s=duel();for(let t=0;t<28;t++)stepMatch(s,[{attack:[0,7,17].includes(t)},{}]);assert.equal(s.fighters[0].combo.hits,3);assert.equal(s.fighters[0].combo.damage,182);
 });
 test('Tidal Edict weakens clean hits for three seconds, and guard or Replacement prevents it',()=>{

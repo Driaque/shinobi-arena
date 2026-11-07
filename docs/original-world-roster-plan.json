@@ -1,0 +1,373 @@
+{
+  "CHARACTERS": [
+    {
+      "id": "vael",
+      "name": "Vael",
+      "title": "Rift Magistrate"
+    },
+    {
+      "id": "tessara",
+      "name": "Tessara",
+      "title": "Glasswing Cartographer"
+    },
+    {
+      "id": "brannik",
+      "name": "Brannik",
+      "title": "Tidebreaker Corsair"
+    },
+    {
+      "id": "corvin",
+      "name": "Corvin",
+      "title": "Resonance Artificer"
+    },
+    {
+      "id": "maelis",
+      "name": "Maelis",
+      "title": "Silkbound Surgeon"
+    },
+    {
+      "id": "drevan",
+      "name": "Drevan",
+      "title": "Oathscar Duelist"
+    },
+    {
+      "id": "torven",
+      "name": "Torven",
+      "title": "Vault Warden"
+    },
+    {
+      "id": "sylven",
+      "name": "Sylven",
+      "title": "Rootless Pilgrim"
+    },
+    {
+      "id": "nyxen",
+      "name": "Nyxen",
+      "title": "Riftbound Envoy"
+    },
+    {
+      "id": "solan",
+      "name": "Solan",
+      "title": "Dawn Circuit"
+    },
+    {
+      "id": "vesper",
+      "name": "Vesper",
+      "title": "Stormglass Exile"
+    },
+    {
+      "id": "ilyra",
+      "name": "Ilyra",
+      "title": "Pulse Oracle"
+    },
+    {
+      "id": "sereth",
+      "name": "Sereth",
+      "title": "Verdant Alchemist"
+    },
+    {
+      "id": "tavian",
+      "name": "Tavian",
+      "title": "Wayfinder Veteran"
+    },
+    {
+      "id": "maris",
+      "name": "Maris",
+      "title": "Dawnforge Champion"
+    },
+    {
+      "id": "zahara",
+      "name": "Zahara",
+      "title": "Dune Regent"
+    },
+    {
+      "id": "morwen",
+      "name": "Morwen",
+      "title": "Ashcrow Seer"
+    },
+    {
+      "id": "dathen",
+      "name": "Dathen",
+      "title": "Ironstep Ascetic"
+    },
+    {
+      "id": "sable",
+      "name": "Sable",
+      "title": "Veil Strategist"
+    },
+    {
+      "id": "caeris",
+      "name": "Caeris",
+      "title": "Horizon Runner"
+    },
+    {
+      "id": "dravos",
+      "name": "Dravos",
+      "title": "Last Banner"
+    },
+    {
+      "id": "lumen",
+      "name": "Lumen",
+      "title": "Prism Prodigy"
+    },
+    {
+      "id": "caldra",
+      "name": "Caldra",
+      "title": "Sunsteel Adjudicator"
+    },
+    {
+      "id": "sevrin",
+      "name": "Sevrin",
+      "title": "Tempest Biologist"
+    },
+    {
+      "id": "vorrik",
+      "name": "Vorrik",
+      "title": "Cinderbound Sentinel"
+    }
+  ],
+  "MOVES": [
+    {
+      "id": "sovereignRebuke",
+      "name": "Sovereign Rebuke"
+    },
+    {
+      "id": "eventideGrasp",
+      "name": "Eventide Grasp"
+    },
+    {
+      "id": "glasswingVolley",
+      "name": "Glasswing Volley"
+    },
+    {
+      "id": "prismTether",
+      "name": "Prism Tether"
+    },
+    {
+      "id": "resonanceDrone",
+      "name": "Resonance Drone"
+    },
+    {
+      "id": "shardMinefield",
+      "name": "Shard Minefield"
+    },
+    {
+      "id": "horizonRush",
+      "name": "Horizon Rush"
+    },
+    {
+      "id": "spiralDrive",
+      "name": "Spiral Drive"
+    },
+    {
+      "id": "echoFormation",
+      "name": "Echo Formation"
+    },
+    {
+      "id": "voltaicLance",
+      "name": "Voltaic Lance"
+    },
+    {
+      "id": "prismRam",
+      "name": "Prism Ram"
+    },
+    {
+      "id": "pulsebreaker",
+      "name": "Pulsebreaker"
+    },
+    {
+      "id": "dissonanceMark",
+      "name": "Dissonance Mark"
+    },
+    {
+      "id": "fractureLens",
+      "name": "Fracture Lens"
+    },
+    {
+      "id": "thornlash",
+      "name": "Thornlash"
+    },
+    {
+      "id": "fivefoldLock",
+      "name": "Fivefold Lock"
+    },
+    {
+      "id": "stormNeedle",
+      "name": "Storm Needle"
+    },
+    {
+      "id": "arcSentinel",
+      "name": "Arc Sentinel"
+    },
+    {
+      "id": "dawnforgeImpact",
+      "name": "Dawnforge Impact"
+    },
+    {
+      "id": "zenithHammer",
+      "name": "Zenith Hammer"
+    },
+    {
+      "id": "duneCrucible",
+      "name": "Dune Crucible"
+    },
+    {
+      "id": "siroccoBarrage",
+      "name": "Sirocco Barrage"
+    },
+    {
+      "id": "ashwingAssault",
+      "name": "Ashwing Assault"
+    },
+    {
+      "id": "umbraPyre",
+      "name": "Umbra Pyre"
+    },
+    {
+      "id": "ironstepCyclone",
+      "name": "Ironstep Cyclone"
+    },
+    {
+      "id": "heavenwardSpiral",
+      "name": "Heavenward Spiral"
+    },
+    {
+      "id": "umbraLeash",
+      "name": "Umbra Leash"
+    },
+    {
+      "id": "nightglassSpines",
+      "name": "Nightglass Spines"
+    },
+    {
+      "id": "bannerbreakReversal",
+      "name": "Bannerbreak Reversal"
+    },
+    {
+      "id": "wyrmfireSurge",
+      "name": "Wyrmfire Surge"
+    },
+    {
+      "id": "prismSlipstream",
+      "name": "Prism Slipstream"
+    },
+    {
+      "id": "veiledPulse",
+      "name": "Veiled Pulse"
+    },
+    {
+      "id": "coilbolt",
+      "name": "Coilbolt"
+    },
+    {
+      "id": "galeRazor",
+      "name": "Gale Razor"
+    },
+    {
+      "id": "skyfallNeedles",
+      "name": "Skyfall Needles"
+    },
+    {
+      "id": "aetherSiphon",
+      "name": "Aether Siphon"
+    },
+    {
+      "id": "sunforgeDrive",
+      "name": "Sunforge Drive"
+    },
+    {
+      "id": "prismaticDrive",
+      "name": "Prismatic Drive"
+    },
+    {
+      "id": "sunforgeRend",
+      "name": "Sunforge Rend"
+    }
+  ],
+  "AWAKENINGS": [
+    {
+      "id": "sunforge",
+      "name": "Sunforge Ascendant"
+    },
+    {
+      "id": "colossusMantle",
+      "name": "Colossus Mantle"
+    },
+    {
+      "id": "ironstepOverdrive",
+      "name": "Ironstep Overdrive"
+    },
+    {
+      "id": "prismOverdrive",
+      "name": "Prism Overdrive"
+    },
+    {
+      "id": "cinderOverdrive",
+      "name": "Cinder Overdrive"
+    },
+    {
+      "id": "tempestAttunement",
+      "name": "Tempest Attunement"
+    }
+  ],
+  "WEAPONS": [
+    {
+      "id": "concordLaureate",
+      "name": "Concord Laureate"
+    },
+    {
+      "id": "tideglassFans",
+      "name": "Tideglass Fans"
+    },
+    {
+      "id": "conduitSpike",
+      "name": "Conduit Spike"
+    },
+    {
+      "id": "orbitDisc",
+      "name": "Orbit Disc"
+    },
+    {
+      "id": "frostmereSaber",
+      "name": "Frostmere Saber"
+    },
+    {
+      "id": "oathknife",
+      "name": "Oathknife"
+    },
+    {
+      "id": "skyforgedBlade",
+      "name": "Skyforged Blade"
+    }
+  ],
+  "ITEMS": [
+    {
+      "id": "laureateShroud",
+      "name": "Laureate Shroud"
+    },
+    {
+      "id": "cinderCharge",
+      "name": "Cinder Charge"
+    },
+    {
+      "id": "spikeCapsule",
+      "name": "Spike Capsule"
+    },
+    {
+      "id": "orbitPack",
+      "name": "Orbit Pack"
+    },
+    {
+      "id": "thornVial",
+      "name": "Thorn Vial"
+    },
+    {
+      "id": "veilCanister",
+      "name": "Veil Canister"
+    },
+    {
+      "id": "waypointAnchor",
+      "name": "Waypoint Anchor"
+    }
+  ]
+}
