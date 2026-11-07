@@ -12,8 +12,8 @@ if(existing.ok){console.log(`Release v${version} is already published.`);process
 if(existing.status!==404)throw new Error(`Cannot inspect release: ${existing.status}`);
 const checks=await request(`actions/runs?head_sha=${sha}&per_page=100`);if(!checks.ok)throw new Error(`Cannot verify release checks: ${checks.status}`);
 const runs=(await checks.json()).workflow_runs;
-for(const name of ['CI','Deploy Pages']){
- const allowedEvents=name==='Deploy Pages'?['push','workflow_dispatch','workflow_run']:['push','workflow_dispatch'];
+for(const name of ['CI','Deploy Render']){
+ const allowedEvents=name==='Deploy Render'?['push','workflow_dispatch','workflow_run']:['push','workflow_dispatch'];
  const run=runs.find(r=>r.name===name&&r.head_sha===sha&&allowedEvents.includes(r.event));
  if(!run||run.status!=='completed'||run.conclusion!=='success'){console.log(`Waiting for successful ${name}; its completion will trigger another release check.`);process.exit(0);}
 }
