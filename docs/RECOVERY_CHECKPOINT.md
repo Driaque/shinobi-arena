@@ -56,3 +56,7 @@ User pushed the packaged branch successfully. PR #57: https://github.com/Driaque
 ## Browser gate corrections
 
 PR #57 head 68fc0c3 is mergeable and its build/unit CI passed. Reviewing the browser gates identified an obsolete original-roster animated-canvas assertion and an incorrect live-arena canvas selector. Update the roster assertion to verify decoded painted PNGs (including reduced motion) and inspect the visible practice renderer for painted-stage readiness. These are browser-test corrections; runtime artwork behavior is unchanged. Hosted CI must rerun before merge.
+
+## Wide landscape scenery fix
+
+Hosted artwork checks passed all four viewports and fallback; detailed fighter art passed. Screenshot inspection revealed dark side margins on the short/wide landscape camera. Expand painted scenery with its aspect ratio and combat ground anchor preserved to cover the visible camera in Canvas/Pixi/classic fallback. Add camera coverage/ground-anchor regression coverage. Scope original PNG assertion to Aren; optional hidden anime portraits still animate. Full CI/browser verification must rerun before release.

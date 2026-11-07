@@ -16,3 +16,17 @@ test('Every original and stage has complete, valid responsive PNG exports',async
   }
  }
 });
+
+import {paintedStageRect,paintedStageForView} from '../packages/presentation/artwork.js';
+test('painted scenery covers wide, tall and shifted cameras without moving its ground line',()=>{
+ for(const [view,width,height] of [[{scale:.2,x:200,y:-20},1688,240],[{scale:.8,x:-350,y:100},780,1688],[{scale:1,x:0,y:0},1600,900]]){
+  const r=paintedStageForView(view,width,height),epsilon=1e-8;
+  assert.ok(r.x*view.scale+view.x<=epsilon);
+  assert.ok(r.y*view.scale+view.y<=epsilon);
+  assert.ok((r.x+r.w)*view.scale+view.x>=width-epsilon);
+  assert.ok((r.y+r.h)*view.scale+view.y>=height-epsilon);
+  const groundRatio=(610-paintedStageRect.y)/paintedStageRect.h;
+  assert.ok(Math.abs(r.y+r.h*groundRatio-610)<epsilon);
+  assert.ok(Math.abs(r.w/r.h-16/9)<epsilon);
+ }
+});

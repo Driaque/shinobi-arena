@@ -1,4 +1,4 @@
-import {stageArtwork,paintedStageRect} from './packages/presentation/artwork.js';
+import {stageArtwork,paintedStageForView} from './packages/presentation/artwork.js';
 import {stageShapes} from './packages/presentation/stages.js';
 import {sceneryFor,projectileShapes} from './packages/presentation/battlefield.js';
 import {
@@ -74,7 +74,7 @@ export function createCanvasLab(canvas, art, resolution) {
     const bg = backgroundRect(art.arena, scene);
     const painted=scene.stage&&stageArtwork(scene.stage);
     canvas.dataset.paintedStage=painted?scene.stage:'';
-    if(painted){const r=paintedStageRect;ctx.drawImage(painted,r.x,r.y,r.w,r.h);}else if(!scene.stage||scene.stage==='skyglass')ctx.drawImage(art.arena, bg.x, bg.y, bg.w, bg.h);else shapes(stageShapes(scene.stage));
+    if(painted){const r=paintedStageForView(view,canvas.width,canvas.height);ctx.drawImage(painted,r.x,r.y,r.w,r.h);}else if(!scene.stage||scene.stage==='skyglass')ctx.drawImage(art.arena, bg.x, bg.y, bg.w, bg.h);else shapes(stageShapes(scene.stage));
     shapes(sceneryFor(scene));
     const ellipse = (x, y, rx, ry, color) => {
       ctx.fillStyle = color;
@@ -240,7 +240,7 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
     const view = camera(scene, app.screen.width, app.screen.height);
     root.scale.set(view.scale);
     root.position.set(view.x, view.y);
-    const rect = painted?paintedStageRect:backgroundRect(art.arena, scene);
+    const rect = painted?paintedStageForView(view,app.screen.width,app.screen.height):backgroundRect(art.arena, scene);
     bg.position.set(rect.x, rect.y);
     bg.width = rect.w;
     bg.height = rect.h;
