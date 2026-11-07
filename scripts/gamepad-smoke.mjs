@@ -14,9 +14,10 @@ try{
   await page.addInitScript(()=>{window.testPads=[];Object.defineProperty(navigator,'getGamepads',{value:()=>window.testPads});});
   await page.goto('http://127.0.0.1:4207');await page.waitForFunction(()=>document.documentElement.dataset.gameReady==='true');
   await selectGame(page,'#mode','training');await clickGame(page,'#play');
-  const box=()=>page.locator('.battle-view').boundingBox(),original=await box();
+  const box=()=>page.locator('.battle-view').boundingBox();
   await page.evaluate(()=>{window.testPads=[{index:0,id:'Sony DualSense 054c',mapping:'standard',connected:true,axes:[0,0,0,0],buttons:Array.from({length:16},()=>({pressed:false}))}];});
   await page.waitForSelector('#controller-status:visible');assert.equal(await page.locator('.arena').evaluate(n=>n.classList.contains('controller-view')),false,'idle connection must retain touch');
+  await page.waitForTimeout(250);const original=await box(),dock=await page.locator('.battle-view').evaluate(n=>parseFloat(getComputedStyle(n).bottom));
   await page.evaluate(()=>{window.testPads[0].buttons[4].pressed=true;});
   await page.waitForSelector('.arena.controller-view');await page.waitForTimeout(250);
   assert.ok((await box()).height>original.height+100,'controller reclaims the dock');assert.equal(await page.locator('#joystick').isVisible(),false);assert.equal(await page.locator('#combat-techniques').isVisible(),true);
@@ -24,7 +25,7 @@ try{
   await page.screenshot({path:`test-results/controller-${viewport.width}.png`});
   // A held controller must not take the layout back from an intentional touch.
   await page.locator('#canvas').tap({position:{x:20,y:20}});await page.waitForTimeout(250);
-  assert.equal(await page.locator('#joystick').isVisible(),true);assert.ok(Math.abs((await box()).height-original.height)<2);
+  assert.equal(await page.locator('#joystick').isVisible(),true);assert.ok(Math.abs(await page.locator('.battle-view').evaluate(n=>parseFloat(getComputedStyle(n).bottom))-dock)<2,'touch restores its full dock reservation even if the connection indicator wraps the header');
   await page.evaluate(()=>{window.testPads[0].buttons[4].pressed=false;window.testPads[0].buttons[0].pressed=true;});await page.waitForSelector('.arena.controller-view');
   // Open Feel without a touchscreen event and persist the coexistence preference.
   await page.evaluate(()=>document.querySelector('#experience-settings').click());await page.locator('[data-experience=showTouchWithController]').check();
