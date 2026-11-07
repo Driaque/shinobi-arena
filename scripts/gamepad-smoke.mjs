@@ -20,7 +20,7 @@ try{
   await page.waitForTimeout(250);const original=await box(),dock=await page.locator('.battle-view').evaluate(n=>parseFloat(getComputedStyle(n).bottom));
   await page.evaluate(()=>{window.testPads[0].buttons[4].pressed=true;});
   await page.waitForSelector('.arena.controller-view');await page.waitForTimeout(250);
-  assert.ok((await box()).height>original.height+50,'controller reclaims most of the dock');const rail=await page.locator('#combat-techniques').boundingBox();assert.ok(rail.y>=(await box()).y+(await box()).height,'shortcuts sit below the rendered battlefield');assert.equal(await page.locator('#joystick').isVisible(),false);assert.equal(await page.locator('#combat-techniques').isVisible(),true);
+  assert.ok((await box()).height>original.height+50,'controller reclaims most of the dock');await page.waitForFunction(()=>{const rail=document.querySelector('#combat-techniques').getBoundingClientRect(),battle=document.querySelector('.battle-view').getBoundingClientRect();return rail.top>=battle.bottom-.5;});assert.equal(await page.locator('#joystick').isVisible(),false);assert.equal(await page.locator('#combat-techniques').isVisible(),true);
   assert.match(await page.locator('#controller-hint').innerText(),/L1.*R1/);
   const geometry=await page.locator('#combat-techniques').evaluate(strip=>{const box=strip.getBoundingClientRect();return Array.from(strip.querySelectorAll('button:not([hidden]) .jutsu-status')).filter(n=>n.getClientRects().length).every(n=>{const b=n.getBoundingClientRect();return b.top>=box.top&&b.bottom<=box.bottom+1;});});assert.equal(geometry,true,'controller bindings and cooldown labels remain inside the strip');
   await page.screenshot({path:`test-results/controller-${viewport.width}.png`});
