@@ -1,3 +1,4 @@
+import {controllerBinding} from './controller-ui.js';
 import {experience} from './experience.js';
 import {createStickGestures} from './packages/input/analog.js';
 import { ACTIONS } from './packages/input/index.js';
@@ -154,6 +155,6 @@ export function createControls({inputs,onPause,isPlaying,onOpen=onPause}) {
   window.addEventListener('keyup',event=>inputs.forEach(i=>i.release(event.code)));
   new ResizeObserver(()=>{resetStick();drag=null;inputs.forEach(i=>i.releaseHeld(source=>String(source).startsWith('pointer:')));applyLayout();}).observe(arena);
   applyLayout();
-  return {reset,get editing(){return editing;},visible:action=>current().visibility[action]!==false,binding:(player,action)=>keyLabel(keyForAction(current().keys,player,action))};
+  return {reset,get editing(){return editing;},visible:action=>current().visibility[action]!==false,binding:(player,action)=>(player===0?controllerBinding(action):null)??keyLabel(keyForAction(current().keys,player,action))};
 }
 

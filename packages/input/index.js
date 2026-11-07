@@ -1,14 +1,14 @@
 export const ACTIONS = Object.freeze(['left', 'right', 'jump', 'attack', 'block', 'special1', 'special2', 'weapon', 'bloodline', 'replacement', 'dashForward', 'dashBack', 'awakening','crouch','swapWeapon','cycleItem','useItem','jutsu4','jutsu5','jutsu6','jutsu7','charge','depthUp','depthDown']);
 export function createInput() {
-  let pendingAim=null;let pendingDash=0;const vertical=new Map();
-  const held = new Map(), pressed = new Set(), axes = new Map();
+  let pendingAim=null,pendingAimSource=null;let pendingDash=0;const vertical=new Map();
+  const held = new Map(), pressed = new Map(), axes = new Map();
   const snapshot = () => ({...Object.fromEntries(ACTIONS.map(a => [a, (held.get(a)?.size ?? 0) > 0])),moveZ:Math.max(-1,Math.min(1,[...vertical.values()].reduce((a,b)=>a+b,0))),moveX: Math.max(-1,Math.min(1,[...axes.values()].reduce((a,b)=>a+b,0)))});
   return {
-    aim(x,z){pendingAim={aimX:x,aimZ:z};},
+    aim(x,z,source='aim'){pendingAim={aimX:x,aimZ:z};pendingAimSource=source;},
     press(action, source) {
       if (!ACTIONS.includes(action)) throw new Error(`Unknown action: ${action}`);
       if (!held.has(action)) held.set(action, new Set());
-      if (!held.get(action).has(source)) pressed.add(action);
+      if (!held.get(action).has(source)) { if(!pressed.has(action))pressed.set(action,new Set());pressed.get(action).add(source); }
       held.get(action).add(source);
     },
     release(source) { for (const sources of held.values()) sources.delete(source); axes.delete(source);vertical.delete(source); },
@@ -22,14 +22,19 @@ export function createInput() {
       for(const source of axes.keys())if(matches(source))axes.delete(source);
       for(const source of vertical.keys())if(matches(source))vertical.delete(source);
     },
-    reset() { pendingAim=null;pendingDash=0;held.clear(); pressed.clear(); axes.clear();vertical.clear(); },
+    cancelSources(matches) {
+      this.releaseHeld(matches);
+      for(const [action,sources] of pressed){for(const source of sources)if(matches(source))sources.delete(source);if(!sources.size)pressed.delete(action);}
+      if(pendingAimSource!==null&&matches(pendingAimSource)){pendingAim=null;pendingAimSource=null;}
+    },
+    reset() { pendingAim=null;pendingAimSource=null;pendingDash=0;held.clear(); pressed.clear(); axes.clear();vertical.clear(); },
     snapshot,
     consume() {
       // Capture even a quick tap released between two simulation ticks.
-      const frame = {...snapshot(),...pendingAim};pendingAim=null;
-      for (const action of pressed) frame[action] = true;
+      const frame = {...snapshot(),...pendingAim};pendingAim=null;pendingAimSource=null;
+      for (const action of pressed.keys()) frame[action] = true;
       if(pendingDash)frame.dashDirection=pendingDash;pendingDash=0;
-      frame.pressedActions=[...pressed];
+      frame.pressedActions=[...pressed.keys()];
       pressed.clear();
       return frame;
     }

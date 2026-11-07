@@ -6,8 +6,8 @@ import {createStagePicker} from './stage-picker.js';
 import {DEFAULT_FIGHTERS,isOriginalFighter} from './packages/engine/originals.js';
 import {mountIcon} from './packages/ui/jutsu-icons.js';
 import {installMobileUI} from './mobile-ui.js';
-import {createGamepads} from './packages/input/gamepad.js';
-import {createExperience,experience,padBindings} from './experience.js';
+import {createControllerUI} from './controller-ui.js';
+import {createExperience,experience} from './experience.js';
 import {createPrediction} from './packages/network/prediction.js';
 import {summarizeFight} from './packages/engine/tactics.js';
 import {createAudio} from './audio.js';
@@ -272,8 +272,7 @@ function paintHud(){
     b.classList.toggle('unavailable',b.disabled||player.chakra<cost||player.stamina<staminaCost(key)||(key==='bloodline'&&!move)||(key==='awakening'&&!awakeningReady(player))||(key==='swapWeapon'&&!player.weapons[1])||(key==='useItem'&&!move));
   });
 }
-let padMap=padBindings();window.addEventListener('arena:pad-map',()=>padMap=padBindings());
-const gamepads=createGamepads({inputs,settings:experience,bindings:()=>padMap,isPlaying:()=>started&&!paused&&state.status==='playing'&&$('#rotate').hidden&&!document.querySelector('dialog[open]'),isLocal:()=>mode==='local',onPause:pause});
+const gamepads=createControllerUI({inputs,isPlaying:()=>started&&!paused&&state.status==='playing'&&!controls.editing&&$('#rotate').hidden&&!document.querySelector('dialog[open],.nav-group[open]'),isLocal:()=>mode==='local',onPause:()=>{if(mode==='online'){clearInputs();$('#game-settings').open=!$('#game-settings').open;}else pause();}});
 function frame(now){
   stages.lock((started&&state.status!=='matchOver')||mode==='online'&&online?.busy);
   gamepads.poll();
