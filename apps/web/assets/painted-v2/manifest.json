@@ -33,6 +33,99 @@
           }
         ]
       },
+      "eclipseDrain": {
+        "source": "eclipseDrain.png",
+        "sourceSha256": "5d1e92ca7f9a5ca006058cb004b6a13dce05029c9374dcca480f518010835e96",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "moves/eclipseDrain-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 9361
+          },
+          {
+            "file": "moves/eclipseDrain-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 32453
+          },
+          {
+            "file": "moves/eclipseDrain-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 110646
+          }
+        ]
+      },
+      "eventideGrasp": {
+        "source": "eventideGrasp.png",
+        "sourceSha256": "12430b47f26af075ac361b2b7e93ff0bee7ff0e73bcb02c81d2dc1911bbd8bb4",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "moves/eventideGrasp-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 9894
+          },
+          {
+            "file": "moves/eventideGrasp-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 34183
+          },
+          {
+            "file": "moves/eventideGrasp-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 116086
+          }
+        ]
+      },
+      "glasswingVolley": {
+        "source": "glasswingVolley.png",
+        "sourceSha256": "77a6c9ab884b72a33b9ce62de3f7da5bc0ab1a497ec9318702d492ab66682f9a",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "moves/glasswingVolley-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 10144
+          },
+          {
+            "file": "moves/glasswingVolley-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 34307
+          },
+          {
+            "file": "moves/glasswingVolley-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 113839
+          }
+        ]
+      },
       "harmoniousSlash": {
         "source": "harmoniousSlash.png",
         "sourceSha256": "c3a7dd02ed9f610bd24c1381ff37bacd7349b7fecd28324fe9ad02d37e7776c7",
@@ -61,6 +154,68 @@
             "width": 256,
             "height": 256,
             "bytes": 119365
+          }
+        ]
+      },
+      "prismTether": {
+        "source": "prismTether.png",
+        "sourceSha256": "78cd090d587737c9360d4d21bf37d2c1f5ea451e0183826c7a8dc485a614a8a4",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "moves/prismTether-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 10182
+          },
+          {
+            "file": "moves/prismTether-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 35425
+          },
+          {
+            "file": "moves/prismTether-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 121572
+          }
+        ]
+      },
+      "resonanceDrone": {
+        "source": "resonanceDrone.png",
+        "sourceSha256": "36d163854076eba116da5b630545747799c7045c5cd904edb0176a3acde6effa",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "moves/resonanceDrone-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 9324
+          },
+          {
+            "file": "moves/resonanceDrone-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 31976
+          },
+          {
+            "file": "moves/resonanceDrone-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 109629
           }
         ]
       },
@@ -157,6 +312,37 @@
           }
         ]
       },
+      "shardMinefield": {
+        "source": "shardMinefield.png",
+        "sourceSha256": "04a90e2b90fdfc4b3acae2c44c2919545bf4dbb29bb4f163f0a552ac910e182c",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "moves/shardMinefield-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 9431
+          },
+          {
+            "file": "moves/shardMinefield-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 33796
+          },
+          {
+            "file": "moves/shardMinefield-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 119433
+          }
+        ]
+      },
       "skyforgedAegis": {
         "source": "skyforgedAegis.png",
         "sourceSha256": "bd30c6fb5b1ef603f3879913387782960b5c920fa0be70ae205e1e8f755a04b6",
@@ -185,6 +371,37 @@
             "width": 256,
             "height": 256,
             "bytes": 133189
+          }
+        ]
+      },
+      "sovereignRebuke": {
+        "source": "sovereignRebuke.png",
+        "sourceSha256": "3cee22cef6457209c378e16b9990f1bdd1123505de3409ba98edf08973a2a62d",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "moves/sovereignRebuke-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 10138
+          },
+          {
+            "file": "moves/sovereignRebuke-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 36234
+          },
+          {
+            "file": "moves/sovereignRebuke-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 125463
           }
         ]
       },
@@ -278,6 +495,37 @@
             "width": 256,
             "height": 256,
             "bytes": 131626
+          }
+        ]
+      },
+      "venomDart": {
+        "source": "venomDart.png",
+        "sourceSha256": "d960a8c1bd1a7fe04e627a571042761f4174c0b21ebad7fb5e8fe5bf2a8bead2",
+        "sourceWidth": 1254,
+        "sourceHeight": 1254,
+        "alpha": false,
+        "focalPoint": [
+          0.5,
+          0.5
+        ],
+        "exports": [
+          {
+            "file": "moves/venomDart-64.png",
+            "width": 64,
+            "height": 64,
+            "bytes": 7520
+          },
+          {
+            "file": "moves/venomDart-128.png",
+            "width": 128,
+            "height": 128,
+            "bytes": 25620
+          },
+          {
+            "file": "moves/venomDart-256.png",
+            "width": 256,
+            "height": 256,
+            "bytes": 90006
           }
         ]
       }
