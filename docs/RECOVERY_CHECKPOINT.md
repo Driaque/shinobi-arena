@@ -60,3 +60,17 @@ PR #57 head 68fc0c3 is mergeable and its build/unit CI passed. Reviewing the bro
 ## Wide landscape scenery fix
 
 Hosted artwork checks passed all four viewports and fallback; detailed fighter art passed. Screenshot inspection revealed dark side margins on the short/wide landscape camera. Expand painted scenery with its aspect ratio and combat ground anchor preserved to cover the visible camera in Canvas/Pixi/classic fallback. Add camera coverage/ground-anchor regression coverage. Scope original PNG assertion to Aren; optional hidden anime portraits still animate. Full CI/browser verification must rerun before release.
+
+## Local two-controller selection update
+
+Branch: fix/player-controller-selection, based on e3f4ac1 (v0.39.0 artwork).
+Scope: pad 1 edits only P1 and pad 2 only P2 in local versus with a second controller; independent cursors/focus, owned shared equipment dialogs, vertical/horizontal cursor-edge list scrolling. P1 controls shared stage/start actions. Editor remains one shared modal, not simultaneous two-player equipment editors. User also explicitly requested cursor auto-scrolling through character and other lists.
+Files: controller-ui.js, controller-cursor.js, loadouts.js, styles.css, packages/input/setup-ownership.js, ownership tests and gamepad browser suite. Version v0.39.1.
+Verification: 350 unit/integration tests and build passed locally; browser CI pending. Physical two-pad test pending. Render-only deployment policy retained.
+Next: publish branch/PR, run browser CI, merge after passing checks and verify exact deployed version/commit on Render /health. No PR or deployment created yet for this update. Approval scope: requested implementation; existing project approvals cover push, merge and Render-only deployment, subject to native tool approval review.
+
+Publishing outcome: automatic approval review rejected create_tree upload to Driaque/shinobi-arena, requiring explicit current authorization for this update's source publication. Remote branch fix/player-controller-selection was created at e3f4ac1 but contains no update commit yet. All source changes and tests are saved in the local branch. Final verification: 350 tests and build passed; browser CI has not run. Next approval must cover upload to Driaque/shinobi-arena, PR, merge after CI, and deployment only to the existing Render service. Do not regenerate artwork or repeat previous design work.
+
+Current authorization: user explicitly approved uploading this update, opening its PR, merging after successful CI, and deploying to Render only. Publication is now in progress. Read the final branch/PR state before resuming; earlier upload rejection is historical.
+
+Published PR: https://github.com/Driaque/shinobi-arena/pull/58 (fix/player-controller-selection). Initial source head: 25bb5998444e7578bf90dd23a08f40aa718dda42. Browser CI pending. Next: inspect PR #58 checks, fix any observed failure, merge approved work after success and verify v0.39.1 plus exact merged commit at the existing Render /health. No further approval is needed for that approved scope unless native approval review rejects an action.

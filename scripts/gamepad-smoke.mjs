@@ -56,6 +56,19 @@ try{
   await page.waitForSelector('.adventure-arena.controller-view');await page.waitForTimeout(250);
   assert.equal(await page.locator('#joystick').isVisible(),false);assert.match(await page.locator('#controller-hint').innerText(),/LB.*RB/);
   await page.screenshot({path:`test-results/controller-adventure-${viewport.width}.png`});assert.deepEqual(errors,[]);
+  // Local setup routes the second pad to P2 and protects the shared editor.
+  await page.goto('http://127.0.0.1:4207');await page.waitForFunction(()=>document.documentElement.dataset.gameReady==='true');await selectGame(page,'#mode','local');
+  await page.evaluate(()=>{window.testPads=[0,1].map(index=>({index,id:'Xbox '+index,connected:true,axes:[0,0,0,0],buttons:Array.from({length:16},()=>({pressed:false}))}));});
+  const press=async(slot,button)=>{await page.evaluate(({slot,button})=>window.testPads[slot].buttons[button].pressed=true,{slot,button});await page.waitForTimeout(80);await page.evaluate(({slot,button})=>window.testPads[slot].buttons[button].pressed=false,{slot,button});await page.waitForTimeout(60);};
+  await page.waitForFunction(()=>document.documentElement.dataset.setupControllers==='paired');
+  const p1=await page.locator('#character0 input:checked').inputValue();await press(1,13);await press(1,0);
+  assert.equal(await page.locator('#character1 input:checked').inputValue(),await page.locator('#character1 input').first().inputValue(),'pad 2 selects its own fighter');assert.equal(await page.locator('#character0 input:checked').inputValue(),p1);
+  const p2=await page.locator('#weapon1').inputValue();await page.locator('#weapon1').focus();await press(0,15);assert.equal(await page.locator('#weapon1').inputValue(),p2,'pad 1 cannot change P2 equipment');
+  await page.evaluate(()=>{document.querySelector('#game-menu').open=false;document.querySelector('#edit-loadout1').click();});
+  await press(0,1);assert.equal(await page.locator('#loadout-book').isVisible(),true,'pad 1 cannot cancel P2 editor');await press(1,1);assert.equal(await page.locator('#loadout-book').isVisible(),false,'pad 2 owns its editor');
+  // Both player cursors can appear independently while on the setup screen.
+  await page.evaluate(()=>{window.testPads[0].axes[0]=.5;window.testPads[1].axes[0]=-.5;});await page.waitForSelector('#controller-cursor:visible');await page.waitForSelector('#controller-cursor-p2:visible');await page.evaluate(()=>window.testPads.forEach(p=>p.axes=[0,0,0,0]));
+  assert.deepEqual(errors,[]);
   await context.close();
  }
  console.log('Controller mobile portrait/landscape and adventure checks passed');
