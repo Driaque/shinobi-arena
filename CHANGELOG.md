@@ -1,10 +1,15 @@
 # Release notes
 
+## 0.39.0
+
+- Add responsive painted PNG portraits for all ten originals and scenery for all five arenas.
+- Retire GitHub Pages publishing; verify production releases on Render only.
+
 ## 0.38.0
 
-- Add rich painted PNG selection portraits for all ten original fighters.
-- Add responsive painted stage previews and matching backgrounds across Canvas and PixiJS.
-- Keep PNG portraits at native display resolution, with lazy loading and procedural fallbacks.
+- Add a right-stick menu cursor with hover highlighting, selection, panel-edge scrolling and controller-friendly select options.
+- Keep D-pad focus navigation and combat aiming; hide the cursor when combat resumes or another input device takes over.
+- Add saved cursor speed under Feel settings.
 
 ## 0.37.1
 
