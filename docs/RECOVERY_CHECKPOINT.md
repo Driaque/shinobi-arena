@@ -19,10 +19,17 @@ Recovered verification: 342 tests and build passed in previous chat; no verified
 
 Merged current main efbd0e9 (controller menu cursor). Retained its v0.38.0 notes and moved artwork to v0.39.0. Retained both cursor CSS and painted portrait CSS. Removed Pages deploy workflow; release publishing now waits for Deploy Render.
 
+## Current verification and blocker
+
+Resume integration commit: 962770d6a430b6ff7ff4dcc15e919f5151ce0c3e.
+Fresh npm run verify passed: 345 tests, zero failures, syntax/release checks and v0.39.0 build. Portrait contact sheet visually inspected.
+Browser verification is incomplete: Playwright Chromium download returned truncated/non-ZIP data. The browser suites remain required in hosted CI before merge/deploy.
+
+The attempt to push feat/painted-roster-stages was blocked by automatic approval review. It interpreted the user instruction “not Driaque/shinobi arena” as forbidding source updates to Driaque/shinobi-arena as well as Pages publication. Do not retry through another route. Ask whether GitHub source pushes are allowed solely to feed the existing Render deployment, with Pages publishing removed.
+
 ## Next steps
 
-Run verification and browser checks, review images, commit and push, create PR, merge when checks pass, monitor existing Render deployment workflow, verify /health version and exact commit, then confirm matching GitHub Release. Record resulting IDs here.
-No new approval has been requested in this resumed session. User instructed continuing implementation and Render-only updates.
+After explicit clarification authorizing source pushes: push branch, create PR, complete hosted CI/browser checks, merge when passing, monitor Deploy Render, verify /health version and exact commit, confirm matching GitHub Release, record PR/deploy IDs here. No deployment has occurred in this resumed session.
 
 ## Limits
 
