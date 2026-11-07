@@ -35,3 +35,8 @@ test('polling with no controller preserves touch aim and cancelling a pad remove
 test('a replacement controller occupies the empty player slot without moving the surviving pad',()=>{
  const r=rig();r.adapter.poll();r.pads=[r.b];r.adapter.poll();const c={...r.a,index:3,id:'Replacement'};r.pads=[r.b,c];r.adapter.poll();assert.deepEqual(r.adapter.slots,[3,1]);
 });
+test('custom modifier bindings replace ability actions without leaking base actions',()=>{
+ const input=createInput(),pad={index:0,connected:true,axes:[],buttons:Array.from({length:16},(_,b)=>({pressed:b===5||b===0}))};
+ const adapter=createGamepads({inputs:[input,createInput()],settings:()=>({}),isPlaying:()=>true,isLocal:()=>false,onPause:()=>{},getPads:()=>[pad],abilityBindings:()=>({0:'jutsu7'})});
+ adapter.poll();const frame=input.consume();assert.equal(frame.jutsu7,true);assert.equal(frame.special1,false);assert.equal(frame.jump,false);
+});

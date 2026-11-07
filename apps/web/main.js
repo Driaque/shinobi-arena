@@ -252,12 +252,12 @@ function paintHud(){
   $('#timer').textContent=mode==='training'?'∞':Math.ceil(state.remainingTicks/TICK_RATE).toString().padStart(2,'0');
   $('#round').textContent=mode==='training'?'PRACTICE':`ROUND ${state.round.toString().padStart(2,'0')}`;
   const binding=(player,action)=>controls?.binding(player,action)??'Unbound';
-  const footer=document.querySelector('footer>span');
+  const footer=document.querySelector('#combat-help-footer>span');
   footer.textContent=`P1 ${binding(0,'left')}/${binding(0,'right')} move · ${binding(0,'jump')} ×2 jump · ${binding(0,'dashBack')}/${binding(0,'dashForward')} dash · ${binding(0,'attack')} basic · ${binding(0,'weapon')} weapon · ${binding(0,'block')} guard · ${binding(0,'special1')}/${binding(0,'special2')} jutsu · ${binding(0,'bloodline')} bloodline · ${binding(0,'replacement')} replace · ${binding(0,'awakening')} awaken · ${binding(0,'swapWeapon')} swap · ${binding(0,'cycleItem')}/${binding(0,'useItem')} item`;
   if(mode==='local')$('#overlay-hint').textContent=`P2 ${binding(1,'left')}/${binding(1,'right')} move · ${binding(1,'jump')} jump · ${binding(1,'dashBack')}/${binding(1,'dashForward')} dash · ${binding(1,'attack')} basic · ${binding(1,'weapon')} weapon · ${binding(1,'block')} guard · ${binding(1,'special1')}/${binding(1,'special2')} jutsu · ${binding(1,'bloodline')} bloodline · ${binding(1,'replacement')} replace`;
   if(mode==='local')$('#p2-help').textContent=`P2 ${binding(1,'left')}/${binding(1,'right')} move · ${binding(1,'jump')} jump · ${binding(1,'dashBack')}/${binding(1,'dashForward')} dash · ${binding(1,'attack')}/${binding(1,'weapon')} basic/weapon · ${binding(1,'block')} guard`;
   for(const action of ['jump','dashBack','dashForward','attack','block'])$(`[data-action="${action}"] small`).textContent=binding(0,action);
-  document.querySelector('footer>span:last-child').textContent=mode==='online'?'Online cannot pause · Leave match forfeits':'P / Esc pause';
+  document.querySelector('#combat-help-footer>span:last-child').textContent=mode==='online'?'Online cannot pause · Leave match forfeits':'P / Esc pause';
   trainingUI?.draw();techniqueTray?.draw();loadoutUI?.sync();
   if(mode==='online')$('#p2-help').textContent=`Your controls operate P${online.slot+1} · ${player.name}. Online matches keep running in menus.`;
   if(mode==='training')$('#p2-help').textContent='Training dummy · Practice configures behavior and challenges';
