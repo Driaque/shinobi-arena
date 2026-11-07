@@ -20,10 +20,12 @@ try{
   await page.waitForTimeout(250);const original=await box(),dock=await page.locator('.battle-view').evaluate(n=>parseFloat(getComputedStyle(n).bottom));
   await page.evaluate(()=>{window.testPads[0].buttons[4].pressed=true;});
   await page.waitForSelector('.arena.controller-view');await page.waitForTimeout(250);
-  assert.ok((await box()).height>original.height+100,'controller reclaims the dock');assert.equal(await page.locator('#joystick').isVisible(),false);assert.equal(await page.locator('#combat-techniques').isVisible(),true);
+  assert.ok((await box()).height>original.height+50,'controller reclaims most of the dock');const rail=await page.locator('#combat-techniques').boundingBox();assert.ok(rail.y>=(await box()).y+(await box()).height,'shortcuts sit below the rendered battlefield');assert.equal(await page.locator('#joystick').isVisible(),false);assert.equal(await page.locator('#combat-techniques').isVisible(),true);
   assert.match(await page.locator('#controller-hint').innerText(),/L1.*R1/);
   const geometry=await page.locator('#combat-techniques').evaluate(strip=>{const box=strip.getBoundingClientRect();return Array.from(strip.querySelectorAll('button:not([hidden]) .jutsu-status')).filter(n=>n.getClientRects().length).every(n=>{const b=n.getBoundingClientRect();return b.top>=box.top&&b.bottom<=box.bottom+1;});});assert.equal(geometry,true,'controller bindings and cooldown labels remain inside the strip');
   await page.screenshot({path:`test-results/controller-${viewport.width}.png`});
+  const header=await page.locator('.topbar').boundingBox();await page.locator('#navigation-toggle').click();assert.equal(await page.locator('#navigation-toggle').getAttribute('aria-expanded'),'false');assert.ok((await page.locator('.topbar').boundingBox()).height<=header.height);await page.locator('#navigation-toggle').click();
+  assert.equal(await page.locator('#resources-dialog .release-link').count(),1);
   // A held controller must not take the layout back from an intentional touch.
   await page.locator('#canvas').tap({position:{x:20,y:20}});await page.waitForTimeout(250);
   assert.equal(await page.locator('#joystick').isVisible(),true);assert.ok(Math.abs(await page.locator('.battle-view').evaluate(n=>parseFloat(getComputedStyle(n).bottom))-dock)<2,'touch restores its full dock reservation even if the connection indicator wraps the header');
@@ -36,6 +38,7 @@ try{
   const pulse=async button=>{await page.evaluate(button=>{window.testPads[0].buttons[button].pressed=false;},button);await page.waitForTimeout(50);await page.evaluate(button=>{window.testPads[0].buttons[button].pressed=true;},button);await page.waitForTimeout(80);await page.evaluate(button=>{window.testPads[0].buttons[button].pressed=false;},button);await page.waitForTimeout(50);};
   await page.locator('#game-settings > summary').focus();await pulse(0);assert.equal(await page.locator('#game-settings').getAttribute('open')!==null,true);
   await page.locator('#experience-settings').focus();await pulse(0);assert.equal(await page.locator('#experience-dialog').isVisible(),true);
+  await page.locator('#controller-mapping summary').click();const layer=page.locator('[data-pad-ability=0]');await layer.selectOption('jutsu7');assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('fabled.pad.abilities.v1'))[0]),'jutsu7');await layer.selectOption('special1');
   const slider=page.locator('[data-experience=deadZone]'),before=Number(await slider.inputValue());await slider.focus();await pulse(15);assert.ok(Number(await slider.inputValue())>before,'D-pad changes a focused sensitivity slider');
   await pulse(1);assert.equal(await page.locator('#experience-dialog').isVisible(),false);
   // Simulated disconnection immediately restores the touch deck.

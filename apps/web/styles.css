@@ -260,3 +260,16 @@ label:has(select){cursor:pointer}label:has(select)>select{flex:1;min-width:0}
 .arena.controller-view:not(.editing-controls) #combat-techniques .jutsu-name{display:none}
 .arena.controller-view:not(.editing-controls) #combat-techniques .jutsu-status{font-size:8px;line-height:14px;white-space:nowrap}
 .training-mode .arena.controller-view:not(.editing-controls) #training-coach{top:116px;bottom:auto;left:12px;right:12px;max-width:440px;max-height:58px;overflow:auto}
+
+/* A separate 64px information rail keeps shortcuts below the rendered fight. */
+.arena.controller-view:not(.editing-controls) .battle-view{bottom:64px!important}
+.arena.controller-view:not(.editing-controls) #combat-techniques{bottom:17px;height:44px;background:#091523}
+.arena.controller-view:not(.editing-controls) #controller-hint{bottom:2px;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.arena.controller-view:not(.editing-controls)::after{content:'';position:absolute;z-index:1;bottom:0;left:0;right:0;height:64px;background:#091523;border-top:1px solid #40576b;pointer-events:none}
+#navigation-toggle{min-height:30px;padding:6px 10px;font-size:10px}
+.navigation-collapsed>.brand,.navigation-collapsed .tools>:not(#navigation-toggle):not(#pause):not(#fullscreen){display:none!important}
+.navigation-collapsed .tools{width:100%;justify-content:flex-end!important;gap:5px}
+.navigation-collapsed{min-height:32px!important;margin-bottom:4px!important;padding-bottom:0!important}
+#resources-dialog .release-link{display:flex!important;flex-direction:column;gap:14px;font-size:13px;line-height:1.7}
+#resources-dialog #help{display:block!important;margin:16px 0}
+#resources-dialog footer{display:flex!important;flex-direction:column;line-height:1.6}

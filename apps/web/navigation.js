@@ -6,8 +6,13 @@ export function createNavigation({hub,isBusy=()=>false}){
  const menu=group('game-menu','Menu'),settings=group('game-settings','Settings');
  for(const selector of ['.adventures-link','#account-profile','.mode-label','#arena-hub']){const node=tools.querySelector(selector);if(node)menu.panel.append(node);}
  const ranking=document.createElement('button');ranking.id='rankings';ranking.textContent='Rankings';ranking.onclick=()=>hub.open('leaderboard');menu.panel.querySelector('#account-profile').after(ranking);
- for(const selector of ['.difficulty-label','#control-settings','#audio-settings','#graphics-settings','#experience-settings','#training-settings','#training-reset']){const node=tools.querySelector(selector);if(node)settings.panel.append(node);}
+ for(const selector of ['.difficulty-label','#control-settings','#audio-settings','#graphics-settings','#experience-settings','#controller-settings','#training-settings','#training-reset']){const node=tools.querySelector(selector);if(node)settings.panel.append(node);}
  tools.prepend(menu.details,settings.details);
+ const resources=document.createElement('dialog');resources.id='resources-dialog';resources.className='keys-dialog';resources.innerHTML='<header class="keys-header"><h2>Help & updates</h2><button type="button">Done</button></header>';
+ for(const selector of ['.release-link','#help','#combat-help-footer']){const node=document.querySelector(selector);if(node)resources.append(node);}
+ document.body.append(resources);resources.querySelector('header button').onclick=()=>resources.close();
+ const updates=document.createElement('button');updates.id='help-updates';updates.textContent='Help & updates';updates.onclick=()=>resources.showModal();menu.panel.append(updates);
+
  function placePanels(){for(const g of [menu,settings])if(g.details.open){const v=window.visualViewport,r=g.details.querySelector('summary').getBoundingClientRect(),left=v?.offsetLeft??0,top=v?.offsetTop??0,width=v?.width??innerWidth,height=v?.height??innerHeight;const y=Math.min(r.bottom+6,top+height-60);Object.assign(g.panel.style,{position:'fixed',left:Math.max(left+8,Math.min(r.left,left+width-Math.min(300,width-16)-8))+'px',right:'auto',top:y+'px',width:Math.min(300,width-16)+'px',maxHeight:Math.max(44,top+height-y-8)+'px'});}}
  for(const g of [menu,settings])g.details.addEventListener('toggle',placePanels);
  window.addEventListener('resize',placePanels);window.addEventListener('scroll',placePanels,true);window.visualViewport?.addEventListener('resize',placePanels);

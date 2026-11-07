@@ -1,5 +1,11 @@
 # Release notes
 
+## 0.37.1
+
+- Keep controller shortcuts in a separate rail below the rendered fight.
+- Add saved collapsible navigation and move help, release notes and extra links into Menu → Help & updates.
+- Add a direct Controller bindings entry, named physical buttons and customizable ability-modifier bindings.
+
 ## 0.37.0
 
 - Controller input expands the battle view by reclaiming the touch dock; touch restores it immediately.

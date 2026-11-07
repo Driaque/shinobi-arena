@@ -5,7 +5,7 @@ export function padIntent(pad,{deadZone=.18,sensitivity=1}={}){
  const axis=n=>{const v=Number.isFinite(pad.axes?.[n])?pad.axes[n]:0;return Math.abs(v)<=deadZone?0:Math.sign(v)*Math.min(1,(Math.abs(v)-deadZone)/(1-deadZone)*sensitivity);};
  return {moveX:axis(0),moveZ:axis(1),aimX:axis(2),aimZ:axis(3),buttons:Array.from({length:Math.max(16,pad.buttons?.length??0)},(_,i)=>Boolean(pad.buttons?.[i]?.pressed||pad.buttons?.[i]?.value>.5))};
 }
-export function createGamepads({inputs,settings,isPlaying,isLocal,onPause,onActivity=()=>{},onConnection=()=>{},onMenu=()=>{},bindings=()=>PAD_DEFAULTS,getPads=()=>navigator.getGamepads?.()??[],isFocused=()=>true}){
+export function createGamepads({inputs,settings,isPlaying,isLocal,onPause,onActivity=()=>{},onConnection=()=>{},onMenu=()=>{},bindings=()=>PAD_DEFAULTS,abilityBindings=()=>PAD_ABILITIES,getPads=()=>navigator.getGamepads?.()??[],isFocused=()=>true}){
  const slots=[null,null],previous=new Map(),blocked=[new Set(),new Set()];
  const release=i=>{inputs[i].cancelSources(source=>String(source).startsWith(`pad:${i}:`));};
  return {poll(){
@@ -25,7 +25,7 @@ export function createGamepads({inputs,settings,isPlaying,isLocal,onPause,onActi
    const shift=intent?.buttons.some((down,b)=>down&&map[b]==='abilities');
    if(old&&!old.playing&&playing)intent.buttons.forEach((down,b)=>{if(down&&old.intent?.buttons[b])blocked[i].add(b);});
    intent?.buttons.forEach((down,b)=>{if(!down)blocked[i].delete(b);});
-   const actions=playing?intent.buttons.map((down,b)=>down&&!blocked[i].has(b)?(shift?PAD_ABILITIES[b]:map[b]):null):[];
+   const actions=playing?intent.buttons.map((down,b)=>down&&!blocked[i].has(b)?(shift?abilityBindings()[b]:map[b]):null):[];
    for(let b=0;b<Math.max(16,old?.actions?.length??0,actions.length);b++){
     const source=`pad:${i}:${b}`,action=actions[b];
     if(old?.actions?.[b]!==action)inputs[i].release(source);

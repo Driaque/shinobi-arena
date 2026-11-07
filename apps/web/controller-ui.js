@@ -1,5 +1,5 @@
 import {createGamepads,PAD_ABILITIES} from './packages/input/gamepad.js';
-import {experience,padBindings} from './experience.js';
+import {experience,padBindings,padAbilityBindings} from './experience.js';
 
 const XBOX=['A','B','X','Y','LB','RB','LT','RT','View','Menu','LS','RS','↑','↓','←','→'];
 const PLAYSTATION=['✕','○','□','△','L1','R1','L2','R2','Create','Options','L3','R3','↑','↓','←','→'];
@@ -8,11 +8,17 @@ export function controllerBinding(action){
  if(document.documentElement.dataset.inputMethod!=='controller'||!activePad)return null;
  const labels=/dualsense|dualshock|playstation|054c|sony/i.test(activePad.id)?PLAYSTATION:XBOX,map=padBindings();
  const index=map.indexOf(action);if(index>=0)return labels[index];
- const modifier=map.indexOf('abilities'),button=Object.keys(PAD_ABILITIES).find(b=>PAD_ABILITIES[b]===action);
+ const modifier=map.indexOf('abilities'),button=Object.keys(padAbilityBindings()).find(b=>padAbilityBindings()[b]===action);
  return modifier>=0&&button!==undefined?`${labels[modifier]}+${labels[button]}`:'Unbound';
 }
 export function createControllerUI({inputs,isPlaying,isLocal,onPause}){
  const root=document.documentElement,arena=document.querySelector('.arena'),connected=new Map();
+ const header=document.querySelector('.topbar')??document.querySelector('#game > header'),tools=document.querySelector('.tools');
+ const collapse=document.createElement('button');collapse.id='navigation-toggle';collapse.type='button';
+ let collapsed=false;try{collapsed=localStorage.getItem('fabled.navigation.collapsed')==='true';}catch{}
+ const fold=()=>{header.classList.toggle('navigation-collapsed',collapsed);collapse.textContent=collapsed?'Show navigation':'Hide navigation';collapse.setAttribute('aria-expanded',String(!collapsed));};
+ collapse.onclick=()=>{collapsed=!collapsed;fold();try{localStorage.setItem('fabled.navigation.collapsed',String(collapsed));}catch{}};tools.prepend(collapse);fold();
+
  let method='touch',lastMenu=0,navAxis=0,awaitNeutral=false;
  const status=document.createElement('span');status.id='controller-status';status.setAttribute('role','status');status.hidden=true;document.querySelector('.tools').append(status);
  const hint=document.createElement('div');hint.id='controller-hint';hint.setAttribute('aria-label','Controller shortcuts');arena.append(hint);
@@ -25,7 +31,7 @@ export function createControllerUI({inputs,isPlaying,isLocal,onPause}){
   status.textContent=connected.size?`${type} connected${connected.size>1?' · 2 pads':''}`:'';
   hint.textContent=method==='controller'?`Move: left stick · Jump ${controllerBinding('jump')} · Attack ${controllerBinding('attack')} · Guard ${controllerBinding('block')} · Abilities: hold ${controllerBinding('abilities')} · Pause ${controllerBinding('pause')}`:'';
  }
- const gamepads=createGamepads({inputs,settings:experience,bindings:padBindings,isPlaying,isLocal,onPause,
+ const gamepads=createGamepads({inputs,settings:experience,bindings:padBindings,abilityBindings:padAbilityBindings,isPlaying,isLocal,onPause,
   isFocused:()=>!document.hidden&&document.hasFocus(),
   onConnection(slot,pad){if(pad)connected.set(slot,pad);else connected.delete(slot);if(!pad&&activePad?.index===gamepads.slots[slot]){activePad=null;method='touch';}apply();},
   onActivity(slot,pad){const changed=activePad?.id!==pad.id;activePad=pad;if(method!=='controller'||changed){method='controller';apply();}},
