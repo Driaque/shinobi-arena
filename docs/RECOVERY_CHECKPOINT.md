@@ -60,3 +60,13 @@ PR #57 head 68fc0c3 is mergeable and its build/unit CI passed. Reviewing the bro
 ## Wide landscape scenery fix
 
 Hosted artwork checks passed all four viewports and fallback; detailed fighter art passed. Screenshot inspection revealed dark side margins on the short/wide landscape camera. Expand painted scenery with its aspect ratio and combat ground anchor preserved to cover the visible camera in Canvas/Pixi/classic fallback. Add camera coverage/ground-anchor regression coverage. Scope original PNG assertion to Aren; optional hidden anime portraits still animate. Full CI/browser verification must rerun before release.
+
+## Completed production delivery, 2026-11-07
+
+PR #57 merged as e3f4ac146a32cb8138900e56d3d893fd124445f3 (v0.39.0). PR CI run 42419780937 and main CI run 42420335924 passed every group. 347 unit/integration tests and build passed; browser coverage includes all ten portrait PNGs, five stages, four viewports, image-failure fallback, Canvas/Pixi, controller/touch/gameplay suites. Final landscape evidence visually confirms no background side margins.
+
+Deploy Render workflow 42420872649 completed successfully. /health confirmed ok=true, storageHealthy=true, version=0.39.0 and commit=e3f4ac146a32cb8138900e56d3d893fd124445f3. Live manifest contains ten portraits/five stages; sampled Silent portrait and Sunken Court PNG bytes match tested files. Production remains exclusively https://shinobi-arena-online.onrender.com.
+
+GitHub release https://github.com/Driaque/shinobi-arena/releases/tag/v0.39.0 published and visually verified against exact commit e3f4ac1. Used the signed-in GitHub website because the connector lacks release creation. Existing release automation incorrectly selects a later skipped Deploy Render run instead of the earlier successful deployment; this release was published manually after independent CI/health verification. That automation defect remains for a focused future fix.
+
+This final checkpoint is saved on the already-merged feature branch without changing main or triggering another production deployment. No further artwork generation or deployment is needed for this update.
