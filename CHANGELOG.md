@@ -1,5 +1,12 @@
 # Release notes
 
+## 0.38.1
+
+- Move the menu cursor and panel-edge scrolling to the left stick.
+- Reserve D-pad for keyboard-style focus navigation, with held-button repeat.
+- Keep battle movement and right-stick aiming unchanged.
+- Publish production updates on Render only; release notes follow verified Render deployment.
+
 ## 0.38.0
 
 - Add a right-stick menu cursor with hover highlighting, selection, panel-edge scrolling and controller-friendly select options.
