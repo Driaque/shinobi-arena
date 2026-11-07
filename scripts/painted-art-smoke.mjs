@@ -21,12 +21,12 @@ try{
    const card=page.locator(`.stage-card[data-stage=${id}]`);await card.scrollIntoViewIfNeeded();await card.locator('img').evaluate(img=>img.decode());
    assert.ok(await card.locator('img').evaluate(img=>img.naturalWidth>0));
   }
-  await page.locator('[data-stage=court]').click();await page.click('#play');
-  await page.waitForFunction(()=>document.querySelector('[data-practice-art=pixi]')?.dataset.paintedStage==='court'||document.querySelector('[data-practice-art=canvas]')?.dataset.paintedStage==='court');
+  await page.locator('.stage-card[data-stage=court]').click();await page.click('#play');
+  await page.waitForFunction(()=>document.querySelector('#canvas')?.dataset.paintedStage==='court');
   await page.screenshot({path:`test-results/painted-art-${viewport.width}x${viewport.height}.png`});
   assert.deepEqual(errors,[]);await context.close();
  }
  // A failed thumbnail keeps stage selection playable using procedural scenery.
- const page=await browser.newPage();await page.route('**/painted-v1/stages/forge-*.png',route=>route.abort());await page.goto('http://127.0.0.1:4227');await page.click('#entry-guest');await page.click('#play');await page.locator('[data-stage=forge]').scrollIntoViewIfNeeded();await page.locator('[data-stage=forge] svg').waitFor();await page.locator('[data-stage=forge]').click();assert.equal(await page.locator('[data-stage=forge]').getAttribute('aria-pressed'),'true');
+ const page=await browser.newPage();await page.route('**/painted-v1/stages/forge-*.png',route=>route.abort());await page.goto('http://127.0.0.1:4227');await page.click('#entry-guest');await page.click('#play');await page.locator('.stage-card[data-stage=forge]').scrollIntoViewIfNeeded();await page.locator('[data-stage=forge] svg').waitFor();await page.locator('.stage-card[data-stage=forge]').click();assert.equal(await page.locator('.stage-card[data-stage=forge]').getAttribute('aria-pressed'),'true');
  console.log('Painted art: ten original PNG portraits, five stage previews, four viewports, live painted stage and failed-image fallback passed.');
 }finally{await browser?.close();server.kill();}
