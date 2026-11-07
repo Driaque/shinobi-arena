@@ -22,6 +22,7 @@ try{
   await page.waitForSelector('.arena.controller-view');await page.waitForTimeout(250);
   assert.ok((await box()).height>original.height+100,'controller reclaims the dock');assert.equal(await page.locator('#joystick').isVisible(),false);assert.equal(await page.locator('#combat-techniques').isVisible(),true);
   assert.match(await page.locator('#controller-hint').innerText(),/L1.*R1/);
+  const geometry=await page.locator('#combat-techniques').evaluate(strip=>{const box=strip.getBoundingClientRect();return Array.from(strip.querySelectorAll('button:not([hidden]) .jutsu-status')).filter(n=>n.getClientRects().length).every(n=>{const b=n.getBoundingClientRect();return b.top>=box.top&&b.bottom<=box.bottom+1;});});assert.equal(geometry,true,'controller bindings and cooldown labels remain inside the strip');
   await page.screenshot({path:`test-results/controller-${viewport.width}.png`});
   // A held controller must not take the layout back from an intentional touch.
   await page.locator('#canvas').tap({position:{x:20,y:20}});await page.waitForTimeout(250);

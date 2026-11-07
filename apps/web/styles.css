@@ -253,3 +253,10 @@ label:has(select){cursor:pointer}label:has(select)>select{flex:1;min-width:0}
 
 .battle-view{transition:bottom 160ms ease-out}
 @media(prefers-reduced-motion:reduce){.battle-view{transition:none}}
+/* Keep cooldown labels fully visible inside the compact controller strip. */
+.arena.controller-view:not(.editing-controls) #combat-techniques{bottom:30px;height:44px;gap:3px;justify-content:center;transform:none}
+.arena.controller-view:not(.editing-controls) #combat-techniques button{flex:1 1 0;min-width:28px;max-width:90px;width:auto;height:44px;grid-template-rows:22px 14px;padding:2px}
+.arena.controller-view:not(.editing-controls) #combat-techniques .technique-art{width:22px;height:22px}
+.arena.controller-view:not(.editing-controls) #combat-techniques .jutsu-name{display:none}
+.arena.controller-view:not(.editing-controls) #combat-techniques .jutsu-status{font-size:8px;line-height:14px;white-space:nowrap}
+.training-mode .arena.controller-view:not(.editing-controls) #training-coach{top:116px;bottom:auto;left:12px;right:12px;max-width:440px;max-height:58px;overflow:auto}
