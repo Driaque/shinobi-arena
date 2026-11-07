@@ -48,3 +48,7 @@ Source push was blocked again by automatic approval review: it classified public
 ## Git authentication attempt
 
 User explicitly approved source push, merge after successful checks, and Render-only deployment in this conversation. User completed GitHub CLI device authorization. The CLI token-polling request to https://api.github.com:443 was blocked by workspace network policy; gh auth status confirms no authenticated GitHub host. No token was stored. Do not claim authentication succeeded. User requested avoiding the Blob upload tool; do not resume Blob uploads. Existing committed artwork remains ready locally. Authentication requires an environment allowed to reach GitHub's API, or moving the prepared changes to an authenticated local checkout.
+
+## Source uploaded and PR opened
+
+User pushed the packaged branch successfully. PR #57: https://github.com/Driaque/shinobi-arena/pull/57. Head before conflict resolution: 252461569b1506c265e27519f29e526fff484d71. Merge current main 66438c57a989f7fa55b5b0fe8471ef3635bf61e4, preserving the artwork branch's v0.39.0 metadata and removed Pages workflow. Controller implementation matches main; merge resolution changes no runtime code. Publish merge commit through connected GitHub service without Blob uploads. CI/browser checks and Render deployment remain pending.
