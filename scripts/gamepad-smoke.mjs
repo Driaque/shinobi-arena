@@ -38,7 +38,7 @@ try{
   const pulse=async button=>{await page.evaluate(button=>{window.testPads[0].buttons[button].pressed=false;},button);await page.waitForTimeout(50);await page.evaluate(button=>{window.testPads[0].buttons[button].pressed=true;},button);await page.waitForTimeout(80);await page.evaluate(button=>{window.testPads[0].buttons[button].pressed=false;},button);await page.waitForTimeout(50);};
   await page.locator('#game-settings > summary').focus();await pulse(0);assert.equal(await page.locator('#game-settings').getAttribute('open')!==null,true);
   await page.locator('#experience-settings').focus();await pulse(0);assert.equal(await page.locator('#experience-dialog').isVisible(),true);
-  await page.locator('#controller-mapping summary').click();const layer=page.locator('[data-pad-ability=0]');await layer.selectOption('jutsu7');assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('fabled.pad.abilities.v1'))[0]),'jutsu7');await layer.selectOption('special1');
+  await page.locator('#controller-mapping summary').click();const layer=page.locator('[data-pad-ability="0"]');await layer.selectOption('jutsu7');assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('fabled.pad.abilities.v1'))[0]),'jutsu7');await layer.selectOption('special1');
   const slider=page.locator('[data-experience=deadZone]'),before=Number(await slider.inputValue());await slider.focus();await pulse(15);assert.ok(Number(await slider.inputValue())>before,'D-pad changes a focused sensitivity slider');
   await pulse(1);assert.equal(await page.locator('#experience-dialog').isVisible(),false);
   // Simulated disconnection immediately restores the touch deck.
