@@ -1,3 +1,4 @@
+import {createControllerCursor} from './controller-cursor.js';
 import {createGamepads,PAD_ABILITIES} from './packages/input/gamepad.js';
 import {experience,padBindings,padAbilityBindings} from './experience.js';
 
@@ -19,10 +20,12 @@ export function createControllerUI({inputs,isPlaying,isLocal,onPause}){
  const fold=()=>{header.classList.toggle('navigation-collapsed',collapsed);collapse.textContent=collapsed?'Show navigation':'Hide navigation';collapse.setAttribute('aria-expanded',String(!collapsed));};
  collapse.onclick=()=>{collapsed=!collapsed;fold();try{localStorage.setItem('fabled.navigation.collapsed',String(collapsed));}catch{}};tools.prepend(collapse);fold();
 
+ const pointer=createControllerCursor({settings:experience});
  let method='touch',lastMenu=0,navAxis=0,awaitNeutral=false;
  const status=document.createElement('span');status.id='controller-status';status.setAttribute('role','status');status.hidden=true;document.querySelector('.tools').append(status);
  const hint=document.createElement('div');hint.id='controller-hint';hint.setAttribute('aria-label','Controller shortcuts');arena.append(hint);
  function apply(){
+  if(method!=='controller')pointer.hide();
   root.dataset.inputMethod=method;
   const immersive=method==='controller'&&connected.size>0&&!experience().showTouchWithController;
   arena.classList.toggle('controller-view',immersive);
@@ -33,15 +36,17 @@ export function createControllerUI({inputs,isPlaying,isLocal,onPause}){
  }
  const gamepads=createGamepads({inputs,settings:experience,bindings:padBindings,abilityBindings:padAbilityBindings,isPlaying,isLocal,onPause,
   isFocused:()=>!document.hidden&&document.hasFocus(),
-  onConnection(slot,pad){if(pad)connected.set(slot,pad);else connected.delete(slot);if(!pad&&activePad?.index===gamepads.slots[slot]){activePad=null;method='touch';}apply();},
+  onConnection(slot,pad){if(!pad)pointer.hide();if(pad)connected.set(slot,pad);else connected.delete(slot);if(!pad&&activePad?.index===gamepads.slots[slot]){activePad=null;method='touch';}apply();},
   onActivity(slot,pad){const changed=activePad?.id!==pad.id;activePad=pad;if(method!=='controller'||changed){method='controller';apply();}},
   onMenu({slot,intent,fresh}){
    if(slot!==0)return;
+   if(method!=='controller'){pointer.hide();return;}
    const x=intent.moveX,y=intent.moveZ;
    const direction=fresh[12]?-1:fresh[13]?1:fresh[14]?-1:fresh[15]?1:Math.abs(y)>.55?Math.sign(y):Math.abs(x)>.55?Math.sign(x):0;
    const modal=document.querySelector('dialog[open]'),overlay=document.querySelector('#overlay:not([hidden])'),scope=modal??document;
    const nodes=Array.from(scope.querySelectorAll('button:not(:disabled),a[href],summary,select:not(:disabled),input:not(:disabled),[tabindex="0"]')).filter(n=>n.getClientRects().length&&!n.closest('[hidden],[inert]')&&(!overlay||modal||!n.closest('.arena')||overlay.contains(n)));
    if(!nodes.length)return;
+   if(direction)pointer.hide();else pointer.tick(intent,scope);
    const current=document.activeElement,now=performance.now();
    if(direction&&(direction!==navAxis||now-lastMenu>220)){
     // A focused native select changes value without requiring a pointer.
@@ -55,12 +60,12 @@ export function createControllerUI({inputs,isPlaying,isLocal,onPause}){
     lastMenu=now;
    }
    navAxis=direction;
-   if(fresh[0]||fresh[9]){
+   if((fresh[0]||fresh[9])&&!pointer.activate()){
     const target=nodes.includes(current)?current:nodes[0];target.focus();
     if(target.tagName==='SELECT'){target.blur();nodes[(nodes.indexOf(target)+1)%nodes.length]?.focus();}
     else target.click();
    }
-   if(fresh[1]){
+   if(fresh[1]&&!pointer.back()){
     const dialog=document.querySelector('dialog[open]');
     if(dialog){const event=new Event('cancel',{cancelable:true});if(dialog.dispatchEvent(event))dialog.close();}
     else if(arena.classList.contains('editing-controls'))document.querySelector('#cancel-controls').click();
@@ -69,13 +74,14 @@ export function createControllerUI({inputs,isPlaying,isLocal,onPause}){
   }
  });
  function useTouch(event){if(event.pointerType!=='touch')return;method='touch';apply();}
- document.addEventListener('pointerdown',useTouch,true);
+ document.addEventListener('pointerdown',event=>{pointer.hide();useTouch(event);},true);document.addEventListener('pointermove',event=>{if(event.isTrusted&&event.pointerType==='mouse'&&method==='controller'){method='mouse';apply();}},true);
  window.addEventListener('keydown',event=>{if(event.isTrusted&&method==='controller'){method='keyboard';apply();}},true);
  window.addEventListener('arena:experience',apply);window.addEventListener('arena:pad-map',apply);
  window.addEventListener('blur',()=>{gamepads.reset();awaitNeutral=true;method='touch';apply();});
  document.addEventListener('visibilitychange',()=>{if(document.hidden){gamepads.reset();awaitNeutral=true;method='touch';apply();}});
  apply();
  return {poll(){
+  if(isPlaying()||document.hidden||!document.hasFocus())pointer.hide();
   // Require release after returning from background, so a held attack cannot resume.
   if(awaitNeutral){let pads=[];try{pads=Array.from(navigator.getGamepads?.()??[]);}catch{}if(pads.some(p=>p?.connected&&(p.buttons.some(b=>b.pressed)||p.axes.some(a=>Math.abs(a)>.4))))return;awaitNeutral=false;}
   gamepads.poll();

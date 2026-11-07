@@ -41,6 +41,12 @@ try{
   await page.locator('#controller-mapping summary').click();const layer=page.locator('[data-pad-ability="0"]');await layer.selectOption('jutsu7');assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('fabled.pad.abilities.v1'))[0]),'jutsu7');await layer.selectOption('special1');
   const slider=page.locator('[data-experience=deadZone]'),before=Number(await slider.inputValue());await slider.focus();await pulse(15);assert.ok(Number(await slider.inputValue())>before,'D-pad changes a focused sensitivity slider');
   await pulse(1);assert.equal(await page.locator('#experience-dialog').isVisible(),false);
+  // Right-stick cursor selects an actual modal button and disappears in combat.
+  await page.evaluate(()=>document.querySelector('#experience-settings').click());
+  await page.evaluate(()=>{document.querySelector('#experience-close').scrollIntoView({block:'center'});window.testPads[0].axes[2]=.7;});await page.waitForSelector('#controller-cursor:visible');
+  await page.evaluate(()=>new Promise(resolve=>{const timer=setInterval(()=>{const cursor=document.querySelector('#controller-cursor').getBoundingClientRect(),button=document.querySelector('#experience-close').getBoundingClientRect(),dx=button.x+button.width/2-(cursor.x+cursor.width/2),dy=button.y+button.height/2-(cursor.y+cursor.height/2);const axis=d=>Math.abs(d)<6?0:Math.sign(d)*Math.max(.38,Math.min(.8,Math.abs(d)/100));window.testPads[0].axes[2]=axis(dx);window.testPads[0].axes[3]=axis(dy);if(Math.abs(dx)<8&&Math.abs(dy)<8){window.testPads[0].axes[2]=window.testPads[0].axes[3]=0;clearInterval(timer);resolve();}},30);setTimeout(()=>{clearInterval(timer);resolve();},12000);}));
+  await page.waitForFunction(()=>document.querySelector('#experience-close').classList.contains('controller-hover'));await pulse(0);assert.equal(await page.locator('#experience-dialog').isVisible(),false);
+  await page.evaluate(()=>document.querySelector('#play').click());await page.waitForTimeout(100);assert.equal(await page.locator('#controller-cursor').isVisible(),false,'combat keeps the right stick for aiming');
   // Simulated disconnection immediately restores the touch deck.
   await page.evaluate(()=>window.testPads=[]);await page.waitForFunction(()=>!document.querySelector('.arena').classList.contains('controller-view'));
   assert.equal(await page.locator('#joystick').isVisible(),true);assert.deepEqual(errors,[]);
