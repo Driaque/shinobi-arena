@@ -94,3 +94,12 @@ Published PR: https://github.com/Driaque/shinobi-arena/pull/58 (fix/player-contr
 Merged origin/main d007b0960c14d74c1fcdd1543275acb6a4adc221 into feat/painted-move-icons (original head 673bd1078f8567be079d7eef103fcc4cfafa5abe). Kept v0.40.0 original-world artwork and release/help text; retained v0.39.1 controller ownership, scrolling, tests and release history. User authorized resolving and publishing the conflict fix. npm run verify passed: 354 tests and v0.40.0 build; git diff --cached --check passed. Local browser smoke blocked by missing Chromium and corrupt download response; hosted browser CI must pass before merge. This action does not merge PR #60 or deploy. Next: inspect CI and mergeability at https://github.com/Driaque/shinobi-arena/pull/60.
 
 PR #60 deployment authorized by user. Hosted browser gates exposed stale renamed roster filter, hidden-portrait count, move labels and replay rules assertions. Corrected those checks and Future filter disabled-state logic; 354 tests/build passed. Hosted CI must rerun. Render workspace selection awaiting confirmation of My Workspace (tea-dbgua0etlv9c73ddk47g). No merge/deployment yet.
+
+## Right-stick menu scrolling update
+
+Branch: fix/right-stick-menu-scroll, based on c88fd3342dba51999c356c4b2df9470b4d901f14 (v0.40.0). Version v0.40.1.
+User requested right analog scrolling. Left stick remains cursor-only; D-pad remains focus navigation. Right stick scrolls the hovered list or focused control's container on both axes, preserving per-pad ownership. Cursor-edge scrolling removed. Combat aiming unchanged.
+Files: controller-cursor.js, controller-ui.js, packages/input/cursor.js, cursor tests and gamepad browser suite. No art regenerated.
+Checks: local verify pending final result; browser CI pending. Next: publish branch/PR, verify CI, merge within approved project scope and confirm exact Render /health version/commit. Render-only policy retained. PR/deployment IDs not yet assigned.
+
+Right-stick scrolling publication: PR https://github.com/Driaque/shinobi-arena/pull/61. Initial source head cca5e55dcf531f0aaf71da270a04c4430c6dd69d. Local verify passed: 356 tests and production build. Browser CI pending. User requested this control adjustment; prior project authorization covers publication, merge after CI, and Render-only deployment. Next: inspect PR #61 latest checks, resolve observed failures, merge and verify exact Render version/commit. Do not regenerate assets. If resuming after a completed merge, inspect main and /health instead of republishing the feature.

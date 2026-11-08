@@ -41,6 +41,11 @@ try{
   await page.locator('#controller-mapping summary').click();const layer=page.locator('[data-pad-ability="0"]');await layer.selectOption('jutsu7');assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('fabled.pad.abilities.v1'))[0]),'jutsu7');await layer.selectOption('special1');
   const slider=page.locator('[data-experience=deadZone]'),before=Number(await slider.inputValue());await slider.focus();await pulse(15);assert.ok(Number(await slider.inputValue())>before,'D-pad changes a focused sensitivity slider');
   await pulse(1);assert.equal(await page.locator('#experience-dialog').isVisible(),false);
+  // Right stick scrolls a focused menu without moving/showing the left-stick cursor.
+  await page.evaluate(()=>{document.querySelector('#experience-settings').click();document.querySelector('[data-experience=deadZone]').focus();document.querySelector('#experience-dialog').scrollTop=0;window.testPads[0].axes[3]=1;});
+  await page.waitForFunction(()=>document.querySelector('#experience-dialog').scrollTop>15);
+  await page.evaluate(()=>window.testPads[0].axes[3]=0);await page.waitForTimeout(100);const stopped=await page.locator('#experience-dialog').evaluate(n=>n.scrollTop);await page.waitForTimeout(100);assert.equal(await page.locator('#experience-dialog').evaluate(n=>n.scrollTop),stopped,'right-stick scrolling stops on release');assert.equal(await page.locator('#controller-cursor').isVisible(),false,'scrolling does not activate the cursor');
+  await page.evaluate(()=>document.querySelector('#experience-dialog').close());
   // Left-stick cursor selects an actual modal button and disappears in combat.
   await page.evaluate(()=>document.querySelector('#experience-settings').click());
   await page.evaluate(()=>{document.querySelector('#experience-close').scrollIntoView({block:'center'});window.testPads[0].axes[0]=.7;});await page.waitForSelector('#controller-cursor:visible');
