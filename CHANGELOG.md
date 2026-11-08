@@ -7,6 +7,12 @@
 - Responsive painted PNGs for techniques, inventory and future-rival portraits, with readable fallback controls.
 - Compatible saved-loadout migration and a new online content/rules version.
 
+## 0.39.1
+
+- In local versus with a second controller connected, each pad selects only its own fighter, weapons, items and techniques.
+- Add independent player cursors and D-pad focus; shared loadout dialogs are controlled only by their owner.
+- Scroll vertical and horizontal lists near cursor edges; D-pad focus scrolls choices into view.
+
 ## 0.39.0
 
 - Add responsive painted PNG portraits for all ten originals and scenery for all five arenas.

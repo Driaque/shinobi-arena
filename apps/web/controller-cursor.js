@@ -1,7 +1,7 @@
 import {cursorStep} from './packages/input/cursor.js';
 const SELECTABLE='button,a[href],summary,select,input,textarea,label,[tabindex="0"]';
-export function createControllerCursor({settings}){
- const cursor=document.createElement('div');cursor.id='controller-cursor';cursor.hidden=true;cursor.setAttribute('aria-hidden','true');document.body.append(cursor);
+export function createControllerCursor({settings,slot=0,canTarget=()=>true,onFocus=()=>{}}){
+ const cursor=document.createElement('div');cursor.id=slot===0?'controller-cursor':'controller-cursor-p2';cursor.dataset.controllerPlayer=String(slot+1);cursor.hidden=true;cursor.setAttribute('aria-hidden','true');document.body.append(cursor);cursor.style.setProperty('--cursor-color',slot===0?'#47cddd66':'#de91ff99');
  let position={x:innerWidth/2,y:innerHeight/2},last=performance.now(),target=null,popup=null,owner=null;
  const highlight=node=>{target?.classList.remove('controller-hover');target=node;target?.classList.add('controller-hover');};
  const closeOptions=()=>{popup?.remove();popup=null;};
@@ -18,23 +18,23 @@ export function createControllerCursor({settings}){
   cursor.hidden=false;cursor.style.left=position.x+'px';cursor.style.top=position.y+'px';
   const hit=document.elementFromPoint(position.x,position.y),node=hit?.closest(SELECTABLE);
   const overlay=document.querySelector('#overlay:not([hidden])');
-  const allowed=node&&(scope===document||scope.contains(node))&&!node.closest('[hidden],[inert],:disabled')&&(!overlay||modal||!node.closest('.arena')||overlay.contains(node));
+  const allowed=node&&canTarget(node)&&(scope===document||scope.contains(node))&&!node.closest('[hidden],[inert],:disabled')&&(!overlay||modal||!node.closest('.arena')||overlay.contains(node));
   highlight(allowed?node:null);cursor.classList.toggle('over-control',Boolean(target));
   // Scroll the nearest panel beneath the cursor, only while pushing toward its edge.
-  if(moving){let panel=hit;while(panel&&panel!==document.body){const style=getComputedStyle(panel);if(/auto|scroll/.test(style.overflowY)&&panel.scrollHeight>panel.clientHeight+1)break;panel=panel.parentElement;}
-   const scroll=panel&&panel!==document.body?panel:document.scrollingElement,rect=panel&&panel!==document.body?panel.getBoundingClientRect():{top,bottom:top+height};
-   if(scroll){const direction=position.y<rect.top+35&&intent.moveZ<0?-1:position.y>rect.bottom-35&&intent.moveZ>0?1:0;scroll.scrollTop+=direction*450*Math.min(.05,dt);}
+  if(moving&&hit&&canTarget(hit)){let panel=hit;while(panel&&panel!==document.body){const style=getComputedStyle(panel);if((/auto|scroll/.test(style.overflowY)&&panel.scrollHeight>panel.clientHeight+1)||(/auto|scroll/.test(style.overflowX)&&panel.scrollWidth>panel.clientWidth+1))break;panel=panel.parentElement;}
+   const scroll=panel&&panel!==document.body?panel:document.scrollingElement,rect=panel&&panel!==document.body?panel.getBoundingClientRect():{top,bottom:top+height,left,right:left+width};
+   if(scroll){const direction=position.y<rect.top+35&&intent.moveZ<0?-1:position.y>rect.bottom-35&&intent.moveZ>0?1:0;scroll.scrollTop+=direction*450*Math.min(.05,dt);const horizontal=position.x<rect.left+35&&intent.moveX<0?-1:position.x>rect.right-35&&intent.moveX>0?1:0;scroll.scrollLeft+=horizontal*450*Math.min(.05,dt);}
   }
   return true;
  }
  function activate(){
   if(cursor.hidden)return false;
-  if(!target)return true; // Never activate stale keyboard focus when pointing at empty space.
-  const node=target;
+  if(!target||!target.isConnected||!canTarget(target))return true; // Never activate stale keyboard focus when pointing at empty space.
+  const node=target;onFocus(node);
   if(node.tagName==='SELECT'){
-   closeOptions();popup=document.createElement('div');popup.className='controller-options';popup.setAttribute('role','listbox');popup.setAttribute('aria-label',node.getAttribute('aria-label')??'Choose an option');
+   closeOptions();popup=document.createElement('div');popup.className='controller-options';popup.dataset.setupPlayer=String(slot);popup.setAttribute('role','listbox');popup.setAttribute('aria-label',node.getAttribute('aria-label')??'Choose an option');
    const rect=node.getBoundingClientRect();Object.assign(popup.style,{left:Math.max(8,Math.min(rect.left,innerWidth-240))+'px',top:Math.max(8,Math.min(rect.bottom+4,innerHeight-180))+'px'});
-   for(const option of node.options){const button=document.createElement('button');button.textContent=option.text;button.disabled=option.disabled;button.setAttribute('role','option');button.setAttribute('aria-selected',String(option.selected));button.onclick=()=>{node.value=option.value;node.dispatchEvent(new Event('input',{bubbles:true}));node.dispatchEvent(new Event('change',{bubbles:true}));closeOptions();node.focus();highlight(null);};popup.append(button);}
+   for(const option of node.options){const button=document.createElement('button');button.textContent=option.text;button.disabled=option.disabled;button.setAttribute('role','option');button.setAttribute('aria-selected',String(option.selected));button.onclick=()=>{node.value=option.value;node.dispatchEvent(new Event('input',{bubbles:true}));node.dispatchEvent(new Event('change',{bubbles:true}));closeOptions();node.focus();onFocus(node);highlight(null);};popup.append(button);}
    (owner instanceof HTMLDialogElement?owner:document.body).append(popup);
   }else if(node.matches('input[type=range]')){
    const rect=node.getBoundingClientRect(),min=Number(node.min||0),max=Number(node.max||100),step=Number(node.step)||1;
