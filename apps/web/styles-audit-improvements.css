@@ -1,0 +1,641 @@
+/* CSS Audit Improvements: Contrast, Consistency, Animations, Responsive Design */
+
+/* === 1. ENHANCED BUTTON STATES === */
+button {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: background var(--transition-normal), 
+              border-color var(--transition-normal), 
+              color var(--transition-normal), 
+              transform var(--transition-fast), 
+              box-shadow var(--transition-normal);
+}
+
+button:hover {
+  background: #25344c;
+  border-color: #4d6a88;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+button:active {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transform: translateY(1px);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  filter: grayscale(50%);
+}
+
+button:focus-visible {
+  outline: 3px solid #f7b759;
+  outline-offset: 2px;
+}
+
+/* Small buttons get tighter outline */
+.controls button:focus-visible {
+  outline-offset: 1px;
+}
+
+/* === 2. SELECT/DROPDOWN IMPROVEMENTS === */
+select {
+  appearance: auto;
+  -webkit-appearance: menulist;
+  cursor: pointer;
+  pointer-events: auto;
+  min-height: 36px;
+  transition: background var(--transition-normal), 
+              border-color var(--transition-normal);
+}
+
+select:hover {
+  background: #25344c;
+  border-color: #4d6a88;
+}
+
+select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  filter: grayscale(50%);
+}
+
+/* === 3. IMPROVED CONTRAST RATIOS === */
+.mode-label {
+  color: var(--text-secondary);
+}
+
+footer {
+  color: var(--text-secondary);
+}
+
+details {
+  color: var(--text-secondary);
+}
+
+summary {
+  color: #c6d6e8;
+  transition: color var(--transition-normal), background var(--transition-normal);
+}
+
+summary:hover {
+  color: #e0e8f5;
+  background: #1a2a3a;
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+#status {
+  color: var(--text-secondary);
+}
+
+/* === 4. CHARACTER CARD IMPROVEMENTS === */
+.character-card {
+  transition: all var(--transition-normal);
+  cursor: pointer;
+}
+
+.character-card:hover {
+  background: #21354b;
+  border-color: var(--character-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.character-card:has(:checked) {
+  border: 2px solid var(--character-color);
+  background: #26394d;
+  box-shadow: inset 0 0 20px rgba(127, 173, 208, 0.08);
+  animation: slideIn var(--transition-normal) var(--easing-snappy);
+}
+
+.character-card:has(:focus-visible) {
+  outline: 3px solid #f4cc8c;
+  outline-offset: 3px;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0.8;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* === 5. EQUIPMENT CARD POLISH === */
+.equipment-card {
+  transition: all var(--transition-normal);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.equipment-card:hover {
+  border-color: var(--equipment-color);
+  background: #1a2840;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+.equipment-card:focus-visible {
+  outline: 3px solid #f4cc8c;
+  outline-offset: 2px;
+}
+
+.equipment-card:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* === 6. STAGE CARD IMPROVEMENTS === */
+.stage-card {
+  transition: all var(--transition-normal);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.stage-card:hover {
+  border-color: #9fe6cf;
+  box-shadow: 0 6px 16px rgba(159, 230, 207, 0.15);
+  transform: translateY(-2px);
+}
+
+.stage-card:active {
+  transform: scale(0.98);
+}
+
+.stage-card[aria-pressed="true"] {
+  border-color: #9fe6cf;
+  background: #1a3a45;
+  box-shadow: 0 0 0 2px #9fe6cf;
+}
+
+.stage-card:focus-visible {
+  outline: 3px solid #f4cf7e;
+  outline-offset: 3px;
+}
+
+/* === 7. CONTROL FEEDBACK STATES === */
+.controls .hit {
+  transition: all var(--transition-normal);
+}
+
+.controls .hit:hover {
+  background: #8a6135;
+  border-color: #f5c475;
+}
+
+.controls .skill {
+  transition: all var(--transition-normal);
+}
+
+.controls .skill:hover {
+  background: #2a5860;
+  border-color: #8ed8d9;
+}
+
+.controls button.unavailable {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: #6b5a4a;
+  background: #1a1a1a;
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.3) 2px,
+    rgba(0, 0, 0, 0.3) 4px
+  );
+}
+
+.controls button.cooling {
+  border-color: #6bc4ed;
+  opacity: 0.8;
+  animation: pulseGlow 1.5s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(107, 196, 237, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(107, 196, 237, 0);
+  }
+}
+
+.controls button.active {
+  background: #d49b49;
+  color: #0b1420;
+  transform: translateY(2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), inset 0 0 12px rgba(255, 255, 255, 0.1);
+  border-color: #f5c475;
+  transition: all var(--transition-normal);
+}
+
+/* === 8. DIALOG & OVERLAY IMPROVEMENTS === */
+.overlay {
+  z-index: var(--z-overlay-bg);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.dialog {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border-radius: 14px;
+  border: 1px solid #4bb5c066;
+  background: linear-gradient(135deg, #102a38f5, #131c2af5);
+}
+
+.dialog:focus-visible {
+  outline-offset: 3px;
+}
+
+.primary {
+  transition: all var(--transition-normal);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.primary:hover {
+  background: #ffd28b;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.primary:active {
+  transform: translateY(0);
+}
+
+/* === 9. NAV PANEL IMPROVEMENTS === */
+.nav-group > summary {
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.nav-group > summary:hover {
+  background: #1a2a40;
+  border-color: #7a9aac;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.nav-panel {
+  z-index: var(--z-dropdown);
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.6);
+}
+
+.nav-panel > button,
+.nav-panel > a {
+  transition: all var(--transition-normal);
+}
+
+.nav-panel > button:hover,
+.nav-panel > a:hover {
+  background: #1a3a50;
+}
+
+/* === 10. TOPBAR & BRANDING === */
+.topbar {
+  z-index: var(--z-fixed-ui);
+  transition: margin-bottom var(--transition-normal);
+}
+
+.brand {
+  transition: all var(--transition-normal);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.brand:hover {
+  opacity: 0.9;
+}
+
+/* === 11. ANIMATION CONSISTENCY === */
+.awakening-meter > div {
+  transition: width var(--transition-fast);
+}
+
+.health > div {
+  transition: width var(--transition-fast);
+}
+
+.chakra > div {
+  transition: width var(--transition-fast);
+}
+
+/* === 12. ROTATION/ORIENTATION PROMPT === */
+.rotate {
+  z-index: var(--z-full-screen);
+}
+
+/* === 13. COMBAT TECHNIQUES === */
+.combat-techniques {
+  z-index: var(--z-combat);
+}
+
+.combat-techniques button {
+  transition: all var(--transition-normal);
+}
+
+.combat-techniques button:hover {
+  background: #1f3a4a;
+  border-color: #8ed8d9;
+}
+
+.combat-techniques button.aiming {
+  outline: 3px solid #78ead4;
+  outline-offset: 2px;
+}
+
+.combat-techniques .input-accepted {
+  background: #386958;
+  border-color: #9debd0;
+  animation: slideIn var(--transition-normal) var(--easing-snappy);
+}
+
+/* === 14. JUTSU TRAY === */
+#jutsu-tray {
+  z-index: var(--z-combat);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  transition: all var(--transition-normal);
+}
+
+#jutsu-tray:hover {
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* === 15. LOADOUT BOOK === */
+.loadout-book {
+  z-index: var(--z-modal);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.loadout-book button[aria-pressed="true"] {
+  border-color: #8ed8d9;
+  background: #24414d;
+  transition: all var(--transition-normal);
+}
+
+.loadout-book nav button {
+  transition: all var(--transition-normal);
+}
+
+.loadout-book nav button:hover {
+  background: #2a515d;
+  border-color: #8ed8d9;
+}
+
+/* === 16. ARENA HUB === */
+.arena-hub {
+  z-index: var(--z-modal);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.arena-hub nav [aria-pressed="true"] {
+  border-color: #94d2d8;
+  background: #254150;
+  transition: all var(--transition-normal);
+}
+
+.arena-hub input,
+.arena-hub select {
+  transition: all var(--transition-normal);
+}
+
+.arena-hub input:focus,
+.arena-hub select:focus {
+  border-color: #6db5c8;
+  background: #0a1a2a;
+  box-shadow: 0 0 0 3px rgba(109, 181, 200, 0.1);
+}
+
+/* === 17. RESPONSIVE IMPROVEMENTS: TABLET PORTRAIT (621px-900px) === */
+@media (min-width: 621px) and (max-width: 900px) and (orientation: portrait) {
+  .topbar {
+    gap: 12px;
+  }
+
+  .dialog {
+    max-width: 95%;
+  }
+
+  .character-roster {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .equipment-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+
+  .arena {
+    height: min(60dvh, 520px);
+  }
+
+  .hud {
+    gap: 20px;
+  }
+
+  button,
+  select,
+  input {
+    min-height: 44px;
+    padding: 12px;
+  }
+}
+
+/* === 18. RESPONSIVE IMPROVEMENTS: ULTRAWIDE (1440px+) === */
+@media (min-width: 1440px) {
+  main {
+    max-width: 1800px;
+  }
+
+  .dialog {
+    max-width: 1000px;
+  }
+
+  .equipment-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+
+  .character-roster {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .hud {
+    font-size: 14px;
+    gap: 40px;
+  }
+
+  .controls {
+    gap: 24px;
+  }
+}
+
+/* === 19. IMPROVED COARSE POINTER (TOUCH) === */
+@media (any-pointer: coarse) {
+  button,
+  select,
+  input {
+    min-height: 48px;
+    min-width: 44px;
+    padding: 12px;
+  }
+
+  .controls button {
+    min-width: 56px;
+    min-height: 56px;
+  }
+
+  .character-card {
+    min-height: 85px;
+  }
+
+  .equipment-card {
+    min-height: 190px;
+  }
+
+  /* Increase spacing for touch */
+  .movement,
+  .attacks {
+    gap: 12px;
+  }
+
+  .controls {
+    gap: 16px;
+  }
+}
+
+/* === 20. LANDSCAPE TABLET (900px+ landscape) === */
+@media (min-width: 900px) and (orientation: landscape) {
+  .topbar {
+    gap: 16px;
+  }
+
+  .arena {
+    height: calc(100dvh - 100px);
+  }
+
+  .hud {
+    gap: 32px;
+  }
+
+  .controls {
+    gap: 24px;
+  }
+
+  .character-roster {
+    max-height: 320px;
+  }
+}
+
+/* === 21. REDUCED MOTION SUPPORT === */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .battle-view {
+    transition: none;
+  }
+}
+
+/* === 22. ERROR STATE ANIMATION === */
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+.error {
+  animation: shake 300ms ease-in-out;
+  border-color: #f5373f !important;
+}
+
+/* === 23. CONTROLLER CURSOR IMPROVEMENTS === */
+#controller-cursor {
+  z-index: var(--z-cursor);
+  transition: all 60ms ease-out;
+}
+
+#controller-cursor.over-control {
+  background: #ffd17ecc;
+  border-color: #ffe8bb;
+  box-shadow: 0 0 0 3px #071725, 0 2px 12px rgba(255, 209, 126, 0.3);
+}
+
+.controller-hover {
+  outline: 3px solid #f7c777 !important;
+  outline-offset: 2px;
+  transition: outline-color var(--transition-normal);
+}
+
+.controller-options {
+  z-index: var(--z-cursor);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  animation: slideIn var(--transition-normal) var(--easing-snappy);
+}
+
+/* === 24. BATTLE VIEW TRANSITION === */
+.battle-view {
+  transition: bottom 160ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .battle-view {
+    transition: none;
+  }
+}
+
+/* === 25. INPUT FOCUS STATES === */
+input:focus-visible {
+  outline: 2px solid #edc17c;
+  outline-offset: 2px;
+}
+
+.roster-toolbar input:focus-visible {
+  outline: 2px solid #edc17c;
+  outline-offset: 2px;
+}
+
+.loadout-search-label input:focus-visible {
+  outline: 2px solid #edc17c;
+  outline-offset: 2px;
+}
+
+#training-coach {
+  z-index: var(--z-editing);
+}
+
+#training-dialog {
+  z-index: var(--z-modal);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.keys-dialog {
+  z-index: var(--z-modal);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+/* === SUMMARY: Z-INDEX HIERARCHY ===
+-1: Background, art, effects
+0: Normal content
+1: Implied content
+5: Overlay backgrounds
+10: Combat UI (HUD, techniques)
+15: Layout editor
+20: Fixed UI (topbar)
+30: Dropdowns, popovers
+50: Modals, dialogs
+60: Full-screen overlays
+1000: Controller cursor (always on top)
+*/
