@@ -36,7 +36,7 @@ try {
  await page.screenshot({path:'test-results/originals-roster.png'});
  await page.selectOption('#roster-era','all');
  await page.locator('#roster-search').fill('Lumen');assert.equal(await page.locator('.character-card:not([hidden])').count(),2);
- await page.locator('#roster-search').fill('');await page.selectOption('#roster-era','Lumen');assert.equal(await page.locator('.character-card:not([hidden])').count(),8);
+ await page.locator('#roster-search').fill('');await page.selectOption('#roster-era','Future');assert.equal(await page.locator('.character-card:not([hidden])').count(),50);
  await page.locator('#character0 input[value="lumen"]').check();await page.locator('#character1 input[value="vorrik"]').check();
  assert.equal(await page.locator('#selected0').innerText(),'Lumen');assert.equal(await page.locator('#selected1').innerText(),'Vorrik');
  await page.selectOption('#roster-era','all');await page.locator('#character1 input[value="vesper"]').check();

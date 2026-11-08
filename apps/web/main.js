@@ -78,7 +78,7 @@ for(const i of [0,1]){
 loadoutUI=createLoadouts({onChange:describeLoadouts});
 function filterRoster(){
   const query=$('#roster-search').value.trim().toLowerCase(),era=$('#roster-era').value;
-  for(const o of $('#roster-era').options)if(['Solan','Lumen','Concord Challengers'].includes(o.value))o.disabled=!$('#include-unreleased').checked;
+  for(const o of $('#roster-era').options)if(o.value==='Future')o.disabled=!$('#include-unreleased').checked;
   let count=0;for(const character of Object.values(CHARACTERS)){
     const show=(isOriginalFighter(character.id)||$('#include-unreleased').checked)&&(!query||`${character.name} ${character.title}`.toLowerCase().includes(query))&&(era==='all'||character.era===era);
     for(const card of document.querySelectorAll(`.character-card[data-character="${character.id}"]`))card.hidden=!show;
