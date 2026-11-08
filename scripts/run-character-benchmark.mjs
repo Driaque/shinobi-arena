@@ -7,13 +7,13 @@ const folder=process.env.BENCHMARK_DIRECTORY??'data/character-benchmark-group1';
 let agent;if(process.env.HTTPS_PROXY&&base.startsWith('https:')){const {HttpsProxyAgent}=await import(process.env.BENCHMARK_PROXY_MODULE??'https-proxy-agent');agent=new HttpsProxyAgent(process.env.HTTPS_PROXY);}
 const request=async(path,{body,token}={})=>{const r=await fetch(base+path,{...(body?{method:'POST',body:JSON.stringify(body)}:{}),headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},signal:AbortSignal.timeout(60000)});const data=await r.json();if(!r.ok)throw new Error(`${r.status}: ${data.error}`);return data;};
 const availability=await request('/api/status');if(!availability.characterBenchmarksAvailable)throw new Error('This server does not yet support character benchmarks.');
-const roster=Object.keys(CHARACTERS).slice(0,8),profiles=roster.map(character=>({name:'SIM '+CHARACTERS[character].name,...validateLoadout({character,weapon:'tachi',weapons:['tachi','kunai'],items:['paperBomb','throwingKunai','throwingShuriken','smokeBomb'],jutsus:starterBuild(character,'balanced')})}));
+const roster=Object.keys(CHARACTERS).slice(0,8),profiles=roster.map(character=>({name:'SIM '+CHARACTERS[character].name,...validateLoadout({character,weapon:'frostmereSaber',weapons:['frostmereSaber','conduitSpike'],items:['cinderCharge','spikeCapsule','orbitPack','veilCanister'],jutsus:starterBuild(character,'balanced')})}));
 let checkpoint={base,identities:[],eventId:null};try{checkpoint=JSON.parse(await readFile(folder+'/private.json','utf8'));}catch{}
 if(checkpoint.base!==base)throw new Error('Checkpoint belongs to another server. Choose a new BENCHMARK_DIRECTORY.');
 const save=()=>writeFile(folder+'/private.json',JSON.stringify(checkpoint),{mode:0o600});
 for(let i=checkpoint.identities.length;i<8;i++){checkpoint.identities.push(await request('/api/identity',{body:{name:profiles[i].name}}));await save();}
 const owner=checkpoint.identities[0];
-if(!checkpoint.eventId){const {tournament}=await request('/api/tournaments',{body:{name:'Group 1 - Akatsuki AI Benchmark',capacity:8,format:'league-knockout',benchmark:true},token:owner.token});checkpoint.eventId=tournament.id;await save();}
+if(!checkpoint.eventId){const {tournament}=await request('/api/tournaments',{body:{name:'Group 1 - Concord Challengers AI Benchmark',capacity:8,format:'league-knockout',benchmark:true},token:owner.token});checkpoint.eventId=tournament.id;await save();}
 const endpoint='/api/tournaments/'+checkpoint.eventId;
 let event=(await request(endpoint)).tournament;
 if(event.status==='registration'){for(const m of checkpoint.identities.slice(1))await request(endpoint+'/join',{body:{},token:m.token});event=(await request(endpoint+'/start',{body:{},token:owner.token})).tournament;}

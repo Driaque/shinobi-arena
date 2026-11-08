@@ -3,7 +3,7 @@ export const DRILLS=Object.freeze({
  free:{name:'Free practice',steps:[],hint:'Explore your kit. Set a dummy behavior, inspect ranges, and reset whenever you like.'},
  movement:{name:'Double jump → air dash',steps:['Jump','Jump again in the air','Dash before landing'],hint:'Press Jump twice; double-pull sideways to air dash. Analog up/down changes lane. Save the dash until after the second jump.'},
  combo:{name:'Three-hit combo',steps:['Land the opening basic','Link the second basic','Land the launching finisher'],hint:'Tap Basic with rhythm. Each follow-up needs a confirmed hit; holding does not repeat.'},
- counter:{name:'Guard → weapon counter',steps:['Guard or parry a strike','Land a weapon during the opening'],hint:'The dummy swings a katana every 2.5 seconds. Guard, release, then punish with your equipped weapon.'},
+ counter:{name:'Guard → weapon counter',steps:['Guard or parry a strike','Land a weapon during the opening'],hint:'The dummy swings a skyforgedBlade every 2.5 seconds. Guard, release, then punish with your equipped weapon.'},
  awakening:{name:'Unlock your awakening',steps:['Take damage to fill the meter','Awaken when free to act'],hint:'Let the dummy hit you until READY, then wait for hitstun to end and press Awaken. HP refills do not remove damage charge.'}
 });
 const validDrill=id=>Object.hasOwn(DRILLS,id)?id:'free';
@@ -14,7 +14,7 @@ export function createTraining(loadouts,options={}){
  let selected=loadouts?loadouts.map(l=>({...l})):undefined;
  let note='';
  if(config.drill==='awakening'&&selected&&!CHARACTERS[selected[0]?.character]?.awakening){selected[0]={...selected[0],character:'winta',jutsus:undefined};note='This drill uses Winta because the selected fighter has no awakening.';}
- if(config.drill==='counter'){selected??=[{character:'naruto',weapon:'kunai'},{character:'sasuke',weapon:'katana'}];selected[1].weapon='katana';if(selected[1].weapons)selected[1].weapons=['katana',selected[1].weapons[1]];}
+ if(config.drill==='counter'){selected??=[{character:'solan',weapon:'conduitSpike'},{character:'vesper',weapon:'skyforgedBlade'}];selected[1].weapon='skyforgedBlade';if(selected[1].weapons)selected[1].weapons=['skyforgedBlade',selected[1].weapons[1]];}
  const state=createMatch(selected);
  state.fighters[0].x=600;state.fighters[1].x=670;
  state.training={...config,step:0,completed:false,feedback:note||DRILLS[config.drill].hint,feedbackUntil:240,note,guardTick:-1000,parried:false,stats:{damage:0,hits:0,bestCombo:0}};

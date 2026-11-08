@@ -6,14 +6,14 @@ Master your style. Forge your legend.
 
 Formerly Shinobi Arena. The current roster is a development prototype; a fully original roster and setting are planned for public rollout. This branding update does not replace the prototype characters.
 
-A playable browser fighting prototype with a **28-character selectable roster spanning Naruto, Boruto and Fabled Rivals originals**, desktop keyboard controls,
+A playable browser fighting prototype with a **28-character selectable roster spanning Solan, Lumen and Fabled Rivals originals**, desktop keyboard controls,
 a landscape analog stick and customizable touch controls, online matchmaking, local two-player and a computer opponent.
 
 ## Practice graphics
 
 PixiJS scenery and combat effects are enabled by default in CPU, local, Training, online, live spectating and replay playback. Graphics → Renderer selects PixiJS or Canvas compatibility for all views. Missing WebGL falls back to Canvas. Selected fighters keep their own appearance; Aren uses his existing sprite atlas. The separate Training → Practice appearance preview remains optional. Weapons, status cues and text retain a Canvas compatibility layer.
 
-The default roster is Silent, Winta, Dora, Aren, Eira, Kael, Nyra, Rook, Veyra and Oryn. Each fighter has a connected backstory under Story & connections. Check Include Naruto / Boruto fighters to reveal the 25 prototype anime fighters; the checkbox starts off each visit. [Roster lore](docs/ORIGINAL_ROSTER.md).
+The default roster is Silent, Winta, Dora, Aren, Eira, Kael, Nyra, Rook, Veyra and Oryn. Each fighter has a connected backstory under Story & connections. Check Include Unreleased rivals fighters to reveal the 25 prototype anime fighters; the checkbox starts off each visit. [Roster lore](docs/ORIGINAL_ROSTER.md).
 
 ## Visual Lab
 
@@ -28,7 +28,7 @@ The current Render address remains available while a dedicated game-branded doma
 For online play, choose ONLINE MATCHMAKING, enter your name, choose your own fighter/weapon, and Find opponent. The shared internet server is configured automatically. Both players choose Find opponent; the first available pair enters a match. For solo/shared-keyboard play choose VS COMPUTER or LOCAL TWO PLAYER, select both characters, equip each fighter with a weapon, and enter the arena. First to two round wins.
 Both sides have independent visual character grids with portraits and selection badges. Tap a card, or use the keyboard to navigate the radio group. The opponent grid is labelled Computer or Player Two to match the mode.
 
-Available fighters include ten Akatsuki members (Pain, Konan, Kisame, Deidara, Sasori, Hidan, Kakuzu, Zetsu, Obito and Itachi), the Naruto/Boruto cast, and Dora, Silent and Winta. Search by name or filter Akatsuki/era; both grids scroll independently. Select up to seven jutsus, two weapons and four consumables from their grids.
+Available fighters include ten Concord Challengers members (Vael, Tessara, Brannik, Corvin, Maelis, Drevan, Torven, Sylven, Nyxen and Morwen), the Solan/Lumen cast, and Dora, Silent and Winta. Search by name or filter Concord Challengers/era; both grids scroll independently. Select up to seven jutsus, two weapons and four consumables from their grids.
 
 Rounds last 90 seconds. Knockout wins; at timeout, higher remaining HP wins; equal HP or a double
 knockout draws. Tap an attack again to use it again after recovery. Specials spend chakra.
@@ -61,11 +61,11 @@ focus or rotating into portrait pauses the local match; resume explicitly.
 - Movement, double jump, forward/back dash, facing, arena/body collision.
 - Startup/active/recovery attack phases, single-hit swings, hitstun, guard and knockback.
 - Buffered three-hit basic chains, hit-confirm weapon/jutsu cancels, combo scaling and launching finishers.
-- Damage-unlocked awakenings on selected fighters: Kurama, Susanoo, Eight Gates, Karma and Sage Mode.
+- Damage-unlocked awakenings on selected fighters: Sunforge, Colossus Mantle, Ironstep Overdrive, Prism Overdrive and Tempest Attunement.
 - Awakening meters/timers, changed stats/signatures, aura effects, hit counters and floating damage.
 - Character-specific signatures and bloodline techniques; weapons selected before battle.
 - Replacement escape, guard-piercing attacks, damage weakening, poison and burn with visible timers.
-- Rasengan/Chidori, clones, Fireball, Gentle Fist, snake strikes, Sharingan and Byakugan adaptations.
+- Spiral Drive/Voltaic Lance, clones, Fireball, Pulsework, snake strikes, Dissonance Mark and Fracture Lens adaptations.
 - HP, chakra spending/regeneration, timer, round scoring, next round and rematch.
 - Deterministic baseline computer opponent using legal action inputs.
 - Proportional analog movement with dead zone, independent multi-touch actions, and safe cancellation.
@@ -81,7 +81,7 @@ and Replacement break the sequence. Later connected hits scale down in damage.
 
 For selected characters, actual HP lost fills the awakening meter. When READY, press T/Y or tap Awaken
 while free to act. One activation per round, with a visible duration; it does not heal or grant immunity.
-Naruto’s Kurama Chakra Mode changes his signatures to Kurama Rasengan and Chakra Claw.
+Solan’s Sunforge Ascendant changes his signatures to Sunforge Drive and Sunforge Rend.
 
 ## Limits
 
@@ -128,7 +128,7 @@ No third-party character assets are bundled. Asset provenance is recorded in
 
 ### v0.7.0: The Northern Calamity
 
-28 selectable fighters now include **Silent — Cold Metal** and **Winta — Frozen Sun**, and **Dora — AquaPrincess**, under **Fabled Rivals Originals**, with user-supplied concept portraits. Silent has sword counters, Skyforged Aegis guard reflect/absorption and a pulling metal-vulnerability strike. Winta has lightning pressure and a lifestealing strike. Their proposed awakenings change signatures and speed up sword chains. Tachi and Kaiken are selectable equipment. [Character kits and adaptation notes](docs/ORIGINAL_CHARACTERS.md).
+28 selectable fighters now include **Silent — Cold Metal** and **Winta — Frozen Sun**, and **Dora — AquaPrincess**, under **Fabled Rivals Originals**, with user-supplied concept portraits. Silent has sword counters, Skyforged Aegis guard reflect/absorption and a pulling metal-vulnerability strike. Winta has lightning pressure and a lifestealing strike. Their proposed awakenings change signatures and speed up sword chains. Frostmere Saber and Oathknife are selectable equipment. [Character kits and adaptation notes](docs/ORIGINAL_CHARACTERS.md).
 
 ### v0.8.0: movement, counterplay and clear mobile controls
 
@@ -154,7 +154,7 @@ Enter a display name, select your fighter/weapon, and wait in the shared queue. 
 
 ### v0.13.0: inventory, tactical items and control visibility
 
-Choose two weapons and four one-use consumables per round before a match or joining matchmaking. **F** swaps weapons; **C** selects an item and **X** uses it. Items include delayed paper bombs, throwing kunai, shuriken fans, poison coating, defensive smoke and a two-stage Flying Raijin marking kunai/warp. These actions respect startup, recovery, stamina, shared cooldowns and hitstun; the online server owns their state. The HUD displays active weapons and remaining inventory.
+Choose two weapons and four one-use consumables per round before a match or joining matchmaking. **F** swaps weapons; **C** selects an item and **X** uses it. Items include delayed paper bombs, throwing Conduit Spike, orbitDisc Tideglass Fans, poison coating, defensive smoke and a two-stage Waypoint marking Conduit Spike/warp. These actions respect startup, recovery, stamina, shared cooldowns and hitstun; the online server owns their state. The HUD displays active weapons and remaining inventory.
 
 **Controls → Visible controls** offers a checkbox for every touch control. Save persists the choice; Cancel discards it. Hidden buttons keep their keyboard bindings and no longer reserve collision space. The analog stick can replace horizontal dash buttons; keep Jump available for aerial movement. Existing preferences migrate without overwriting custom keys.
 

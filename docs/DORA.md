@@ -1,6 +1,6 @@
 # Dora — AquaPrincess
 
-User-created original for Shinobi Arena: Silent’s wife, a graceful, smart, strong heroine with wind, water and fire. Described as the strongest kunoichi in her story; lore strength does not bypass shared combat rules.
+User-created original for Shinobi Arena: Silent’s wife, a graceful, smart, strong heroine with wind, water and fire. Described as the strongest champion in her story; lore strength does not bypass shared combat rules.
 
 ## Appearance
 
@@ -8,7 +8,7 @@ Light golden-brown skin, brown eyes, profile height 5′7″. Regal aqua/navy ro
 
 ## Play style and inputs
 
-Calculated ranged setups and melee counters. Selecting Dora suggests fans and katana, both editable. Consumables retain four slots. All moves obey normal stamina, chakra, guard, hit-confirm, cooldown and damage-scaling rules.
+Calculated ranged setups and melee counters. Selecting Dora suggests Tideglass Fans and Skyforged Blade, both editable. Consumables retain four slots. All moves obey normal stamina, chakra, guard, hit-confirm, cooldown and damage-scaling rules.
 
 | P1 default | Technique | Rules |
 | --- | --- | --- |

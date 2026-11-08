@@ -1,7 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {mkdtemp,rm} from 'node:fs/promises';import {tmpdir} from 'node:os';import {join} from 'node:path';import {randomUUID} from 'node:crypto';import {gunzipSync} from 'node:zlib';
 import {createMatch,stepMatch} from '../packages/engine/index.js';
 import {createStore} from '../apps/server/store.js';import {createArena} from '../apps/server/arena.js';import {createOnlineServer} from '../apps/server/index.js';import {PROTOCOL_VERSION,RULES_VERSION} from '../packages/network/protocol.js';
-const profile=name=>({name,character:'naruto',weapon:'kunai'});
+const profile=name=>({name,character:'solan',weapon:'conduitSpike'});
 const record=(a,b,options={})=>({id:randomUUID(),createdAt:Date.now(),players:[{...profile('One'),playerId:a.player.id},{...profile('Two'),playerId:b.player.id}],mode:'ranked',winner:0,reason:'completed',wins:[2,0],playedTicks:1800,replay:{schema:1,rules:RULES_VERSION,frames:[{at:0,state:{}}]},...options});
 test('identity tokens are private, stable across rename and store restart, and incorrect tokens fail',async()=>{
  const dir=await mkdtemp(join(tmpdir(),'arena-history-')),filename=join(dir,'db.sqlite');let s=await createStore({filename});const a=await s.createIdentity('One');assert.equal((await s.identity(a.token)).id,a.player.id);assert.equal(await s.identity('x'.repeat(43)),null);await s.rename(a.player.id,'Renamed');await s.close();s=await createStore({filename});assert.equal((await s.identity(a.token)).name,'Renamed');assert.equal(s.durable,true);await s.close();await rm(dir,{recursive:true,force:true});
@@ -36,7 +36,7 @@ test('HTTP history and replay endpoints are read-only; tokens never appear in pu
 
 test('accepted input recording reproduces final combat state with fields, items and new effects',()=>{
  const records=[],arena=createArena({countdownTicks:1,onResult:r=>records.push(structuredClone(r))});const a=arena.connect(()=>{}),b=arena.connect(()=>{});
- for(const [i,c]of [a,b].entries())arena.message(c,{type:'join',protocol:PROTOCOL_VERSION,rules:RULES_VERSION,profile:{...profile('Replay '+i),items:['smokeBomb','poison'],jutsus:['emberField','venomDart','chakraSiphon']}});
+ for(const [i,c]of [a,b].entries())arena.message(c,{type:'join',protocol:PROTOCOL_VERSION,rules:RULES_VERSION,profile:{...profile('Replay '+i),items:['veilCanister','poison'],jutsus:['emberField','venomDart','aetherSiphon']}});
  arena.advance();for(let t=0;t<300;t++){arena.message(a,{type:'input',seq:t,input:{right:t<70,special1:t===75,special2:t===150,bloodline:t===240,useItem:t===110,charge:t>200&&t<230}});arena.message(b,{type:'input',seq:t,input:{block:t>170&&t<200}});arena.advance();}
  const final=structuredClone(a.match.state);arena.disconnect(b);const replay=records[0].replay,rebuilt=createMatch(replay.loadouts);for(const row of replay.inputs)for(let n=0;n<row.count;n++)stepMatch(rebuilt,row.inputs);assert.deepEqual(rebuilt,final);assert.ok(replay.frames.some(f=>f.state.zones.length>0));assert.ok(replay.frames.some(f=>f.state.fighters.some(p=>p.effects.length>0)));arena.close();
 });

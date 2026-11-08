@@ -42,7 +42,7 @@ export function paintPracticeEffects(c, f, state, moves) {
       f.buffs.some((b) => b.type === "poisonCoating") || f.action.poison
         ? "#b5e08b"
         : "#e5f4fa";
-    if (f.weapon === "fans") {
+    if (f.weapon === "tideglassFans") {
       c.fillStyle = color;
       for (const x of [24, 65]) {
         c.beginPath();
@@ -51,13 +51,13 @@ export function paintPracticeEffects(c, f, state, moves) {
         c.closePath();
         c.fill();
       }
-    } else if (f.weapon === "shuriken") {
+    } else if (f.weapon === "orbitDisc") {
       for (let i = 0; i < 4; i++) {
         const a = (i * Math.PI) / 2 + state.tick * 0.1;
         line(50, -80, 50 + Math.cos(a) * 18, -80 + Math.sin(a) * 18, color, 3);
       }
     } else {
-      const length = f.weapon === "kaiken" || f.weapon === "kunai" ? 34 : 82;
+      const length = f.weapon === "oathknife" || f.weapon === "conduitSpike" ? 34 : 82;
       line(22, -70, 22 + length, -85, color, 4);
       line(30, -80, 32, -64, "#e9bd72", 4);
     }

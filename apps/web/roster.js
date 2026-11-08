@@ -1,31 +1,14 @@
+import {artworkSources} from './packages/ui/painted-art.js';
 import { CHARACTERS } from './packages/engine/index.js';
 import {portraitSources} from './packages/presentation/artwork.js';
-function portrait(canvas, character) {
-  const c=canvas.getContext('2d');canvas.width=144;canvas.height=152;c.scale(2,2);
-  const bg=c.createLinearGradient(0,0,72,76);bg.addColorStop(0,character.color+'80');bg.addColorStop(1,'#101e30');c.fillStyle=bg;c.fillRect(0,0,72,76);
-  c.fillStyle=character.color;c.beginPath();c.moveTo(7,76);c.quadraticCurveTo(8,51,36,51);c.quadraticCurveTo(64,51,65,76);c.fill();
-  if(character.faction==='Akatsuki'){c.fillStyle='#192330';c.fillRect(8,55,56,21);c.fillStyle='#af4758';c.beginPath();c.arc(25,68,6,0,Math.PI*2);c.arc(32,67,7,0,Math.PI*2);c.fill();}
-  const longHair=['eira','veyra','nyra','dora','hinata','orochimaru','itachi','madara'].includes(character.id);c.fillStyle=character.hair;
-  if(longHair){c.beginPath();c.ellipse(36,32,24,29,0,0,Math.PI*2);c.fill();c.fillRect(12,29,48,35);}
-  c.fillStyle=character.skin??(character.id==='orochimaru'?'#e1d6bd':'#e7b58f');c.beginPath();c.ellipse(36,32,18,23,0,0,Math.PI*2);c.fill();
-  c.fillStyle=character.hair;c.beginPath();c.moveTo(14,23);
-  if(['naruto','boruto','minato','kakashi','mitsuki'].includes(character.id)){for(const [x,y]of [[10,7],[22,13],[25,0],[35,11],[47,1],[47,14],[61,9],[55,28]])c.lineTo(x,y);}
-  else if(['sasuke','madara','kawaki'].includes(character.id)){for(const [x,y]of [[9,9],[25,12],[32,0],[40,12],[57,3],[53,21],[58,30],[43,19],[37,29],[28,18],[17,28]])c.lineTo(x,y);}
-  else{c.lineTo(16,7);c.quadraticCurveTo(36,-5,56,9);c.lineTo(57,26);c.lineTo(15,25);}
-  c.closePath();c.fill();
-  if(character.id!=='orochimaru'){c.fillStyle='#31445a';c.fillRect(17,22,38,8);c.fillStyle='#a5b9c4';c.fillRect(26,23,21,6);}
-  c.fillStyle=character.id==='hinata'?'#f0edff':character.id==='sasuke'?'#d7757b':character.id==='orochimaru'?'#e7c660':'#559cc6';
-  c.fillRect(25,33,6,3);c.fillRect(42,33,6,3);
-  if(character.id==='kakashi'){c.fillStyle='#25394a';c.fillRect(18,38,36,14);}
-  if(character.id==='sarada'){c.strokeStyle='#d54d62';c.lineWidth=2;c.strokeRect(22,31,12,8);c.strokeRect(39,31,12,8);c.beginPath();c.moveTo(34,34);c.lineTo(39,34);c.stroke();}
-  if(character.id==='gaara'){c.fillStyle='#8b483c';c.fillRect(22,17,3,7);c.fillRect(20,20,8,2);}
-  if(character.id==='shikamaru'){c.fillStyle=character.hair;c.beginPath();c.ellipse(37,4,8,7,0,0,Math.PI*2);c.fill();}
-c.strokeStyle='#946957';c.lineWidth=1;c.beginPath();c.moveTo(32,46);c.lineTo(41,46);c.stroke();
-  if(character.id==='pain'){for(const x of [28,45]){c.strokeStyle='#43335a';c.lineWidth=1;c.fillStyle='#aa92bf';c.beginPath();c.arc(x,35,4,0,Math.PI*2);c.fill();for(const r of [2,4]){c.beginPath();c.arc(x,35,r,0,Math.PI*2);c.stroke();}}}
-  if(character.id==='zetsu'){c.fillStyle='#dbe1cf';c.fillRect(20,30,16,20);c.fillStyle='#142a23';c.fillRect(36,30,16,20);c.fillStyle='#547a43';c.beginPath();c.moveTo(16,53);c.lineTo(4,13);c.lineTo(20,36);c.lineTo(36,56);c.lineTo(54,36);c.lineTo(68,12);c.lineTo(56,55);c.fill();}
-  if(character.id==='obito'){c.fillStyle='#d79851';c.beginPath();c.ellipse(36,36,17,20,0,0,Math.PI*2);c.fill();c.strokeStyle='#514036';for(let r=4;r<19;r+=4){c.beginPath();c.arc(41,34,r,.1,Math.PI*1.8);c.stroke();}c.fillStyle='#171f2c';c.fillRect(39,32,4,4);}
-  if(character.id==='konan'){c.fillStyle='#e5dfd5';for(let i=0;i<5;i++){c.beginPath();c.ellipse(18+Math.cos(i)*4,17+Math.sin(i)*4,5,2,i,0,Math.PI*2);c.fill();}}
-  if(character.id==='naruto'){c.strokeStyle='#986c52';for(const y of [37,41]){c.beginPath();c.moveTo(20,y);c.lineTo(27,y+1);c.moveTo(47,y+1);c.lineTo(53,y);c.stroke();}}
+function portrait(canvas,character){
+ const c=canvas.getContext('2d');canvas.width=144;canvas.height=152;
+ const g=c.createLinearGradient(0,0,144,152);g.addColorStop(0,character.color);g.addColorStop(1,'#102033');c.fillStyle=g;c.fillRect(0,0,144,152);
+ c.fillStyle='#172a3d';c.beginPath();c.moveTo(12,152);c.quadraticCurveTo(15,96,72,96);c.quadraticCurveTo(129,96,132,152);c.fill();
+ c.fillStyle=character.skin??'#c79776';c.beginPath();c.ellipse(72,63,29,38,0,0,Math.PI*2);c.fill();
+ c.fillStyle=character.hair;c.beginPath();c.ellipse(72,36,31,22,0,Math.PI,Math.PI*2);c.lineTo(103,52);c.quadraticCurveTo(72,32,41,52);c.fill();
+ c.strokeStyle=character.color;c.lineWidth=6;c.beginPath();c.moveTo(23,142);c.lineTo(43,111);c.lineTo(72,132);c.lineTo(101,111);c.lineTo(121,142);c.stroke();
+ c.fillStyle='#152335';c.fillRect(57,61,9,3);c.fillRect(80,61,9,3);
 }
 export function createRoster(container, player, initial, onChange) {
   for(const character of Object.values(CHARACTERS).sort((a,b)=>(a.classification==='original'?0:1)-(b.classification==='original'?0:1))){
@@ -34,12 +17,12 @@ export function createRoster(container, player, initial, onChange) {
     const canvas=document.createElement('canvas');canvas.className='character-portrait';canvas.setAttribute('aria-hidden','true');portrait(canvas,character);
     const copy=document.createElement('span');copy.className='character-copy';
     const name=document.createElement('strong');name.textContent=character.name;
-    const style=document.createElement('small');style.textContent=`${character.era} · ${character.title}`;copy.append(name,style);
+    const style=document.createElement('small');style.textContent=`${character.era} · ${character.title}`;copy.append(name,style);if(character.releaseState==='unreleased'){const preview=document.createElement('small');preview.className='rival-preview-badge';preview.textContent='UNRELEASED · ELITE PREVIEW';copy.append(preview);card.dataset.unreleased='true';}
     const selected=document.createElement('span');selected.className='pick-mark';selected.setAttribute('aria-hidden','true');selected.textContent=player===0?'P1':'CPU';
     let visual=canvas;
-    if(character.classification==='original'||character.portrait){const img=document.createElement('img');img.className='character-portrait concept-portrait';const art=character.classification==='original'?portraitSources(character.id):null;img.src=art?.src??character.portrait;if(art){img.srcset=art.srcset;img.sizes='(max-height: 520px) 72px, (max-width: 620px) 88px, 112px';img.dataset.paintedPortrait=character.id;}img.loading='lazy';img.decoding='async';img.alt='';img.width=144;img.height=152;img.addEventListener('error',()=>img.replaceWith(canvas),{once:true});visual=img;}
+    if(character.portrait||character.classification==='original'){const img=document.createElement('img');img.className='character-portrait concept-portrait';const art=character.classification==='original'?portraitSources(character.id):artworkSources('fighter',character.id);img.src=art?.src??character.portrait;if(art){img.srcset=art.srcset;img.sizes='(max-height: 520px) 72px, (max-width: 620px) 88px, 112px';img.dataset.paintedPortrait=character.id;}img.loading='lazy';img.decoding='async';img.alt='';img.width=144;img.height=152;img.addEventListener('error',()=>img.replaceWith(canvas),{once:true});visual=img;}
     card.append(input,visual,copy,selected);input.addEventListener('change',onChange);container.append(card);
-    if(character.classification!=='original')import('./roster-pixi.js').then(({animatePortrait})=>animatePortrait(card,visual,character)).catch(()=>{/* Keep the static portrait when graphics or art loading is unavailable. */});
+    // All roster portraits remain native responsive images.
   }
   const empty=document.createElement('p');empty.className='roster-empty';empty.textContent='No matching fighters.';empty.hidden=true;container.after(empty);
 }

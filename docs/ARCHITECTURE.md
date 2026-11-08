@@ -76,7 +76,7 @@ Accepted in v0.10.0. A serializable training session wraps the existing fixed-ti
 
 ## ADR · Server-owned inventory and versioned releases
 
-Accepted for v0.13. Inventory selection is immutable loadout data; runtime weapon slot, charges, selected item, poison coating, timed zones and Raijin markers live in the shared serializable simulation. The protocol accepts catalog IDs and action intentions only; clients cannot submit counts, effects or warp coordinates. Existing single-weapon fixtures remain compatible locally, while wire/rules versions intentionally change for online clients. Each new round reconstructs runtime inventory from validated loadouts.
+Accepted for v0.13. Inventory selection is immutable loadout data; runtime weapon slot, charges, selected item, poison coating, timed zones and Waypoint markers live in the shared serializable simulation. The protocol accepts catalog IDs and action intentions only; clients cannot submit counts, effects or warp coordinates. Existing single-weapon fixtures remain compatible locally, while wire/rules versions intentionally change for online clients. Each new round reconstructs runtime inventory from validated loadouts.
 
 Control visibility belongs to versioned device preferences, separate from combat state. It removes touch nodes and collision constraints, never the underlying keyboard action. Build-time version queries fingerprint the complete browser module graph so a fresh version does not combine new HTML with an old cached engine.
 

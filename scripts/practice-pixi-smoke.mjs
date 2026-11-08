@@ -147,7 +147,7 @@ try {
       );
       await press("KeyH", 900);
       await press("KeyF", 240);
-      assert.match(await p.locator("#weapon-label").innerText(), /KATANA/);
+      assert.match(await p.locator("#weapon-label").innerText(), /SKYFORGED BLADE/);
       for (let n = 0; n < 3; n++) await press("KeyC", 32);
       await press("KeyX", 500);
       assert.match(await p.locator("#effects0").innerText(), /POISON COATED/);

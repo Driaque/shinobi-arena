@@ -1,3 +1,4 @@
+import {isOriginalFighter} from './packages/engine/originals.js';
 import {
   loadLabArt,
   createCanvasLab,
@@ -80,7 +81,7 @@ export async function createPracticeBackends(parent, onLost, onArtChange=()=>{})
     failedFighters:()=>[...new Set([...sheets.failedIds(),...runs.failedIds()])].filter(id=>selectedFighters.includes(id)),
     draw(state, viewport, requested, {preview=true,catalog={},fluid=false}={}) {
       if (disposed) return;
-      selectedFighters=preview||fluid?[]:state.fighters.map(f=>f.character);
+      selectedFighters=preview||fluid?[]:state.fighters.map(f=>f.character).filter(isOriginalFighter);
       if(!preview&&!fluid){sheets.request(selectedFighters);runs.request(selectedFighters);}
       const selected =
         requested === "pixi" && pixiAvailable ? "pixi" : "canvas";

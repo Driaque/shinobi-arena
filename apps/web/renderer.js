@@ -1,3 +1,4 @@
+import {drawFutureFighter} from './future-fighter-designs.js';
 import {paintStageCanvas} from './packages/presentation/stages.js';
 import {stageFor} from './packages/engine/stages.js';
 import {paintBattleLife} from './living-motion.js';
@@ -65,9 +66,7 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
     if(form&&!ghost){
       c.save();const aura=c.createRadialGradient(0,-75,15,0,-75,130);aura.addColorStop(0,form.color+'88');aura.addColorStop(1,form.color+'00');c.fillStyle=aura;c.fillRect(-135,-220,270,250);
       c.strokeStyle=form.color+'aa';c.lineWidth=3;
-      if(f.character==='naruto')for(let tail=0;tail<9;tail++){const a=tail/8*Math.PI*1.2-Math.PI*.8;c.beginPath();c.moveTo(-15,-55);c.quadraticCurveTo(-85-Math.cos(a)*30,-50+Math.sin(a)*65,-65-Math.cos(a)*80,-80+Math.sin(a)*110+Math.sin(state.tick*.1+tail)*7);c.stroke();}
-      if(form.name==='Susanoo'){c.fillStyle=form.color+'25';c.beginPath();c.moveTo(-70,0);c.lineTo(-80,-175);c.lineTo(-35,-220);c.lineTo(35,-220);c.lineTo(80,-175);c.lineTo(70,0);c.closePath();c.fill();c.stroke();for(let r=0;r<4;r++)line(-58,-70-r*25,58,-70-r*25,form.color+'55',3);}
-      else if(f.character!=='naruto')for(let r=0;r<5;r++)line(-45+r*23,-15,-45+r*23,-170-(r%2)*30,form.color+'77',2);
+      for(let r=0;r<5;r++)line(-45+r*23,-15,-45+r*23,-170-(r%2)*30,form.color+'77',2);
       c.restore();
     }
     if(!ghost){c.fillStyle='#0005';c.beginPath();c.ellipse(0,f.y,Math.max(17,39*(f.scale??1)-f.y*.05),7,0,0,Math.PI*2);c.fill();}
@@ -76,43 +75,40 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
     const attacking=action && action.age>=move.startup && action.age<move.startup+move.active;
     const pose=fighterPose(f,state.tick,move,reducedMotion.matches),phase=state.tick*.29,stride=pose.stride;
     c.translate(0,-pose.bob);if(f.crouching)c.scale(1,.63);c.transform(1,0,-pose.lean,1,0,0);
-    const orange=f.character==='naruto',character=CHARACTERS[f.character];
+    const orange=f.character==='solan',character=CHARACTERS[f.character];
     if(f.invulnerable>0)c.globalAlpha*=.5;
     const shade=(hex,k)=>'#'+[1,3,5].map(i=>Math.max(0,Math.min(255,parseInt(hex.slice(i,i+2),16)+k)).toString(16).padStart(2,'0')).join('');
     const cloth=state.tick-f.lastHit<5&&!f.blockedHit?'#fff2d4':form?.color??character.color;
     const dark=orange?'#223446':'#242d48', skin=character.skin??(f.character==='silent'?'#d6c2b4':'#e6b18b');
     const armY=pose.armY,armX=pose.armX;
     const redesigned=character.id==='aren'||character.id==='silent';
-    if(redesigned)drawFighterDesign(c,f,pose,{cloth,skin,hair:character.hair,move});
+    if(character.releaseState==='unreleased')drawFutureFighter(c,f,pose,character,move);
+    else if(redesigned)drawFighterDesign(c,f,pose,{cloth,skin,hair:character.hair,move});
     else {
     if(f.character==='dora'){c.fillStyle=character.hair;c.beginPath();c.moveTo(-19,-130);c.quadraticCurveTo(-46,-85,-28,form?-20:-48);c.lineTo(8,form?-25:-52);c.lineTo(13,-125);c.fill();}
     if(['silent','winta'].includes(f.character)){c.fillStyle=character.hair;c.beginPath();c.moveTo(-17,-134);c.quadraticCurveTo(-39-pose.trail,-98,-31-pose.trail,-63);c.lineTo(-13,-75);c.lineTo(3,-123);c.fill();for(let strand=0;strand<4;strand++)line(-19-strand*3,-117,-27-strand*3-pose.trail,-70+strand*3,'#ffffff22',1);}
-    // Recognizable back silhouettes sit behind the articulated limbs.
-    if(character.id==='gaara'){c.fillStyle='#a9936b';c.beginPath();c.ellipse(-27,-71,20,29,-.2,0,Math.PI*2);c.ellipse(-31,-106,13,18,-.2,0,Math.PI*2);c.fill();line(-43,-83,-12,-76,'#4d3d37',4);line(-43,-66,-11,-61,'#4d3d37',3);}
-    if(character.faction==='Akatsuki'||['itachi','orochimaru','minato'].includes(character.id)){c.fillStyle=character.id==='minato'?'#dfd5b7':character.faction==='Akatsuki'?'#162532':'#a29c8b';c.beginPath();c.moveTo(-25,-98);c.lineTo(-38-pose.trail*.5,-13);c.lineTo(34,-15);c.lineTo(22,-96);c.fill();line(-35-pose.trail*.5,-17,30,-19,character.id==='itachi'?'#9f5261':'#a87961',3);}
-    if(['sasuke','sarada','minato'].includes(character.id))line(-30,-36,4,-121,'#25394b',6);
-    if(f.weapon==='championKatana'){line(-21,-94,-41,-20,'#e9c166',5);line(-32,-45,-45,-51,'#fff0aa',3);}
-    if(character.style==='scribe'){c.fillStyle='#dce8ed';c.fillRect(-30,-83,15,43);line(-32,-88,-11,-83,'#d3b677',3);}
-    if(character.style==='marshal'){c.fillStyle='#524238';c.fillRect(-30,-96,24,16);line(-27,-91,-9,-91,'#e2ac65',3);}
+    // Core-rival material accents; future rivals use their own articulated designs.
+    if(character.style==='scribe'){c.fillStyle='#dce8ed';c.fillRect(-30,-83,15,43);}
+    if(character.style==='marshal'){c.fillStyle='#524238';c.fillRect(-30,-96,24,16);}
     if(character.style==='apothecary'){for(let i=0;i<3;i++){c.fillStyle=['#91c86c','#b6d991','#d4b5e8'][i];c.fillRect(-30+i*8,-58,5,13);}}
     if(character.style==='smith'){line(-26,-110,-41,-20,'#917d61',9);line(-53,-105,-16,-105,'#bbc6c6',16);}
-    if(character.style==='regent'){c.fillStyle='#392e4b';c.beginPath();c.moveTo(-25,-94);c.lineTo(-38,-15);c.lineTo(32,-18);c.lineTo(20,-94);c.fill();line(-29,-25,27,-27,'#c9accf',3);}
+    if(character.style==='regent'){c.fillStyle='#392e4b';c.fillRect(-24,-93,47,65);}
     if(character.style==='lantern'){c.strokeStyle='#9cbdc9';c.lineWidth=2;c.strokeRect(-39,-75,17,28);circle(-31,-62,6,'#9fe8e3');}
     // Bent legs, sandals and torso.
     for(const [i,leg]of pose.legs.entries()){line(i?11:-12,-48,leg.kx,leg.ky,dark,16);line(leg.kx,leg.ky,leg.fx,leg.fy-2,cloth,12);line(leg.fx-7,leg.fy,leg.fx+9,leg.fy,'#172338',9);line(leg.fx-4,leg.fy-4,leg.fx+5,leg.fy-4,'#91a4ae',2);line(leg.kx-3,leg.ky,leg.kx+3,leg.ky,'#ffffff33',2);}
     const fabric=c.createLinearGradient(-23,-90,25,-48);fabric.addColorStop(0,shade(cloth,22));fabric.addColorStop(.4,cloth);fabric.addColorStop(1,shade(cloth,-35));c.fillStyle=fabric;c.beginPath();c.moveTo(-22,-94);c.lineTo(17,-94);c.lineTo(23,-49);c.lineTo(-20,-49);c.closePath();c.fill();c.strokeStyle='#07131c';c.lineWidth=1.5;c.stroke();
     c.fillStyle=dark;c.fillRect(-22,-58,45,8);line(-18,-91,16,-91,dark,9);
-    const trim=['silent','winta','madara'].includes(f.character)?'#b7bac2':'#91a2b3';
+    const trim=['silent','winta','dravos'].includes(f.character)?'#b7bac2':'#91a2b3';
     // Layered vest plates, collar, seams, belt knot and utility pouch.
     c.fillStyle=dark+'99';c.beginPath();c.moveTo(-18,-89);c.lineTo(-3,-80);c.lineTo(-4,-62);c.lineTo(-17,-65);c.fill();
     line(-18,-92,-3,-81,trim,2);line(15,-92,4,-81,trim,2);line(0,-78,0,-60,'#ffffff33',1);
     for(let i=0;i<3;i++)line(-18,-77+i*6,-6,-74+i*6,'#00000038',2);
     c.fillStyle='#182632';c.fillRect(-27,-57,12,14);line(-25,-55,-17,-55,trim,2);circle(3,-54,3,'#b2a184');
     line(-5,-52,-19-pose.trail,-36,'#263c50',4);line(-4,-52,-12-pose.trail,-29,'#63798c',3);
-    if(character.id==='naruto'){c.fillStyle='#253449';c.fillRect(-22,-89,13,23);line(1,-88,1,-60,'#f3d7a0',2);circle(1,-77,2,'#243648');}
-    if(['sasuke','boruto','kawaki'].includes(character.id)){line(-19,-94,-10,-82,'#343648',7);line(14,-94,8,-81,'#343648',7);line(-19,-56,22,-56,character.id==='sasuke'?'#9b85b8':'#d6a4bd',5);}
-    if(['silent','winta','madara','kakashi'].includes(character.id)){const armor=character.id==='kakashi'?'#637e68':character.id==='silent'?'#6a8b9e':'#8c4c56';for(let plate=0;plate<3;plate++){c.fillStyle=armor;c.fillRect(-19,-86+plate*9,35,7);line(-17,-84+plate*9,13,-84+plate*9,'#ffffff2b',1);}for(const side of [-1,1]){c.fillStyle=armor;c.beginPath();c.moveTo(side*16,-94);c.lineTo(side*30,-89);c.lineTo(side*30,-76);c.lineTo(side*18,-82);c.fill();line(side*20,-91,side*28,-88,'#cad5d455',2);}}
-    if(['lee','hinata','sakura'].includes(character.id)){for(let wrap=0;wrap<3;wrap++){line(-19+stride,-18+pose.foot+wrap*4,-9+stride,-18+pose.foot+wrap*4,'#d5d9cd',2);line(15-stride,-18+pose.foot+wrap*4,24-stride,-18+pose.foot+wrap*4,'#d5d9cd',2);}}
+    if(character.id==='solan'){c.fillStyle='#253449';c.fillRect(-22,-89,13,23);line(1,-88,1,-60,'#f3d7a0',2);circle(1,-77,2,'#243648');}
+    if(['vesper','lumen','vorrik'].includes(character.id)){line(-19,-94,-10,-82,'#343648',7);line(14,-94,8,-81,'#343648',7);line(-19,-56,22,-56,character.id==='vesper'?'#9b85b8':'#d6a4bd',5);}
+    if(['silent','winta','dravos','tavian'].includes(character.id)){const armor=character.id==='tavian'?'#637e68':character.id==='silent'?'#6a8b9e':'#8c4c56';for(let plate=0;plate<3;plate++){c.fillStyle=armor;c.fillRect(-19,-86+plate*9,35,7);line(-17,-84+plate*9,13,-84+plate*9,'#ffffff2b',1);}for(const side of [-1,1]){c.fillStyle=armor;c.beginPath();c.moveTo(side*16,-94);c.lineTo(side*30,-89);c.lineTo(side*30,-76);c.lineTo(side*18,-82);c.fill();line(side*20,-91,side*28,-88,'#cad5d455',2);}}
+    if(['dathen','ilyra','maris'].includes(character.id)){for(let wrap=0;wrap<3;wrap++){line(-19+stride,-18+pose.foot+wrap*4,-9+stride,-18+pose.foot+wrap*4,'#d5d9cd',2);line(15-stride,-18+pose.foot+wrap*4,24-stride,-18+pose.foot+wrap*4,'#d5d9cd',2);}}
     if(pose.weight>.2&&(action?.move==='attack3'||action?.move==='airAttack3')){line(10,-48,66,-66,cloth,16);line(66,-66,93,-96,dark,13);}
     if(f.charging||move?.projectile||move?.ground||move?.buff){line(-14,-86,8,-96,dark,13);line(8,-96,pose.armX-9,pose.armY+7,skin,10);circle(pose.armX-9,pose.armY+7,5,skin);}else{line(-14,-86,-27,-64,dark,13);line(-27,-64,-16,-52,skin,11);}
     const elbow=pose.elbow??{x:32,y:armY-6};
@@ -124,24 +120,24 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
     c.closePath();c.fill();
     if(character.id==='dora'){line(-17,-123,16,-123,'#dfbe75',3);circle(3,-124,3,'#8ce5df');}
     else{line(-17,-120,16,-120,'#304257',9);line(-9,-120,10,-120,'#9eafb9',6);}circle(8,-110,2,'#21334b');line(5,-114,13,-114,'#34303b',1.5);line(14,-107,17,-104,'#a97362',1);line(4,-99,11,-99,'#a77565',1);circle(-16,-109,4,skin);
-    if(character.id==='naruto')for(const y of [-108,-104]){line(-12,y,-4,y+2,'#966d50',1);line(9,y+1,16,y-1,'#966d50',1);}
-    if(character.faction==='Akatsuki'){circle(-24,-69,6,'#a83b48');circle(-18,-70,7,'#a83b48');circle(-12,-67,5,'#a83b48');line(-29,-64,-8,-64,'#e1b5af',1);}
-    if(character.id==='pain'){for(const ex of [-7,8]){circle(ex,-110,4,'#a88fc1');c.strokeStyle='#4c3962';c.lineWidth=1;for(const r of [2,4]){c.beginPath();c.arc(ex,-110,r,0,Math.PI*2);c.stroke();}}for(let i=0;i<3;i++)circle(12,-104+i*3,1,'#182433');}
-    if(character.id==='zetsu'){c.fillStyle='#d3d9c9';c.fillRect(-16,-115,15,18);c.fillStyle='#18262a';c.fillRect(-1,-115,16,18);for(const side of [-1,1]){c.fillStyle='#527b4a';c.beginPath();c.moveTo(side*16,-90);c.quadraticCurveTo(side*43,-117,side*28,-145);c.lineTo(side*22,-120);c.lineTo(side*16,-105);c.fill();}}
-    if(character.id==='kisame'){for(let i=0;i<3;i++)line(-13,-105+i*3,-6,-103+i*3,'#3b5967',1);}
-    if(character.id==='obito'){c.fillStyle='#d28d45';c.beginPath();c.ellipse(0,-109,17,20,0,0,Math.PI*2);c.fill();c.strokeStyle='#4a3c36';c.lineWidth=1.5;for(let r=4;r<17;r+=4){c.beginPath();c.arc(5,-110,r,.2,Math.PI*1.8);c.stroke();}circle(7,-110,3,'#202638');}
-    if(character.id==='itachi'){line(-10,-113,-8,-102,'#665764',1);circle(-18,-70,7,'#ad5361');circle(-10,-70,6,'#ad5361');line(-23,-65,-5,-65,'#d58a8c',1);}
+    if(character.id==='solan')for(const y of [-108,-104]){line(-12,y,-4,y+2,'#966d50',1);line(9,y+1,16,y-1,'#966d50',1);}
+    if(character.faction==='Concord Challengers'){circle(-24,-69,6,'#a83b48');circle(-18,-70,7,'#a83b48');circle(-12,-67,5,'#a83b48');line(-29,-64,-8,-64,'#e1b5af',1);}
+    if(character.id==='vael'){for(const ex of [-7,8]){circle(ex,-110,4,'#a88fc1');c.strokeStyle='#4c3962';c.lineWidth=1;for(const r of [2,4]){c.beginPath();c.arc(ex,-110,r,0,Math.PI*2);c.stroke();}}for(let i=0;i<3;i++)circle(12,-104+i*3,1,'#182433');}
+    if(character.id==='sylven'){c.fillStyle='#d3d9c9';c.fillRect(-16,-115,15,18);c.fillStyle='#18262a';c.fillRect(-1,-115,16,18);for(const side of [-1,1]){c.fillStyle='#527b4a';c.beginPath();c.moveTo(side*16,-90);c.quadraticCurveTo(side*43,-117,side*28,-145);c.lineTo(side*22,-120);c.lineTo(side*16,-105);c.fill();}}
+    if(character.id==='brannik'){for(let i=0;i<3;i++)line(-13,-105+i*3,-6,-103+i*3,'#3b5967',1);}
+    if(character.id==='nyxen'){c.fillStyle='#d28d45';c.beginPath();c.ellipse(0,-109,17,20,0,0,Math.PI*2);c.fill();c.strokeStyle='#4a3c36';c.lineWidth=1.5;for(let r=4;r<17;r+=4){c.beginPath();c.arc(5,-110,r,.2,Math.PI*1.8);c.stroke();}circle(7,-110,3,'#202638');}
+    if(character.id==='morwen'){line(-10,-113,-8,-102,'#665764',1);circle(-18,-70,7,'#ad5361');circle(-10,-70,6,'#ad5361');line(-23,-65,-5,-65,'#d58a8c',1);}
     if(character.id==='silent'){line(-28,-72,-36,-34,'#273f55',8);line(-36,-34,-49-pose.trail,-23,'#668396',4);}
     // Headband ribbons trail behind the fighter.
     line(-19,-120,-41-pose.trail,-113+Math.sin(phase)*4,dark,4);line(-19,-119,-42-pose.trail,-125+Math.cos(phase)*4,dark,4);
     } // Original bodies for the remaining roster.
     if(f.blocking || state.tick-f.lastHit<5&&f.blockedHit){c.strokeStyle='#80d6eb';c.lineWidth=4;c.beginPath();c.ellipse(26,-70,30,65,0,-1.4,1.4);c.stroke();}
     if(attacking&&['attack','attack2','attack3'].includes(action.move)){line(38,-81,88,-86,'#ffe1aa',4);line(42,-69,81,-70,'#ffe1aa77',2);}
-    if(action?.move==='special1'||action?.move==='chidori'||action?.move==='lionFists'||action?.move==='kuramaRasengan'||action?.move==='karmaRasengan'){
+    if(action?.move==='special1'||action?.move==='voltaicLance'||action?.move==='prismRam'||action?.move==='sunforgeDrive'||action?.move==='prismaticDrive'){
       const power=attacking?1:Math.min(1,action.age/move.startup)*.65;
       c.save();c.globalAlpha*=power;
       const aura=c.createRadialGradient(57,-82,3,57,-82,55);aura.addColorStop(0,'#efffff');aura.addColorStop(.35,'#76e5ff');aura.addColorStop(1,'#429aff00');c.fillStyle=aura;c.fillRect(-2,-140,120,120);
-      if(action.move!=='chidori'){circle(57,-82,19,'#7adfff');for(let i=0;i<3;i++){c.strokeStyle='#e9fcff';c.lineWidth=2;c.beginPath();c.ellipse(57,-82,18,7,phase+i,0,Math.PI*2);c.stroke();}}
+      if(action.move!=='voltaicLance'){circle(57,-82,19,'#7adfff');for(let i=0;i<3;i++){c.strokeStyle='#e9fcff';c.lineWidth=2;c.beginPath();c.ellipse(57,-82,18,7,phase+i,0,Math.PI*2);c.stroke();}}
       else for(let i=0;i<8;i++){const a=phase+i*.8;line(57,-82,57+Math.cos(a)*47,-82+Math.sin(a)*40,'#bceaff',2);}
       c.restore();
     }
@@ -150,15 +146,15 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
       c.beginPath();c.ellipse(28,-78,Math.min(move.reach??110,150)*.65,43,move.spike?-.6:.1,-1.5+pose.weight,1.3+pose.weight);c.stroke();c.globalAlpha*=.4;c.lineWidth=12;c.stroke();c.restore();
     }
     if(action?.move==='clone'&&attacking&&!ghost){c.save();c.globalAlpha=.35;line(55,-70,180,-70,'#83d7ed',35);c.restore();}
-    if(!redesigned&&action&&(['kunai','katana','shuriken'].includes(action.move)||move.sword)){
-      const length=move.sword&&action.move!=='kaiken'?90:35;
-      line(armX-5,armY,armX+length,armY-15,'#dce6ed',action.move==='katana'?5:4);
+    if(!redesigned&&action&&(['conduitSpike','skyforgedBlade','orbitDisc'].includes(action.move)||move.sword)){
+      const length=move.sword&&action.move!=='oathknife'?90:35;
+      line(armX-5,armY,armX+length,armY-15,'#dce6ed',action.move==='skyforgedBlade'?5:4);
       line(armX+2,armY-10,armX+5,armY+7,'#cbb16c',4);
     }
-    if(action&&['snakeStrike','seal','chakraStrike'].includes(action.move)&&attacking){
-      const color=action.move==='snakeStrike'?'#b6e28c':'#c7a7ee';line(45,-75,action.move==='snakeStrike'?210:105,-80,color,9);
+    if(action&&['thornlash','fivefoldLock','pulsebreaker'].includes(action.move)&&attacking){
+      const color=action.move==='thornlash'?'#b6e28c':'#c7a7ee';line(45,-75,action.move==='thornlash'?210:105,-80,color,9);
     }
-    if(attacking&&action&& !['attack','attack2','attack3','special1','chidori','lionFists','kuramaRasengan','karmaRasengan','clone','kunai','katana','shuriken'].includes(action.move)&&!move.projectile&&!move.buff){
+    if(attacking&&action&& !['attack','attack2','attack3','special1','voltaicLance','prismRam','sunforgeDrive','prismaticDrive','clone','conduitSpike','skyforgedBlade','orbitDisc'].includes(action.move)&&!move.projectile&&!move.buff){
       c.strokeStyle=move.color??character.color;c.lineWidth=7;c.beginPath();c.moveTo(25,-65);c.quadraticCurveTo(Math.min(move.reach,220)*.6,-130,Math.min(move.reach,250),-75);c.stroke();
     }
     if(!redesigned&&['silent','winta'].includes(character.id)){
@@ -173,25 +169,25 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
         if(attacking||form||f.buffs.some(b=>b.type==='stormheart'))for(let i=0;i<3;i++){const offset=(state.tick*7+i*19)%48;line(armX+offset,-80-i*12,armX+offset+8,-91-i*12,'#ff7999',2);line(armX+offset+8,-91-i*12,armX+offset+4,-103-i*12,'#ffd499',2);}
       }
     }
-    if(character.id==='kakashi'){c.fillStyle='#25394a';c.fillRect(-15,-108,30,12);}
+    if(character.id==='tavian'){c.fillStyle='#25394a';c.fillRect(-15,-108,30,12);}
     if(character.id==='dora'){
-      // Regal robe, long hair, gold jewelry and fans keep the stage silhouette distinct.
+      // Regal robe, long hair, gold jewelry and tideglassFans keep the stage silhouette distinct.
       c.fillStyle=cloth;c.beginPath();c.moveTo(-20,-58);c.lineTo(form?-34:-27,-16);c.lineTo(4,-27);c.lineTo(29,-15);c.lineTo(22,-58);c.closePath();c.fill();
       line(-18,-91,-8,-77,'#dfbe75',2);line(-8,-77,12,-90,'#dfbe75',2);circle(-8,-77,4,'#8ce5df');circle(-16,-107,3,'#e8c87b');circle(15,-107,3,'#e8c87b');circle(8,-110,2,'#6b412b');
       if(!action||move?.fanStrike||f.blocking){
         for(const [fx,fy,angle] of [[armX,armY,-.9],[-16,-52,-2.1]]){c.save();c.translate(fx,fy);c.rotate(angle);c.beginPath();c.moveTo(0,0);c.arc(0,0,attacking?38:28,-.8,.8);c.closePath();c.fillStyle='#a4e2e3';c.fill();c.strokeStyle='#e6c87d';c.lineWidth=2;c.stroke();for(let rib=0;rib<5;rib++){const a=-.8+rib*.4;line(0,0,Math.cos(a)*(attacking?38:28),Math.sin(a)*(attacking?38:28),'#4d8996',1);}c.restore();}
       }
-      // Katana stays sheathed while her fan techniques are active.
-      if(f.weapon!=='katana'||!action)line(-23,-65,-45,-24,'#c3d5df',3);
+      // Skyforged Blade stays sheathed while her fan techniques are active.
+      if(f.weapon!=='skyforgedBlade'||!action)line(-23,-65,-45,-24,'#c3d5df',3);
       if(action?.move==='royalTempest'||action?.move==='releasedTempest'){c.strokeStyle='#88e5de';c.lineWidth=3;c.beginPath();c.ellipse(100,-65,Math.min(125,30+action.age*5),40,0,0,Math.PI*2);c.stroke();}
     }
-    if(character.id==='sarada'){c.strokeStyle='#e45b72';c.lineWidth=2;c.strokeRect(2,-116,14,9);}
-    if(form&&form.name.startsWith('Karma'))line(-2,-120,10,-98,form.color,3);
+    if(character.id==='caldra'){c.strokeStyle='#e45b72';c.lineWidth=2;c.strokeRect(2,-116,14,9);}
+    if(form&&form.name.startsWith('Prism Overdrive'))line(-2,-120,10,-98,form.color,3);
     if(f.charging){for(let i=0;i<6;i++){const a=i*Math.PI/3+state.tick*.04;circle(Math.cos(a)*42,-65+Math.sin(a)*65,3,'#83dff4');}line(-30,-10,-30,-130,'#83dff455',3);}
     if(f.effects.some(e=>e.type==='bind')){for(let i=0;i<4;i++)line(-26,-15-i*15,25,-5-i*15,'#c6ac7b',3);}
     if(f.buffs.some(b=>b.type==='ward')){c.strokeStyle='#d2c08a';c.lineWidth=3;c.strokeRect(-30,-135,60,135);}
     if(f.buffs.some(b=>b.type==='poisonCoating')||action?.poison){circle(armX,armY,12,'#a4d87c88');}
-    if(f.buffs.length||action?.move==='sharingan'){c.strokeStyle=action?.move==='sharingan'?'#eb7175':'#c5eaff';c.lineWidth=2;c.beginPath();c.arc(0,-110,29,0,Math.PI*2);c.stroke();}
+    if(f.buffs.length||action?.move==='dissonanceMark'){c.strokeStyle=action?.move==='dissonanceMark'?'#eb7175':'#c5eaff';c.lineWidth=2;c.beginPath();c.arc(0,-110,29,0,Math.PI*2);c.stroke();}
     for(const effect of f.effects){const color=effect.type==='poison'?'#a4d87c':effect.type==='burn'?'#f4a35e':'#bf96ea';for(let i=0;i<3;i++)circle(-26+i*25,-30-((state.tick+i*15)%65),3,color);}
     if(f.dash)for(let i=0;i<3;i++)line(-f.dash.direction*(30+i*14),-30-i*25,-f.dash.direction*(75+i*14),-30-i*25,'#afd7eb66',3);
     c.restore();
@@ -251,7 +247,7 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
       }else{c.globalAlpha=z.remaining/15;c.strokeStyle='#ffcf79';c.lineWidth=8;c.beginPath();c.arc(z.x,y,z.radius*(1.5-z.remaining/30),0,Math.PI*2);c.stroke();}
       c.restore();
     }
-    for(const f of state.fighters)if(f.raijinMark){const x=f.raijinMark.x;c.save();line(x,ARENA.floor-75,x,ARENA.floor-5,'#ffd87977',2);circle(x,ARENA.floor-7,8,'#ffd879');c.font='bold 12px system-ui';c.fillStyle='#ffd879';c.textAlign='center';c.fillText(`RAIJIN · ${(f.raijinMark.remaining/60).toFixed(1)}s`,x,ARENA.floor-85);c.restore();}
+    for(const f of state.fighters)if(f.waypointMark){const x=f.waypointMark.x;c.save();line(x,ARENA.floor-75,x,ARENA.floor-5,'#ffd87977',2);circle(x,ARENA.floor-7,8,'#ffd879');c.font='bold 12px system-ui';c.fillStyle='#ffd879';c.textAlign='center';c.fillText(`WAYPOINT · ${(f.waypointMark.remaining/60).toFixed(1)}s`,x,ARENA.floor-85);c.restore();}
     for(const f of [...state.fighters].sort((a,b)=>(a.depth??0)-(b.depth??0))){
       trails[f.id]??=[];
       if(f.replacement){const r=f.replacement,y=ARENA.floor+(r.depth??0)*.65-r.y;c.fillStyle='#96663c';c.fillRect(r.x-15,y-70,30,65);circle(r.x,y-70,15,'#c09361');line(r.x-8,y-62,r.x-8,y-12,'#d2a176',3);for(let i=0;i<3;i++)circle(r.x-28+i*27,y-60-i*15,15,'#cadde74a');}
@@ -262,9 +258,9 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
     }
     for(const p of state.projectiles){const y=ARENA.floor+(p.depth??0)*.65-p.y;if(nativeEffects){if(p.move==='itemBomb'){c.font='bold 11px system-ui';c.fillStyle='#ffe2a4';c.textAlign='center';c.fillText((p.life/60).toFixed(1),p.x,y-19);}continue;}
       if(p.move==='itemBomb'){circle(p.x,y,12,'#2c2522');circle(p.x,y,8,'#ffbd70');c.font='bold 11px system-ui';c.fillStyle='#ffe2a4';c.textAlign='center';c.fillText((p.life/60).toFixed(1),p.x,y-19);continue;}
-      if(['itemKunai','itemRaijin'].includes(p.move)){line(p.x-18*p.direction,y,p.x+14*p.direction,y,'#d9e6ee',4);if(p.move==='itemRaijin')circle(p.x,y,18,'#ffd87955');continue;}
+      if(['itemSpike','itemWaypoint'].includes(p.move)){line(p.x-18*p.direction,y,p.x+14*p.direction,y,'#d9e6ee',4);if(p.move==='itemWaypoint')circle(p.x,y,18,'#ffd87955');continue;}
 
-      if(p.move==='shuriken'||p.move==='itemShuriken'){c.save();c.translate(p.x,y);c.rotate(state.tick*.5);for(let i=0;i<4;i++){c.rotate(Math.PI/2);c.fillStyle='#c9dce7';c.beginPath();c.moveTo(0,-4);c.lineTo(20,0);c.lineTo(0,5);c.fill();}circle(0,0,3,'#334b61');c.restore();continue;}
+      if(p.move==='orbitDisc'||p.move==='itemOrbit'){c.save();c.translate(p.x,y);c.rotate(state.tick*.5);for(let i=0;i<4;i++){c.rotate(Math.PI/2);c.fillStyle='#c9dce7';c.beginPath();c.moveTo(0,-4);c.lineTo(20,0);c.lineTo(0,5);c.fill();}circle(0,0,3,'#334b61');c.restore();continue;}
 c.save();c.translate(p.x,y);c.scale(p.direction,1);const color=MOVES[p.move].color??'#ffb94d';const fire=c.createRadialGradient(0,0,3,0,0,42);fire.addColorStop(0,'#fff6de');fire.addColorStop(.4,color);fire.addColorStop(1,color+'00');c.fillStyle=fire;c.fillRect(-55,-45,105,90);circle(0,0,20,color);line(-20,0,-56,8,color,9);
       const element=MOVES[p.move].element;
       if(element==='water'||element==='wind'){c.strokeStyle='#d5ffffaa';c.lineWidth=2;for(let i=0;i<3;i++){c.beginPath();c.ellipse(-i*12,0,23+i*3,8+i*4,state.tick*.08+i,0,Math.PI*2);c.stroke();}}

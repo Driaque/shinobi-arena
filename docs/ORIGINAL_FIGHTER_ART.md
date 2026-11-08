@@ -12,11 +12,11 @@ Shared generation prompt: “Production transparent game combat sprite sheet for
 | --- | --- |
 | Silent | Mature pale man, fierce blue eyes, long silver-grey hair, dark mask over nose/mouth, layered steel-blue samurai armor, black underclothes, blue-grey sash and original ice-crest headband. |
 | Winta | Warm brown skin, long dark hair tied back, amber eyes, crimson lacquered samurai armor with silver details, dark trousers, red sash and ice-crest headband. Silent's blood brother. |
-| Dora | Graceful strong woman, golden-brown skin, long dark hair, blue eyes, ornate teal/gold royal kunoichi outfit, fitted battle bodice, flowing split skirt, small gold tiara, bracers and boots. |
+| Dora | Graceful strong woman, golden-brown skin, long dark hair, blue eyes, ornate teal/gold royal champion outfit, fitted battle bodice, flowing split skirt, small gold tiara, bracers and boots. |
 | Aren | Athletic man, dark bronze-brown skin, swept-back silver-white locs, teal/gold sleeveless long coat, dark fitted top, black trousers, bronze shoulder guard/greaves, white forearm wraps and gold waist clasp. |
 | Eira | Brown skin, long silver-white hair, blue eyes, delicate glasses, blue-white/silver split archivist robe, turquoise trim, armored boots and hip scroll. |
 | Kael | Imposing brown-skinned man, cropped dark-brown hair, strong jaw, cheek scar, dark bronze/ember military plate, long burnt-orange coat and reinforced boots. |
-| Nyra | Deep brown skin, green-black braided hair, green eyes, hoodless dark-green leather/apothecary tunic, sage split cloak, medicine vials and practical boots. |
+| Nyra | Deep brown skin, green-black braided hair, green eyes, hoodless dark-green leather/apothecary tunic, tempestAttunement split cloak, medicine vials and practical boots. |
 | Rook | Broad muscular man, dark brown skin, short brown hair/beard, weathered ochre/bronze armor over workman leather, riveted chestplate, thick bracers, armored waist panels, forge tools on belt. |
 | Veyra | Warm brown skin, pale lavender-white hair, violet eyes, deep violet/silver combat robe and split skirt, fitted armored bodice, delicate crown and silver shoulder pieces. |
 | Oryn | Gaunt man, grey-brown skin with faint aqua cracks, unkempt silver hair, haunted cyan eyes, weathered blue-grey coat, layered armor, belts and a caged cyan lantern at the hip. |

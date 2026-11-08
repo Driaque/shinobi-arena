@@ -3,7 +3,7 @@ import {createMatch,stepMatch,computerInput} from './index.js';
 const allyStart=i=>({team:0,x:300+i*180,depth:i===0?-52:52,facing:1});
 export const COOP_WAVES=Object.freeze([['rook','aren'],['nyra','oryn'],['kael','veyra']]);
 function wave(state,index){
- const enemies=createMatch(COOP_WAVES[index].map(character=>({character,weapon:character==='kael'?'tachi':'katana'}))).fighters;
+ const enemies=createMatch(COOP_WAVES[index].map(character=>({character,weapon:character==='kael'?'frostmereSaber':'skyforgedBlade'}))).fighters;
  state.fighters=[...state.fighters.slice(0,2),...enemies.map((f,i)=>({...f,id:i+2,team:1,x:1050+i*180,name:`${f.name} · Wave ${index+1}`}))];
  state.metrics=[...state.metrics.slice(0,2),...enemies.map(()=>({damage:0,hits:0,blocked:0,parries:0,punishes:0,chargePunishes:0,fieldDamage:0,links:0}))];
  state.zones=[];state.projectiles=[];state.coop.wave=index+1;state.coop.breakTicks=0;state.remainingTicks=120*60;

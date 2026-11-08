@@ -4,7 +4,7 @@ Skyglass Terrace once connected the river courts, the northern pass and the susp
 
 ## Silent — Cold Metal
 
-Once the keeper of Frostmere’s northern pass, Silent sealed a fractured Skyglass conduit inside his own armor to stop a catastrophe. He now searches for its missing heart before the seal destroys his home.
+Once the keeper of Frostmere’s northern pass, Silent sealed a fractured Skyglass conduit inside his own armor to stop a catastrophe. He now searches for its missing heart before the fivefoldLock destroys his home.
 
 Dora is his wife and closest strategist. His blood brother Winta held the pass beside him. Rook forged the armor that keeps him alive.
 
@@ -20,11 +20,11 @@ Play style: Lightning sword pressure, dash attacks and recovery through clean dr
 
 ## Dora — AquaPrincess
 
-Dora, Silent’s wife, is Frostmere’s strongest kunoichi and the royal envoy who united the river courts. When the Terrace fell, she chose to shelter its refugees instead of surrendering them to the council. She fights to rebuild the alliance on her own terms.
+Dora, Silent’s wife, is Frostmere’s strongest champion and the royal envoy who united the river courts. When the Terrace fell, she chose to shelter its refugees instead of surrendering them to the council. She fights to rebuild the alliance on her own terms.
 
 Silent’s wife. Veyra was once her council adviser. Nyra owes her sanctuary; Aren carries her messages between the broken cities.
 
-Play style: Graceful wind, water and fire counterattacks. Weaken, pull and punish with bladed fans; Limit Release amplifies wind and fire.
+Play style: Graceful wind, water and fire counterattacks. Weaken, pull and punish with bladed Tideglass Fans; Limit Release amplifies wind and fire.
 
 ## Aren — Gale Vanguard
 
@@ -40,7 +40,7 @@ The last archivist of the Terrace, Eira can read memories held in flowing water.
 
 Aren’s older sister. Shares the rescue record with Winta. Veyra needs her testimony silenced; Oryn needs it to learn what happened.
 
-Play style: Water field control and ranged senbon. Manage lanes and punish opponents committed to crossing flooded ground.
+Play style: Water field control and ranged needles. Manage lanes and punish opponents committed to crossing flooded ground.
 
 ## Kael — Ashbound Marshal
 
@@ -60,7 +60,7 @@ Play style: Poison projectiles, lingering mist and patient spacing. Threaten app
 
 ## Rook — Iron Oath
 
-Rook built the Terrace’s emergency armor and discovered its safety valves had been removed. He forged Silent’s seal from the wreckage, then abandoned his marshal’s commission to find who altered his designs.
+Rook built the Terrace’s emergency armor and discovered its safety valves had been removed. He forged Silent’s fivefoldLock from the wreckage, then abandoned his marshal’s commission to find who altered his designs.
 
 Kael’s former apprentice. Forged Silent’s armor. Eira holds his signed plans, while Veyra holds the orders that changed them.
 

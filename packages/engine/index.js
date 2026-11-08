@@ -9,7 +9,7 @@ export const TICK_RATE = 60;
 export const FIGHTER_SCALE=.86;
 export const fighterBody=f=>({scale:f.scale??1,width:52*(f.scale??1),height:(f.crouching?76:120)*(f.scale??1),meleeHeight:100*(f.scale??1),projectileRadius:48*(f.scale??1)});
 export const ARENA = Object.freeze({ width: 1600, height: 720, floor: 570, margin: 46 });
-export const RULES_VERSION = 'duel-0.20.0';
+export const RULES_VERSION = 'duel-0.40.0';
 export function advanceResource(resource, cost) {
   if (![resource, cost].every(Number.isFinite) || resource < 0 || cost < 0) throw new Error('Invalid resource');
   return resource >= cost ? { accepted: true, remaining: resource - cost } : { accepted: false, remaining: resource };
@@ -24,11 +24,11 @@ export function outcome({ hp1, hp2, remainingTicks }) {
 }
 function fighter(id, loadout) {
   const character=CHARACTERS[loadout.character];
-  return { id, scale:FIGHTER_SCALE,depth:0,travel:0, guardStun:0, linkCount:0, name: character.name, character: loadout.character, jutsus:[...loadout.jutsus],charging:false, weapon: loadout.weapon, weapons:[...loadout.weapons],weaponSlot:0,items:loadout.items.map(id=>({id,count:id?1:0})),itemSlot:0,raijinMark:null, x: id === 0 ? 360 : 920, y: 0, vy: 0, vx:0, airAttacks:0, juggleHits:0, airTech:false, landingRecovery:0, landedAt:-100,
+  return { id, scale:FIGHTER_SCALE,depth:0,travel:0, guardStun:0, linkCount:0, name: character.name, character: loadout.character, jutsus:[...loadout.jutsus],charging:false, weapon: loadout.weapon, weapons:[...loadout.weapons],weaponSlot:0,items:loadout.items.map(id=>({id,count:id?1:0})),itemSlot:0,waypointMark:null, x: id === 0 ? 360 : 920, y: 0, vy: 0, vx:0, airAttacks:0, juggleHits:0, airTech:false, landingRecovery:0, landedAt:-100,
     hp: 1000, chakra: 100, stamina:100, guard:100, actionsStarted:0, lastActionEnd:-1000, lastExertion:-100, lastGuardHit:-100, guardStart:-100, parryCooldown:0, airDashUsed:false, jumpBuffer:0, dashBuffer:null, damageTaken:0, awakeningTicks:0, awakeningUsed:false, awakeningFlash:0, buffer:null, combo:{hits:0,damage:0,lastTick:-100,target:null}, facing: id === 0 ? 1 : -1, stun: 0, blocking: false, crouching:false,
     jumps: 0, dash: null, dashCooldown: 0, taps: {left:-100,right:-100}, cooldowns: {}, effects: [], buffs: [], invulnerable: 0, replacement: null, action: null, previous: {}, lastHit: -100, blockedHit: false };
 }
-export function createMatch(loadouts=[{character:'naruto',weapon:'kunai'},{character:'sasuke',weapon:'kunai'}],{difficulty='easy',stage='skyglass'}={}) {
+export function createMatch(loadouts=[{character:'solan',weapon:'conduitSpike'},{character:'vesper',weapon:'conduitSpike'}],{difficulty='easy',stage='skyglass'}={}) {
   const selected=validateLoadouts(loadouts);
   return { stage:resolveStage(stage),arena:{...ARENA},metrics:[0,1].map(()=>({damage:0,hits:0,blocked:0,parries:0,punishes:0,chargePunishes:0,fieldDamage:0,links:0})), version: RULES_VERSION, difficulty:difficultyFor(difficulty).id, tick: 0, round: 1, remainingTicks: 90 * TICK_RATE,
     loadouts: selected, fighters: selected.map((l,i)=>fighter(i,l)), wins: [0, 0], status: 'playing', result: null,
@@ -61,7 +61,7 @@ function separate(a, b) {
 }
 export function moveFor(f, key) {
   if(key==='swapWeapon')return f.weapons?.[1]?'swapWeapon':null;
-  if(key==='useItem'){const slot=f.items?.[f.itemSlot];return slot?.id==='raijinKunai'&&f.raijinMark?.slot===f.itemSlot?'raijinWarp':slot?.count?ITEMS[slot.id].move:null;}
+  if(key==='useItem'){const slot=f.items?.[f.itemSlot];return slot?.id==='waypointAnchor'&&f.waypointMark?.slot===f.itemSlot?'waypointWarp':slot?.count?ITEMS[slot.id].move:null;}
   const character=CHARACTERS[f.character];
   if(JUTSU_KEYS.includes(key)){
     const selected=(f.jutsus??defaultJutsus(f.character))[JUTSU_KEYS.indexOf(key)];
@@ -88,7 +88,7 @@ function startAction(state, f, key, override=null, chain=0, aim=f.buffer?.aim??n
   f.chakra=spent.remaining;f.cooldowns[key]=config.cooldown??0;
   if(chain<2)f.actionsStarted++;
   if(!f.action)f.linkCount=0;
-  if(key==='useItem'&&move!=='raijinWarp')f.items[f.itemSlot].count--;
+  if(key==='useItem'&&move!=='waypointWarp')f.items[f.itemSlot].count--;
   const poison=key==='weapon'&&f.buffs.some(b=>b.type==='poisonCoating');if(poison)f.buffs=f.buffs.filter(b=>b.type!=='poisonCoating');
   f.action={aim,source:key,itemSlot:f.itemSlot,poison,move,age:0,hit:false,confirmed:false,fired:false,recoveryPenalty:0,chain:chain||(key==='attack'?1:0)};f.blocking=false;f.crouching=false;return true;
 }
@@ -157,9 +157,9 @@ export function stepMatch(state, inputs = [{}, {}]) {
   for (const f of state.fighters) {
     if(state.coop&&f.hp<=0){f.action=null;f.dash=null;f.blocking=false;continue;}
     const input = inputs[f.id] ?? {}, other = targetFor(state,f);
-    if(f.raijinMark&&--f.raijinMark.remaining<=0)f.raijinMark=null;
+    if(f.waypointMark&&--f.waypointMark.remaining<=0)f.waypointMark=null;
     if(fresh(input,f,'cycleItem')){
-      for(let i=1;i<=4;i++){const next=(f.itemSlot+i)%4;if(f.items[next].count||f.raijinMark?.slot===next){f.itemSlot=next;break;}}
+      for(let i=1;i<=4;i++){const next=(f.itemSlot+i)%4;if(f.items[next].count||f.waypointMark?.slot===next){f.itemSlot=next;break;}}
     }
     if(input.dashDirection===-1||input.dashDirection===1)f.dashBuffer={direction:input.dashDirection,expires:state.tick+8};
     if(fresh(input,f,'jump'))f.jumpBuffer=state.tick+8;
@@ -245,8 +245,8 @@ export function stepMatch(state, inputs = [{}, {}]) {
         a.fired=true;
         if(m.inventoryEffect==='swap'){f.weaponSlot=1-f.weaponSlot;f.weapon=f.weapons[f.weaponSlot];state.events.push({type:'weaponSwap',target:f.id});}
         if(m.inventoryEffect==='poison')f.buffs=[...f.buffs.filter(b=>b.type!=='poisonCoating'),{type:'poisonCoating',remaining:360}];
-        if(m.inventoryEffect==='smoke')state.zones.push({kind:'smoke',appearance:f.items[a.itemSlot]?.id==='victorySmoke'?'victory':null,owner:f.id,x:f.x,depth:f.depth??0,y:f.y+65*(f.scale??1),radius:125,remaining:180});
-        if(m.inventoryEffect==='warp'&&f.raijinMark){f.x=clamp(f.raijinMark.x,ARENA.margin,ARENA.width-ARENA.margin);f.y=0;f.vy=0;f.jumps=0;f.airDashUsed=false;f.depth=f.raijinMark.depth??0;f.raijinMark=null;state.events.push({type:'raijinWarp',target:f.id});}
+        if(m.inventoryEffect==='smoke')state.zones.push({kind:'smoke',appearance:f.items[a.itemSlot]?.id==='laureateShroud'?'victory':null,owner:f.id,x:f.x,depth:f.depth??0,y:f.y+65*(f.scale??1),radius:125,remaining:180});
+        if(m.inventoryEffect==='warp'&&f.waypointMark){f.x=clamp(f.waypointMark.x,ARENA.margin,ARENA.width-ARENA.margin);f.y=0;f.vy=0;f.jumps=0;f.airDashUsed=false;f.depth=f.waypointMark.depth??0;f.waypointMark=null;state.events.push({type:'waypointWarp',target:f.id});}
       }
       if(m.utility&&a.age>=m.startup&&!a.fired){
         a.fired=true;
@@ -258,7 +258,7 @@ export function stepMatch(state, inputs = [{}, {}]) {
       if (m.projectile && a.age === m.startup && !a.fired) {
         a.fired = true;
         for(const offset of m.fan?[-24,0,24]:[0])state.projectiles.push({poison:a.poison,itemSlot:a.itemSlot, id: state.nextId++, owner: f.id, x: f.x + f.facing * 60,
-          depth:f.depth??0,y: f.y + (65+offset)*(f.scale??1), direction: a.aim&&Math.abs(a.aim.x)>.1?Math.sign(a.aim.x):f.facing, vz:(a.aim?.z??0)*2, life: m.life, move: a.move, power:activeAwakening(f)?.damage??1, weak: 1-(f.effects.find(e=>e.type==='weaken')?.potency??0), pierce: f.buffs.some(b=>b.type==='byakugan')?1:(m.pierce??0) });
+          depth:f.depth??0,y: f.y + (65+offset)*(f.scale??1), direction: a.aim&&Math.abs(a.aim.x)>.1?Math.sign(a.aim.x):f.facing, vz:(a.aim?.z??0)*2, life: m.life, move: a.move, power:activeAwakening(f)?.damage??1, weak: 1-(f.effects.find(e=>e.type==='weaken')?.potency??0), pierce: f.buffs.some(b=>b.type==='fractureLens')?1:(m.pierce??0) });
       }
     }
     const wasAir=f.y>0||f.vy>0;
@@ -289,7 +289,7 @@ export function stepMatch(state, inputs = [{}, {}]) {
       if(p.life<=0){state.zones.push({kind:'blast',x:p.x,y:p.y,radius:move.blast,remaining:15,owner:p.owner});hit=laneHit&&target.invulnerable===0&&!(target.airTech&&target.y>0)&&Math.hypot(p.x-target.x,p.y-(target.y+fighterBody(target).height/2))<=move.blast;}
     }else hit=laneHit&&target.invulnerable===0&&!(target.airTech&&target.y>0)&&Math.abs(p.x-target.x)<fighterBody(target).projectileRadius&&p.y>=target.y&&p.y<=target.y+fighterBody(target).height;
     if(hit){hits.push({attacker:p.owner,target:target.id,direction:p.direction,...move,move:p.move,weak:p.weak,power:p.power,pierce:p.pierce,poison:p.poison});p.life=0;}
-    if(move.mark&&(hit||p.life<=0||p.x<0||p.x>ARENA.width)){owner.raijinMark={depth:p.depth??0,x:clamp(p.x,ARENA.margin,ARENA.width-ARENA.margin),remaining:300,slot:p.itemSlot};p.life=0;}
+    if(move.mark&&(hit||p.life<=0||p.x<0||p.x>ARENA.width)){owner.waypointMark={depth:p.depth??0,x:clamp(p.x,ARENA.margin,ARENA.width-ARENA.margin),remaining:300,slot:p.itemSlot};p.life=0;}
   }
   state.projectiles = state.projectiles.filter(p => p.life > 0 && p.x > -50 && p.x < ARENA.width + 50);
   // Freeze block decisions before applying damage so simultaneous actions resolve fairly.
@@ -299,7 +299,7 @@ export function stepMatch(state, inputs = [{}, {}]) {
     const attacker=state.fighters[hit.attacker];
     if(target.airTech&&target.y>0&&!hit.zoneTick)continue;
     const weak=hit.weak??(1-(attacker.effects.find(e=>e.type==='weaken')?.potency??0));
-    const pierce=hit.pierce??(attacker.buffs.some(b=>b.type==='byakugan')?1:0);
+    const pierce=hit.pierce??(attacker.buffs.some(b=>b.type==='fractureLens')?1:0);
     const parried=!hit.zoneTick&&hit.blocked&&pierce<1&&state.tick-target.guardStart<5&&target.parryCooldown===0;
     if(parried){
       if(state.metrics)state.metrics[target.id].parries++;

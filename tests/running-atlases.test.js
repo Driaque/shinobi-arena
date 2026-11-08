@@ -12,11 +12,11 @@ test('each original has eight distance-driven running poses and two carry varian
   assert.ok(runningAtlasData(id).standingHeight>100);
   for(let i=0;i<16;i++){f.travel=i*18.75;assert.equal(runningFrameFor(f).frameIndex,i%8);}
   f.travel=0;assert.deepEqual(f,original);
-  f.items=[{id:'poison',count:1},{id:'smokeBomb',count:1}];
-  if(id==='silent'){f.weapon='tachi';f.weapons=['tachi','kaiken'];}
+  f.items=[{id:'poison',count:1},{id:'veilCanister',count:1}];
+  if(id==='silent'){f.weapon='frostmereSaber';f.weapons=['frostmereSaber','oathknife'];}
   assert.equal(runningFrameFor(f).variant,'equipped');
   f.items[0].count=0;assert.equal(runningFrameFor(f).variant,'empty');
-  f.items[0].count=1;f.weapon='throwingKunai';assert.equal(runningFrameFor(f).variant,'empty');
+  f.items[0].count=1;f.weapon='spikeCapsule';assert.equal(runningFrameFor(f).variant,'empty');
  }
 });
 test('run selection respects combat poses, reduced motion, depth inputs and empty hands',()=>{
@@ -26,11 +26,11 @@ test('run selection respects combat poses, reduced motion, depth inputs and empt
  assert.equal(runningFrameFor({...f,vx:0}),null);
  assert.equal(runningFrameFor({...f,vx:0,previous:{moveZ:1}}).variant,'empty');
  assert.equal(runningFrameFor({...f,vx:0,previous:{depthUp:true}}).variant,'empty');
- assert.equal(runningFrameFor({...f,character:'naruto'}),null);
- f.weapon='tachi';f.weapons=['tachi'];f.items=[{id:'poison',count:1},{id:'smokeBomb',count:1}];assert.equal(runningFrameFor(f).variant,'empty','Silent needs both painted weapons');
+ assert.equal(runningFrameFor({...f,character:'solan'}),null);
+ f.weapon='frostmereSaber';f.weapons=['frostmereSaber'];f.items=[{id:'poison',count:1},{id:'veilCanister',count:1}];assert.equal(runningFrameFor(f).variant,'empty','Silent needs both painted weapons');
 });
 test('run sheets replace only grounded runs, with one root, no extra bounce and no simulation mutation',()=>{
- const s=createTraining([{character:'dora',weapon:'fans'},{character:'winta',weapon:'tachi'}]);
+ const s=createTraining([{character:'dora',weapon:'tideglassFans'},{character:'winta',weapon:'frostmereSaber'}]);
  s.tick=100;s.fighters[0].vx=3;s.fighters[0].travel=40;
  const original=structuredClone(s),settings={selected:true,atlasFighters:['dora','winta'],runningFighters:['dora','winta']};
  let scene=practiceSceneFor(s,{},settings);

@@ -47,7 +47,7 @@ export function drawFighterDesign(c, f, pose, {cloth,skin,hair,move}) {
   path([[-22,-97],[-8,-101],[-6,-91],[-22,-80],[-31,-84],[-31,-94]],'#587d97');
   line(-29,-91,-18,-94,'#d2e9f3',2);
   path([[-10,-98],[0,-93],[12,-99],[13,-88],[0,-83],[-12,-89]],'#172d40');
-  // A restrained Skyglass seal set into the breastplate.
+  // A restrained Skyglass fivefoldLock set into the breastplate.
   path([[-3,-76],[1,-81],[5,-76],[1,-70]],'#b5e8fa');
  }else{
   path([[-19,-93],[-5,-87],[14,-94],[10,-65],[-7,-61],[-17,-68]],'#265d54');
@@ -69,9 +69,9 @@ export function drawFighterDesign(c, f, pose, {cloth,skin,hair,move}) {
  limb([frontElbow.x+dx*.48,frontElbow.y+dy*.48],wrist,11,silent?'#52778e':'#316e63');
  line(wrist[0]-2,wrist[1]-4,wrist[0]+2,wrist[1]+3,accent,1.5);
  oval(pose.armX,pose.armY,6,6,dark);oval(pose.armX+2,pose.armY-1,3,3,skin);
- if((!move||move.sword)&&['tachi','katana','kaiken','championKatana'].includes(f.weapon)){
+ if((!move||move.sword)&&['frostmereSaber','skyforgedBlade','oathknife','concordLaureate'].includes(f.weapon)){
   c.save();c.translate(pose.armX,pose.armY);c.rotate(pose.weaponAngle??-.65);
-  const length=f.weapon==='kaiken'?32:76;
+  const length=f.weapon==='oathknife'?32:76;
   if(pose.swing!=null){
    c.save();c.globalAlpha*=.24;
    for(let i=3;i>0;i--){c.rotate(-.11);path([[0,0],[length,-3],[length+7,0],[length,3]],silent?'#9cddff':'#a9ffdf',null);}

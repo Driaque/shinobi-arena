@@ -25,7 +25,7 @@ test('crouching cannot block automatically, dodge melee or exceed air jump/dash 
  const air=adapter();air.update(0,-1,0);air.update(0,1,20);assert.equal(air.s.fighters[0].crouching,false);
 });
 test('crouched projectile hurtbox can duck a high shot without avoiding a body-height shot',()=>{
- for(const [height,expected]of [[90,1000],[65,945]]){const s=createMatch();s.fighters[0].x=600;s.fighters[1].x=800;s.projectiles=[{id:1,owner:1,x:614,y:height,direction:-1,life:20,move:'shuriken',power:1,weak:1,pierce:0}];stepMatch(s,[{crouch:true},{}]);assert.equal(s.fighters[0].hp,expected);}
+ for(const [height,expected]of [[90,1000],[65,945]]){const s=createMatch();s.fighters[0].x=600;s.fighters[1].x=800;s.projectiles=[{id:1,owner:1,x:614,y:height,direction:-1,life:20,move:'orbitDisc',power:1,weak:1,pierce:0}];stepMatch(s,[{crouch:true},{}]);assert.equal(s.fighters[0].hp,expected);}
 });
 test('dash pulses consume once and reset drops pending gestures without clearing another held action',()=>{
  const i=createInput();i.press('attack','finger');i.dash(-1);assert.equal(i.consume().dashDirection,-1);assert.equal(i.consume().dashDirection,undefined);assert.equal(i.snapshot().attack,true);i.dash(1);i.reset();assert.equal(i.consume().dashDirection,undefined);assert.throws(()=>i.dash(0));

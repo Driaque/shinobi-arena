@@ -15,7 +15,7 @@ See README and COMBAT_RULES for current behaviour.
 
 A browser fighter with character selection, responsive movement, character-specific attacks,
 and complete rounds. Players use a keyboard on desktop and two-thumb controls with the phone
-held sideways on mobile. Initial Naruto/Sasuke move concepts are design examples, not bundled content.
+held sideways on mobile. Initial Solan/Vesper move concepts are design examples, not bundled content.
 
 Longer-term: a catalogue of games with shared identity, sessions, results, and invitations.
 Each game owns its mechanics and victory conditions. Build the fighter before generalizing.
@@ -31,7 +31,7 @@ Each game owns its mechanics and victory conditions. Build the fighter before ge
 - Knockout: HP reaches zero; double knockout draws. Timeout: higher remaining HP wins;
   equal HP draws. Initial fighters have equal max HP. Drawn rounds do not award a win.
 - Combat supports left/right, jump, basic attack, block, and two specials.
-- Proposed examples: Naruto (combo, Rasengan, clone strike), Sasuke (combo, Chidori, fireball).
+- Proposed examples: Solan (combo, Spiral Drive, clone strike), Vesper (combo, Voltaic Lance, fireball).
 - Specials cost chakra. Exact numbers and regeneration rules are tuning decisions, not established requirements.
 - One stage, fixed camera first; no destructible scenery, airborne combos, or transformations initially.
 - Performance budgets below are targets to measure, not current results.

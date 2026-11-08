@@ -22,7 +22,7 @@ opponent's combo. It does not cure poison/burn or prevent periodic damage.
 
 ## Actions and combos
 
-Basic, weapon, signatures and bloodline/dōjutsu are separate slots. A fresh press enters a ten-tick buffer;
+Basic, weapon, signatures and bloodline/legacy are separate slots. A fresh press enters a ten-tick buffer;
 holding does not repeat. Chakra is spent at action start and not refunded when interrupted. Each swing
 can hit a target once. Projectiles disappear on impact/bounds/expiry; launched projectiles survive a
 caster's interruption. Normal chakra regeneration is 0.035/tick, up to 100.
@@ -51,14 +51,14 @@ damage is processed before actions; it cannot be escaped by activating a form af
 ## Effects and awakenings
 
 Weaken reduces outgoing direct damage 30%. Poison deals nine damage/second for six seconds. Baseline
-Fireball burn deals twelve/second for four seconds; Amaterasu has its own data values. Same-type effects
+Fireball burn deals twelve/second for four seconds; Umbra Pyre has its own data values. Same-type effects
 refresh duration/max potency without duplicating instances or postponing the next DOT tick.
 
 Actual HP lost—including chip and periodic damage, excluding prevented damage and overkill—fills the
 awakening charge on eligible fighters. Press Awaken when the threshold is reached and the fighter is free
 of action/dash/hitstun. One activation per round; no healing, invulnerability or cooldown reset. Forms modify
-speed, damage, defence and chakra regeneration. Naruto/Boruto also replace selected signatures while active.
-Most forms last 600 ticks; Eight Gates lasts 480. See CHARACTER_KITS.md for thresholds and modifiers.
+speed, damage, defence and chakra regeneration. Solan/Lumen also replace selected signatures while active.
+Most forms last 600 ticks; Ironstep Overdrive lasts 480. See CHARACTER_KITS.md for thresholds and modifiers.
 Projectiles snapshot outgoing awakening/weakening/pierce at launch; target defence is evaluated on impact.
 
 The form timer runs only while the simulation runs. Expiry restores base signatures/stats. New rounds
@@ -106,21 +106,21 @@ Crouch is a held grounded action with no resource cost. It stops walking and use
 
 ## v0.13 inventory rules
 
-Loadouts normalize to two weapon slots (primary required, secondary optional) and four consumable IDs/nulls. Each nonempty slot receives one server-owned charge per round. Normal tools may be duplicated; a loadout can contain at most one Flying Raijin kunai. Legacy single-weapon loadouts normalize to an empty secondary and empty item slots.
+Loadouts normalize to two weapon slots (primary required, secondary optional) and four consumable IDs/nulls. Each nonempty slot receives one server-owned charge per round. Normal tools may be duplicated; a loadout can contain at most one Waypoint Conduit Spike. Legacy single-weapon loadouts normalize to an empty secondary and empty item slots.
 
-F / P2 7 requests a weapon swap: 4 startup, 1 active and 12 recovery frames. It cannot cancel a committed action or escape hitstun; both weapons share the existing weapon cooldown. C / P2 8 cycles to another usable slot (including a live Raijin marker). X / P2 9 uses the selected tool: 8 stamina and a shared 90-frame cooldown, with move-specific startup/recovery. Spending occurs on accepted startup; interruption, whiff or block does not refund a charge.
+F / P2 7 requests a weapon swap: 4 startup, 1 active and 12 recovery frames. It cannot cancel a committed action or escape hitstun; both weapons share the existing weapon cooldown. C / P2 8 cycles to another usable slot (including a live Waypoint marker). X / P2 9 uses the selected tool: 8 stamina and a shared 90-frame cooldown, with move-specific startup/recovery. Spending occurs on accepted startup; interruption, whiff or block does not refund a charge.
 
-Paper bombs travel at 4 units/tick and explode after 45 active ticks in a 110-unit radius for 110 base damage with 25% guard penetration. Kunai deal 45; a shuriken fan produces three height-offset 25-damage projectiles. Existing guard, parry, scaling, invulnerability and damage rules apply.
+Paper bombs travel at 4 units/tick and explode after 45 active ticks in a 110-unit radius for 110 base damage with 25% guard penetration. Conduit Spike deal 45; a orbitDisc fan produces three height-offset 25-damage projectiles. Existing guard, parry, scaling, invulnerability and damage rules apply.
 
 Poison coats the next weapon attack for up to 360 ticks, is consumed on accepted weapon startup, and applies the existing poison effect (9 HP/s for 300 ticks) only on a clean hit. Smoke persists at its origin for 180 ticks and removes ordinary hostile projectiles entering a 125-unit radius. Friendly shots pass through; timed blasts and melee bypass it.
 
-Flying Raijin kunai creates a 300-tick ground marker on impact, lifetime expiry or arena-edge landing. Hostile smoke can remove the throw before it marks. Reusing that slot while its marker remains spends 15 chakra and 8 stamina, with 8 startup and 22 recovery frames, then teleports to the clamped ground marker. It grants no invulnerability, cannot escape hitstun, and consumes the marker only when the warp fires. This is a game adaptation available to every fighter.
+Waypoint Conduit Spike creates a 300-tick ground marker on impact, lifetime expiry or arena-edge landing. Hostile smoke can remove the throw before it marks. Reusing that slot while its marker remains spends 15 chakra and 8 stamina, with 8 startup and 22 recovery frames, then teleports to the clamped ground marker. It grants no invulnerability, cannot escape hitstun, and consumes the marker only when the warp fires. This is a game adaptation available to every fighter.
 
 New rounds restore the chosen inventory, active weapon slot 1 and clear all zones/markers. Training Reset does the same; the infinite stamina/chakra option does not silently refill spent items. Medium and higher CPU tiers can use inventory through ordinary inputs; Easy does not use consumables.
 
 ## v0.14 Dora combat rules
 
-Dora adds fan basic chains, a selectable Bladed Fans weapon, Tidal Edict weakening, Triune Flow guard counters and Limit Release. Royal Tempest schedules a separate interruptible heavy strike only after a clean opener; 12 ticks of hitstun precede an 18-tick follow-up startup, allowing counterplay. Block/parry/Replacement/whiff prevent the opener from scheduling it. Chakra is charged once at the opener, cooldown remains attached to the signature slot, and normal damage scaling, guard and invulnerability apply to both strikes. See [Dora’s full kit](DORA.md).
+Dora adds fan basic chains, a selectable Tideglass Fans weapon, Tidal Edict weakening, Triune Flow guard counters and Limit Release. Royal Tempest schedules a separate interruptible heavy strike only after a clean opener; 12 ticks of hitstun precede an 18-tick follow-up startup, allowing counterplay. Block/parry/Replacement/whiff prevent the opener from scheduling it. Chakra is charged once at the opener, cooldown remains attached to the signature slot, and normal damage scaling, guard and invulnerability apply to both strikes. See [Dora’s full kit](DORA.md).
 
 Projectile spawns capture actual weaken potency, matching melee attacks rather than forcing every debuff to 30%.
 

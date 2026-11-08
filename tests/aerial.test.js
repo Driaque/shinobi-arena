@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createMatch,stepMatch,computerInput,MOVES,JUTSUS} from '../packages/engine/index.js';
 import {fighterPose,interpolateFighter} from '../apps/web/motion.js';
-const duel=()=>{const s=createMatch([{character:'silent',weapon:'katana',jutsus:['risingGale','skyCleave','divingFlame','aerialSenbon','emberField']},{character:'sasuke',weapon:'kunai'}]);s.fighters[0].x=600;s.fighters[1].x=670;return s;};
+const duel=()=>{const s=createMatch([{character:'silent',weapon:'skyforgedBlade',jutsus:['risingGale','skyCleave','divingFlame','skyfallNeedles','emberField']},{character:'vesper',weapon:'conduitSpike'}]);s.fighters[0].x=600;s.fighters[1].x=670;return s;};
 const advance=(s,n,inputs=[{},{}])=>{for(let t=0;t<n;t++)stepMatch(s,inputs);};
 const route=(s,t)=>{const keys={0:'special1',11:'jump',13:'attack',21:'attack',29:'special2',40:'bloodline'};stepMatch(s,[keys[t]?{[keys[t]]:true}:{},{}]);};
 test('aerial-only and grounded techniques reject the wrong environment before spending resources',()=>{
@@ -23,8 +23,8 @@ test('air attack budget survives double jump and resets only on landing',()=>{
  const s=duel(),f=s.fighters[0];f.y=300;f.airAttacks=4;f.jumps=1;stepMatch(s,[{jump:true,attack:true},{}]);assert.equal(f.jumps,2);assert.equal(f.airAttacks,4);assert.equal(f.action,null);assert.equal(f.stamina,100);advance(s,100);assert.equal(f.airAttacks,0);stepMatch(s,[{jump:true,attack:true},{}]);assert.equal(f.action.move,'airAttack1');assert.equal(f.airAttacks,1);
 });
 test('four-hit juggle recovery rejects further air hits and clears on landing',()=>{
- const s=duel(),target=s.fighters[1];target.y=350;target.juggleHits=3;s.projectiles.push({owner:0,x:target.x-10,y:target.y+65,direction:1,life:5,move:'aerialSenbon',pierce:0});stepMatch(s);assert.equal(target.airTech,true);const hp=target.hp;
- s.projectiles.push({owner:0,x:target.x-10,y:target.y+65,direction:1,life:5,move:'aerialSenbon',pierce:0});stepMatch(s);assert.equal(target.hp,hp);stepMatch(s,[{},{replacement:true}]);assert.equal(target.stun,0);advance(s,80);assert.equal(target.airTech,false);assert.equal(target.juggleHits,0);
+ const s=duel(),target=s.fighters[1];target.y=350;target.juggleHits=3;s.projectiles.push({owner:0,x:target.x-10,y:target.y+65,direction:1,life:5,move:'skyfallNeedles',pierce:0});stepMatch(s);assert.equal(target.airTech,true);const hp=target.hp;
+ s.projectiles.push({owner:0,x:target.x-10,y:target.y+65,direction:1,life:5,move:'skyfallNeedles',pierce:0});stepMatch(s);assert.equal(target.hp,hp);stepMatch(s,[{},{replacement:true}]);assert.equal(target.stun,0);advance(s,80);assert.equal(target.airTech,false);assert.equal(target.juggleHits,0);
 });
 test('landing interrupts aerial startup and enforces recovery without a ground hit',()=>{
  const s=duel(),f=s.fighters[0];f.y=2;f.vy=-8;stepMatch(s,[{special2:true},{}]);assert.equal(f.y,0);assert.equal(f.action,null);assert.equal(f.landingRecovery,6);assert.equal(s.fighters[1].hp,1000);stepMatch(s,[{attack:true},{}]);assert.equal(f.action,null);advance(s,6);stepMatch(s,[{},{}]);stepMatch(s,[{attack:true},{}]);assert.ok(f.action);
@@ -40,12 +40,12 @@ test('cosmetic poses blend anticipation and recovery; interpolation never mutate
 
 test('simultaneous projectiles cannot bypass the four-hit juggle limit',()=>{
  const s=duel(),target=s.fighters[1];target.y=300;target.juggleHits=3;
- for(let i=0;i<3;i++)s.projectiles.push({owner:0,id:i,x:target.x-10,y:target.y+65,direction:1,life:5,move:'aerialSenbon',pierce:0});
+ for(let i=0;i<3;i++)s.projectiles.push({owner:0,id:i,x:target.x-10,y:target.y+65,direction:1,life:5,move:'skyfallNeedles',pierce:0});
  stepMatch(s);assert.equal(target.hp,972);assert.equal(target.juggleHits,4);assert.equal(target.airTech,true);
 });
 
 
 test('a CPU skips incompatible aerial-only jutsus instead of stalling its ground approach',()=>{
- const s=createMatch([{character:'naruto',weapon:'kunai'},{character:'sasuke',weapon:'katana',jutsus:['skyCleave','aerialSenbon','divingFlame']}],{difficulty:'xtreme'});s.tick=600;const f=s.fighters[1];f.x=750;s.fighters[0].x=600;f.actionsStarted=100;f.lastActionEnd=-1000;
+ const s=createMatch([{character:'solan',weapon:'conduitSpike'},{character:'vesper',weapon:'skyforgedBlade',jutsus:['skyCleave','skyfallNeedles','divingFlame']}],{difficulty:'xtreme'});s.tick=600;const f=s.fighters[1];f.x=750;s.fighters[0].x=600;f.actionsStarted=100;f.lastActionEnd=-1000;
  for(let t=600;t<800;t++){s.tick=t;const input=computerInput(s,1,'xtreme');assert.ok(!input.special1&&!input.special2&&!input.bloodline);f.previous={};}
 });

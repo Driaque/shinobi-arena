@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createMatch,stepMatch,nextRound,MOVES,moveFor,activeAwakening} from '../packages/engine/index.js';
 const advance=(s,n,inputs=[{},{}])=>{for(let i=0;i<n;i++)stepMatch(s,inputs);};
-function duel(a='silent',b='winta'){const s=createMatch([{character:a,weapon:'tachi'},{character:b,weapon:'kaiken'}]);s.fighters[0].x=600;s.fighters[1].x=670;return s;}
+function duel(a='silent',b='winta'){const s=createMatch([{character:a,weapon:'frostmereSaber'},{character:b,weapon:'oathknife'}]);s.fighters[0].x=600;s.fighters[1].x=670;return s;}
 function stance(s){advance(s,25,[{bloodline:true},{}]);}
 test('each original has a sword chain with three connected, scaled hits',()=>{
  for(const name of ['silent','winta']){const s=duel(name);for(let t=0;t<28;t++)stepMatch(s,[{attack:[0,7,17].includes(t)},{}]);assert.equal(s.fighters[0].combo.hits,3);assert.equal(s.fighters[0].combo.damage,182);assert.ok(MOVES[moveFor(s.fighters[0],'attack')].sword);}
@@ -17,7 +17,7 @@ test('Skyforged Aegis absorbs guarded chip, reflects without recursion and readi
 });
 test('Skyforged Aegis does not reflect unguarded or fully piercing attacks',()=>{
  const unguarded=duel();stance(unguarded);advance(unguarded,6,[{}, {attack:true}]);assert.equal(unguarded.fighters[1].hp,1000);
- const pierced=duel('silent','sasuke');stance(pierced);advance(pierced,13,[{block:true},{special1:true}]);assert.equal(pierced.fighters[1].hp,1000);assert.equal(pierced.fighters[0].hp,850);assert.ok(!pierced.fighters[0].buffs.some(b=>b.type==='counter'));
+ const pierced=duel('silent','vesper');stance(pierced);advance(pierced,13,[{block:true},{special1:true}]);assert.equal(pierced.fighters[1].hp,1000);assert.equal(pierced.fighters[0].hp,850);assert.ok(!pierced.fighters[0].buffs.some(b=>b.type==='counter'));
 });
 test('counter expires and cannot empower another hit after its window',()=>{
  const s=duel();stance(s);advance(s,6,[{block:true},{attack:true}]);advance(s,91);assert.ok(!s.fighters[0].buffs.some(b=>b.type==='counter'));

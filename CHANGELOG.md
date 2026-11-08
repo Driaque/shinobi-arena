@@ -1,5 +1,12 @@
 # Release notes
 
+## 0.40.0
+
+- Original-world names and designs for moves, awakening forms, weapons and consumables.
+- Twenty-five unreleased elite rivals behind an optional roster toggle, with standard competitive stats.
+- Responsive painted PNGs for techniques, inventory and future-rival portraits, with readable fallback controls.
+- Compatible saved-loadout migration and a new online content/rules version.
+
 ## 0.39.1
 
 - In local versus with a second controller connected, each pad selects only its own fighter, weapons, items and techniques.
@@ -145,7 +152,7 @@
 
 - Enable PixiJS scenery, fields and projectiles in every battle mode, live spectating and archived replay playback; preserve selected fighter identities and add a global Canvas choice/fallback/retry.
 - Add ten original rivals with distinct kits, silhouettes and connected Skyglass lore. Aren is playable; Silent, Winta and Dora retain their established mechanics. Default selection is Aren vs Winta.
-- Hide the 25 anime prototype fighters unless Include Naruto / Boruto fighters is checked. Stories are available in the character kit panel.
+- Hide the 25 anime prototype fighters unless Include Unreleased rivals fighters is checked. Stories are available in the character kit panel.
 - Confirm Silent/Winta as blood brothers, expand character grid height and compact post-fight tips with expandable match stats.
 - Protocol 7 requires old clients to refresh; existing combat rules, replay schema, results and rewards remain unchanged. [Release notes](docs/releases/0.27.0.md).
 
@@ -203,7 +210,7 @@ Expanded arena, proportionate smaller fighters, tactical jutsu routes and strate
 
 ## 0.18.0
 
-Fix movement blend lag; add depth movement, visible equipped jutsus/Charge/Crouch, larger detailed fighters, Akatsuki roster additions original music/layered combat audio, startup readiness splash and browsable release history. [Release notes](docs/releases/0.18.0.md).
+Fix movement blend lag; add depth movement, visible equipped jutsus/Charge/Crouch, larger detailed fighters, Concord Challengers roster additions original music/layered combat audio, startup readiness splash and browsable release history. [Release notes](docs/releases/0.18.0.md).
 
 ## 0.17.0
 
@@ -223,11 +230,11 @@ Strategy loadout grids (54 jutsus, seven slots), elemental ground effects and st
 
 ## 0.14.0
 
-Dora — AquaPrincess: playable original fighter, bladed fans, water weaken, wind pull and fire finisher, Triune Flow counters, Limit Release, regal concept portrait and online support. [Full release notes](docs/releases/0.14.0.md).
+Dora — AquaPrincess: playable original fighter, bladed Tideglass Fans, water weaken, wind pull and fire finisher, Triune Flow counters, Limit Release, regal concept portrait and online support. [Full release notes](docs/releases/0.14.0.md).
 
 ## 0.13.0
 
-Two-weapon loadouts, four one-use consumable slots, tactical tools including Flying Raijin kunai, per-control visibility settings and automatic GitHub release notes.
+Two-weapon loadouts, four one-use consumable slots, tactical tools including Waypoint Conduit Spike, per-control visibility settings and automatic GitHub release notes.
 
 Full notes: [v0.13.0](docs/releases/0.13.0.md).
 

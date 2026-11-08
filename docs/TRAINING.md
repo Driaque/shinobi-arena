@@ -25,10 +25,10 @@ Resource and health refills default on; instant cooldowns default off; range/pha
 | --- | --- | --- |
 | Double jump → air dash | Two real jump impulses and an air dash in the same airborne sequence | Idle dummy. Landing early resets progress; dashing before the second jump does not qualify. |
 | Three-hit combo | Opening, second and launching basic each actually connect in one confirmed chain | Idle dummy at melee range. Holding Basic, recovery gaps or a weapon follow-up do not satisfy the three basics. |
-| Guard → weapon counter | A real guarded/parried strike followed by an equipped hit during recovery/parry stun | Dummy uses a katana every 2.5 seconds. An unguarded attack or a late weapon hit does not qualify. |
-| Unlock your awakening | Actual damage fills charge, then a legal awakening activation | Paced basic dummy stops attacking when READY. Wait for hitstun to end. If the selected fighter has no form, the drill explicitly uses Naruto while retaining the chosen weapon. |
+| Guard → weapon counter | A real guarded/parried strike followed by an equipped hit during recovery/parry stun | Dummy uses a Skyforged Blade every 2.5 seconds. An unguarded attack or a late weapon hit does not qualify. |
+| Unlock your awakening | Actual damage fills charge, then a legal awakening activation | Paced basic dummy stops attacking when READY. Wait for hitstun to end. If the selected fighter has no form, the drill explicitly uses Solan while retaining the chosen weapon. |
 
-The counter drill equips the dummy with a katana to give a consistent recovery window. Every other selected character/weapon is retained where supported. Dummy behavior is fixed by each guided scenario; free-practice dummy selection remains independently configurable.
+The counter drill equips the dummy with a Skyforged Blade to give a consistent recovery window. Every other selected character/weapon is retained where supported. Dummy behavior is fixed by each guided scenario; free-practice dummy selection remains independently configurable.
 
 A completed drill stays complete until Retry/Reset. Only the four validated completion IDs are saved under `shinobi-arena.drills.v1`; there are no accounts or remote progress sync. Completion is recorded from actual state/events, not a Next button. Instructions display the current remapped keyboard bindings and action names; touch controls complete the same objectives.
 

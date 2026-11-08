@@ -2,17 +2,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createMatch,stepMatch,nextRound,moveFor,CHARACTERS,MOVES,AWAKENINGS,awakeningFor,awakeningReady,activeAwakening} from '../packages/engine/index.js';
 import {freshSettings,readSettings,defaultLayout,layoutOverlaps} from '../packages/input/preferences.js';
-const load=character=>({character,weapon:'kunai'});
+const load=character=>({character,weapon:'conduitSpike'});
 const advance=(s,n,inputs=[{},{}])=>{for(let i=0;i<n;i++)stepMatch(s,inputs);return s;};
 function close(){const s=createMatch();s.fighters[0].x=600;s.fighters[1].x=670;return s;}
-function ready(character='naruto'){
- const s=createMatch([load(character),load('sasuke')]);s.fighters[0].hp=500;s.fighters[0].damageTaken=500;return s;
+function ready(character='solan'){
+ const s=createMatch([load(character),load('vesper')]);s.fighters[0].hp=500;s.fighters[0].damageTaken=500;return s;
 }
 test('thirty-five roster entries have valid unique identities, move slots and awakening definitions',()=>{
  assert.equal(Object.keys(CHARACTERS).length,35);
- assert.equal(Object.values(CHARACTERS).filter(c=>c.era==='Boruto').length,4);
+ assert.equal(Object.values(CHARACTERS).filter(c=>c.era==='Future').length,25);
  for(const [id,c]of Object.entries(CHARACTERS)){
-  assert.equal(c.id,id);assert.equal(moveFor({character:id,weapon:'kunai',awakeningTicks:0},'awakening'),null);assert.ok(MOVES[c.special1]&&MOVES[c.special2]);if(c.bloodline)assert.ok(MOVES[c.bloodline]);
+  assert.equal(c.id,id);assert.equal(moveFor({character:id,weapon:'conduitSpike',awakeningTicks:0},'awakening'),null);assert.ok(MOVES[c.special1]&&MOVES[c.special2]);if(c.bloodline)assert.ok(MOVES[c.bloodline]);
   if(c.awakening){const form=AWAKENINGS[c.awakening];assert.ok(form.threshold>0&&form.duration>0);for(const move of Object.values(form.overrides))assert.ok(MOVES[move]);}
  }
 });
@@ -42,17 +42,17 @@ test('actual HP lost fills damage charge, excluding overkill',()=>{
  const s=close();s.fighters[0].hp=20;advance(s,6,[{}, {attack:true}]);assert.equal(s.fighters[0].damageTaken,20);assert.equal(s.fighters[0].hp,0);
  const guarded=close();advance(guarded,6,[{block:true},{attack:true}]);assert.equal(guarded.fighters[0].damageTaken,6);
 });
-test('Naruto unlocks Kurama from damage and activation does not heal or grant immunity',()=>{
+test('Solan unlocks Sunforge from damage and activation does not heal or grant immunity',()=>{
  const s=close(),f=s.fighters[0];
  f.effects=[{type:'poison',remaining:300,potency:100,nextTick:1}];advance(s,181);
  assert.equal(f.hp,600);assert.equal(f.damageTaken,400);assert.ok(awakeningReady(f));f.effects=[];
- stepMatch(s,[{awakening:true},{}]);assert.equal(activeAwakening(f).name,'Kurama Chakra Mode');assert.equal(f.hp,600);assert.equal(f.invulnerable,0);
- assert.equal(f.awakeningUsed,true);assert.equal(moveFor(f,'special1'),'kuramaRasengan');assert.equal(moveFor(f,'special2'),'chakraClaw');
+ stepMatch(s,[{awakening:true},{}]);assert.equal(activeAwakening(f).name,'Sunforge Ascendant');assert.equal(f.hp,600);assert.equal(f.invulnerable,0);
+ assert.equal(f.awakeningUsed,true);assert.equal(moveFor(f,'special1'),'sunforgeDrive');assert.equal(moveFor(f,'special2'),'sunforgeRend');
 });
 test('unready, in-hitstun and unsupported awakenings cannot activate',()=>{
  const normal=createMatch();stepMatch(normal,[{awakening:true},{}]);assert.equal(normal.fighters[0].awakeningTicks,0);
  const stunned=ready();stunned.fighters[0].stun=10;stepMatch(stunned,[{awakening:true},{}]);assert.equal(stunned.fighters[0].awakeningTicks,0);
- const unsupported=ready('hinata');stepMatch(unsupported,[{awakening:true},{}]);assert.equal(awakeningFor(unsupported.fighters[0]),null);assert.equal(unsupported.fighters[0].awakeningTicks,0);
+ const unsupported=ready('ilyra');stepMatch(unsupported,[{awakening:true},{}]);assert.equal(awakeningFor(unsupported.fighters[0]),null);assert.equal(unsupported.fighters[0].awakeningTicks,0);
 });
 test('forms expire, revert signature overrides and cannot be reused until next round',()=>{
  const s=ready();stepMatch(s,[{awakening:true},{}]);const f=s.fighters[0];advance(s,600);
@@ -63,11 +63,11 @@ test('forms expire, revert signature overrides and cannot be reused until next r
 test('awakening movement, damage and defence modifiers change gameplay',()=>{
  const s=ready();stepMatch(s,[{awakening:true},{}]);const f=s.fighters[0],x=f.x;stepMatch(s,[{right:true},{}]);assert.ok(Math.abs(f.x-x-5.6)<.001);
  f.x=600;s.fighters[1].x=670;advance(s,6,[{attack:true},{}]);assert.equal(s.fighters[1].hp,922);
- const defence=ready('sasuke');defence.fighters[0].x=600;defence.fighters[1].x=670;stepMatch(defence,[{awakening:true},{}]);
+ const defence=ready('vesper');defence.fighters[0].x=600;defence.fighters[1].x=670;stepMatch(defence,[{awakening:true},{}]);
  advance(defence,6,[{}, {attack:true}]);assert.equal(defence.fighters[0].hp,451);
 });
 test('a combo with transformations and effects replays deterministically',()=>{
- const a=ready('boruto'),b=ready('boruto');
+ const a=ready('lumen'),b=ready('lumen');
  for(let t=0;t<900;t++){const input=[{awakening:t===0,right:t%90<30,attack:t%40===0,special1:t%160===0,jump:t%100===0},{left:t%90<20,special2:t%200===0}];stepMatch(a,input);stepMatch(b,input);}
  assert.deepEqual(a,b);
 });

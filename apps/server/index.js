@@ -88,11 +88,11 @@ export function createOnlineServer({origins=[],port=Number(process.env.PORT||417
     if(req.method==='GET'&&url.pathname.startsWith('/api/replays/')){const id=url.pathname.slice('/api/replays/'.length);if(!/^[a-f0-9-]{36}$/.test(id)){reply(res,400,{error:'Invalid replay ID'});return;}const archive=await store.replay(id);if(!archive){reply(res,404,{error:'Replay has expired or was not found'});return;}res.writeHead(200,{'Content-Type':'application/json','Content-Encoding':'gzip','Cache-Control':'no-store'}).end(archive);return;}
     if(req.method==='POST'&&url.pathname==='/api/identity'){
      const ip=req.socket.remoteAddress,at=Date.now();if(budgets.size>1000)for(const [key,b]of budgets)if(at-b.at>3600000)budgets.delete(key);const b=budgets.get(ip)??{at,n:0};if(at-b.at>3600000){b.at=at;b.n=0;}budgets.set(ip,b);if(++b.n>30){reply(res,429,{error:'Too many new profiles. Restore your existing profile or try later.'});return;}
-     const value=await body(req);let profile;try{profile=playerProfile({name:value.name,character:'naruto',weapon:'kunai'});}catch(e){reply(res,400,{error:e.message});return;}reply(res,201,await store.createIdentity(profile.name));return;
+     const value=await body(req);let profile;try{profile=playerProfile({name:value.name,character:'solan',weapon:'conduitSpike'});}catch(e){reply(res,400,{error:e.message});return;}reply(res,201,await store.createIdentity(profile.name));return;
     }
     if(req.method==='POST'&&url.pathname==='/api/me'){
      const player=await store.identity(req.headers.authorization?.replace(/^Bearer /,''));if(!player){reply(res,401,{error:'Restore or create your player profile'});return;}
-     const value=await body(req);let profile;try{profile=playerProfile({name:value.name,character:'silent',weapon:'tachi'});}catch(e){reply(res,400,{error:e.message});return;}
+     const value=await body(req);let profile;try{profile=playerProfile({name:value.name,character:'silent',weapon:'frostmereSaber'});}catch(e){reply(res,400,{error:e.message});return;}
      await store.rename(player.id,profile.name);reply(res,200,{ok:true,name:profile.name});return;
     }
     if(url.pathname==='/api/progression'||url.pathname==='/api/progression/login'||url.pathname==='/api/progression/title'){

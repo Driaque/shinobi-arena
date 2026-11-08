@@ -3,7 +3,7 @@ import {createMatch,stepMatch,fighterBody,FIGHTER_SCALE} from '../packages/engin
 import {cleanInput} from '../packages/network/protocol.js';
 const low={crouch:true,block:true},advance=(s,n,inputs=[low,{}])=>{for(let t=0;t<n;t++)stepMatch(s,inputs);};
 const duel=()=>{const s=createMatch();s.fighters[0].x=600;s.fighters[1].x=670;advance(s,10);return s;};
-const shot=(s,height=50)=>s.projectiles.push({id:s.nextId++,owner:1,x:614,y:height,direction:-1,life:20,move:'shuriken',pierce:0});
+const shot=(s,height=50)=>s.projectiles.push({id:s.nextId++,owner:1,x:614,y:height,direction:-1,life:20,move:'orbitDisc',pierce:0});
 test('held crouch guard survives chip and repeated hits throughout blocked-hit recovery',()=>{
  const s=duel(),f=s.fighters[0];shot(s);stepMatch(s,[low,{}]);assert.equal(f.hp,995);assert.equal(f.guardStun,7);assert.equal(f.crouching,true);assert.equal(f.blocking,true);
  shot(s);stepMatch(s,[low,{}]);assert.equal(f.hp,990);for(let t=0;t<6;t++){stepMatch(s,[low,{}]);assert.equal(f.crouching,true);assert.equal(f.blocking,true);}assert.equal(f.guard,56);

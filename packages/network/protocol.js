@@ -1,9 +1,11 @@
+import {migrateLoadout} from '../engine/legacy-content.js';
 import {STAGES} from '../engine/stages.js';
 import {ACTIONS} from '../input/index.js';
 import {CHARACTERS,WEAPONS,validateLoadout,RULES_VERSION} from '../engine/index.js';
-export const PROTOCOL_VERSION=7;
+export const PROTOCOL_VERSION=8;
 export {RULES_VERSION};
 export function playerProfile(value){
+  value=migrateLoadout(value);
   if(!value||typeof value.name!=='string')throw new Error('Enter a player name.');
   const name=value.name.trim().replace(/\s+/gu,' ');
   if([...name].length<2||[...name].length>20||! /^[\p{L}\p{N} _.-]+$/u.test(name))throw new Error('Use 2–20 letters, numbers, spaces, dots, underscores or hyphens for your name.');

@@ -27,7 +27,7 @@ test('HTTP linking preserves guest ID; a second browser signs into it; sessions 
  const me=await (await fetch(f.base+'/api/me',{headers:{Authorization:'Bearer '+linked.token}})).json();assert.equal(me.auth.provider,'discord');assert.equal(me.auth.session,true);assert.equal(me.auth.label,'Discord tester');assert.equal(me.player.name,'Silent');
  // Session logout also closes an already-authenticated WebSocket in another tab.
  const ws=new WebSocket(f.base.replace('http:','ws:')+'/ws',{origin});t.after(()=>ws.terminate());
- await new Promise((resolve,reject)=>{ws.on('error',reject);ws.on('message',raw=>{const m=JSON.parse(raw);if(m.type==='hello')ws.send(JSON.stringify({type:'join',protocol:PROTOCOL_VERSION,rules:RULES_VERSION,profile:{name:'Silent',character:'silent',weapon:'tachi'},token:linked.token}));if(m.type==='queued')resolve();});});
+ await new Promise((resolve,reject)=>{ws.on('error',reject);ws.on('message',raw=>{const m=JSON.parse(raw);if(m.type==='hello')ws.send(JSON.stringify({type:'join',protocol:PROTOCOL_VERSION,rules:RULES_VERSION,profile:{name:'Silent',character:'silent',weapon:'frostmereSaber'},token:linked.token}));if(m.type==='queued')resolve();});});
  const closed=new Promise(resolve=>ws.once('close',resolve));assert.equal((await f.post('/api/auth/discord/logout',{},linked.token)).status,200);await closed;
  assert.equal((await fetch(f.base+'/api/me',{headers:{Authorization:'Bearer '+linked.token}})).status,401);
  for(const token of [second.token,guest.token])assert.equal((await fetch(f.base+'/api/me',{headers:{Authorization:'Bearer '+token}})).status,200);

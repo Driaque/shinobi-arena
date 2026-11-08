@@ -4,7 +4,7 @@ import {createMatch,stepMatch,activeAwakening} from '../packages/engine/index.js
 import {createTraining,stepTraining,resetTraining,chargeTrainingAwakening,dummyInput,DRILLS,actionPhase,trainingReadout} from '../packages/engine/training.js';
 const advance=(s,n,input={})=>{for(let t=0;t<n;t++)stepTraining(s,input);};
 test('free practice validates options and keeps selected characters/weapons',()=>{
- const s=createTraining([{character:'silent',weapon:'tachi'},{character:'winta',weapon:'kaiken'}],{dummy:'bad',drill:'__proto__',unlimitedResources:false,refillHealth:false});assert.equal(s.training.drill,'free');assert.equal(s.training.dummy,'idle');assert.equal(s.training.unlimitedResources,false);assert.equal(s.fighters[0].character,'silent');assert.equal(s.fighters[1].weapon,'kaiken');assert.throws(()=>createTraining([{character:'bad',weapon:'kunai'},{}]));
+ const s=createTraining([{character:'silent',weapon:'frostmereSaber'},{character:'winta',weapon:'oathknife'}],{dummy:'bad',drill:'__proto__',unlimitedResources:false,refillHealth:false});assert.equal(s.training.drill,'free');assert.equal(s.training.dummy,'idle');assert.equal(s.training.unlimitedResources,false);assert.equal(s.fighters[0].character,'silent');assert.equal(s.fighters[1].weapon,'oathknife');assert.throws(()=>createTraining([{character:'bad',weapon:'conduitSpike'},{}]));
 });
 test('training has no time expiry, knockouts or wins even without health refill',()=>{
  const s=createTraining(undefined,{dummy:'attack',refillHealth:false});advance(s,6500);assert.equal(s.tick,6500);assert.equal(s.remainingTicks,5400);assert.equal(s.status,'playing');assert.equal(s.fighters[0].hp,1);assert.deepEqual(s.wins,[0,0]);
@@ -20,7 +20,7 @@ test('instant cooldowns are optional and do not bypass the one-air-dash rule',()
  const c=createTraining(undefined,{instantCooldowns:true});stepTraining(c,{jump:true,dashForward:true});advance(c,9);stepTraining(c,{dashForward:true});assert.equal(c.fighters[0].dash,null);
 });
 test('reset clears positions, effects, projectiles and progress while preserving configuration',()=>{
- const s=createTraining([{character:'silent',weapon:'tachi'},{character:'winta',weapon:'kaiken'}],{drill:'movement',unlimitedResources:false,instantCooldowns:true,showRanges:false});stepTraining(s,{jump:true});s.fighters[0].effects.push({type:'poison',remaining:120,potency:9,nextTick:60});s.projectiles.push({});const reset=resetTraining(s);assert.equal(reset.training.step,0);assert.equal(reset.fighters[0].y,0);assert.equal(reset.fighters[0].x,600);assert.equal(reset.fighters[1].x,670);assert.equal(reset.training.showRanges,false);assert.equal(reset.training.unlimitedResources,false);assert.equal(reset.fighters[0].weapon,'tachi');assert.deepEqual(reset.projectiles,[]);assert.deepEqual(reset.fighters[0].effects,[]);
+ const s=createTraining([{character:'silent',weapon:'frostmereSaber'},{character:'winta',weapon:'oathknife'}],{drill:'movement',unlimitedResources:false,instantCooldowns:true,showRanges:false});stepTraining(s,{jump:true});s.fighters[0].effects.push({type:'poison',remaining:120,potency:9,nextTick:60});s.projectiles.push({});const reset=resetTraining(s);assert.equal(reset.training.step,0);assert.equal(reset.fighters[0].y,0);assert.equal(reset.fighters[0].x,600);assert.equal(reset.fighters[1].x,670);assert.equal(reset.training.showRanges,false);assert.equal(reset.training.unlimitedResources,false);assert.equal(reset.fighters[0].weapon,'frostmereSaber');assert.deepEqual(reset.projectiles,[]);assert.deepEqual(reset.fighters[0].effects,[]);
 });
 test('dummy idle, guarding and attacking use legal predictable inputs',()=>{
  assert.deepEqual(dummyInput(createTraining()),{});assert.deepEqual(dummyInput(createTraining(undefined,{dummy:'guard'})),{block:true});
@@ -37,21 +37,21 @@ test('combo drill recognizes actual three-stage confirms, not held basic or a we
  const weapon=createTraining(undefined,{drill:'combo'});for(let t=0;t<30;t++)stepTraining(weapon,{attack:t===0,weapon:t===7});assert.equal(weapon.training.completed,false);
 });
 test('counter drill needs a real guard/parry followed by a timely equipped hit',()=>{
- const s=createTraining(undefined,{drill:'counter'});assert.equal(s.fighters[1].weapon,'katana');for(let t=0;t<100&&!s.training.completed;t++)stepTraining(s,{block:t<75,weapon:t===75});assert.equal(s.training.completed,true);
+ const s=createTraining(undefined,{drill:'counter'});assert.equal(s.fighters[1].weapon,'skyforgedBlade');for(let t=0;t<100&&!s.training.completed;t++)stepTraining(s,{block:t<75,weapon:t===75});assert.equal(s.training.completed,true);
  const skipped=createTraining(undefined,{drill:'counter'});advance(skipped,7,{weapon:true});assert.equal(skipped.training.step,0);assert.equal(skipped.training.completed,false);
  const late=createTraining(undefined,{drill:'counter'});advance(late,75,{block:true});assert.equal(late.training.step,1);advance(late,70);assert.equal(late.training.step,0);
 });
 test('awakening drill fills from damage and only completes on legal activation',()=>{
  const s=createTraining(undefined,{drill:'awakening'});stepTraining(s,{awakening:true});assert.equal(s.training.completed,false);assert.equal(chargeTrainingAwakening(s),false);
- for(let t=0;t<700&&!s.training.completed;t++)stepTraining(s,{awakening:s.training.step===1&&s.fighters[0].stun===0});assert.equal(s.training.completed,true);assert.ok(s.fighters[0].damageTaken>=400);assert.equal(activeAwakening(s.fighters[0]).name,'Kurama Chakra Mode');assert.equal(s.fighters[0].hp,1000);
+ for(let t=0;t<700&&!s.training.completed;t++)stepTraining(s,{awakening:s.training.step===1&&s.fighters[0].stun===0});assert.equal(s.training.completed,true);assert.ok(s.fighters[0].damageTaken>=400);assert.equal(activeAwakening(s.fighters[0]).name,'Sunforge Ascendant');assert.equal(s.fighters[0].hp,1000);
 });
-test('awakening drill falls back to Naruto only when the chosen fighter has no form',()=>{
- const original=[{character:'hinata',weapon:'katana'},{character:'winta',weapon:'kaiken'}],s=createTraining(original,{drill:'awakening'});assert.equal(s.fighters[0].character,'winta');assert.equal(s.fighters[0].weapon,'katana');assert.match(s.training.note,/Winta/);assert.equal(original[0].character,'hinata');
- const silent=createTraining([{character:'silent',weapon:'tachi'},{character:'winta',weapon:'katana'}],{drill:'awakening'});assert.equal(silent.fighters[0].character,'silent');
+test('awakening drill falls back to Solan only when the chosen fighter has no form',()=>{
+ const original=[{character:'ilyra',weapon:'skyforgedBlade'},{character:'winta',weapon:'oathknife'}],s=createTraining(original,{drill:'awakening'});assert.equal(s.fighters[0].character,'winta');assert.equal(s.fighters[0].weapon,'skyforgedBlade');assert.match(s.training.note,/Winta/);assert.equal(original[0].character,'ilyra');
+ const silent=createTraining([{character:'silent',weapon:'frostmereSaber'},{character:'winta',weapon:'skyforgedBlade'}],{drill:'awakening'});assert.equal(silent.fighters[0].character,'silent');
 });
 test('free-practice form charging cannot complete a guided challenge',()=>{
- const free=createTraining();assert.equal(chargeTrainingAwakening(free),true);stepTraining(free,{awakening:true});assert.equal(activeAwakening(free.fighters[0]).name,'Kurama Chakra Mode');assert.equal(free.training.completed,false);
- const noForm=createTraining([{character:'hinata',weapon:'kunai'},{character:'sasuke',weapon:'kunai'}]);assert.equal(chargeTrainingAwakening(noForm),false);
+ const free=createTraining();assert.equal(chargeTrainingAwakening(free),true);stepTraining(free,{awakening:true});assert.equal(activeAwakening(free.fighters[0]).name,'Sunforge Ascendant');assert.equal(free.training.completed,false);
+ const noForm=createTraining([{character:'ilyra',weapon:'conduitSpike'},{character:'vesper',weapon:'conduitSpike'}]);assert.equal(chargeTrainingAwakening(noForm),false);
 });
 test('coach explains misses, unavailable techniques, resources and motion limits',()=>{
  const miss=createTraining();miss.fighters[1].x=1000;advance(miss,10,{attack:true});assert.match(miss.training.feedback,/Missed.*reach/);

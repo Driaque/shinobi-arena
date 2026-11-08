@@ -31,7 +31,7 @@ async function setup(t,{identity=async()=> 'test-profile',delayedClose=false}={}
   ackClose(){this.readyState=3;this.dispatchEvent(new Event('close'));}
   close(){this.readyState=2;if(!delayedClose)this.ackClose();}
  }
- client=createOnline({getProfile:()=>({character:'silent',weapon:'tachi'}),onState:m=>states.push(m),onEnd:m=>ended.push(m)},
+ client=createOnline({getProfile:()=>({character:'silent',weapon:'frostmereSaber'}),onState:m=>states.push(m),onEnd:m=>ended.push(m)},
  {identity:(...args)=>{identityCalls++;return identity(...args);},resolveBase:async()=> 'https://arena.example',Socket,now:()=>clock});
  fields.get('#player-name').value='Silent';await flush();
  return {client,sockets,fields,ended,states,storage,Socket,get identityCalls(){return identityCalls;},setClock:n=>{clock=n;},hello:s=>{s.open();s.message({type:'hello',protocol:PROTOCOL_VERSION,rules:RULES_VERSION});}};

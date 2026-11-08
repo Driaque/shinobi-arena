@@ -6,7 +6,7 @@ import {createMatch,nextRound,stepMatch} from '../packages/engine/index.js';
 import {createTraining,resetTraining} from '../packages/engine/training.js';
 import {createArena} from '../apps/server/arena.js';
 import {playerProfile,PROTOCOL_VERSION,RULES_VERSION} from '../packages/network/protocol.js';
-const profile=(name,stage)=>({name,character:'silent',weapon:'tachi',stage});
+const profile=(name,stage)=>({name,character:'silent',weapon:'frostmereSaber',stage});
 test('stage catalog is bounded, unknown choices fall back and Random resolves to a real identity',()=>{
  assert.equal(STAGES.length,5);assert.equal(stageFor('__proto__').id,'skyglass');
  for(let i=0;i<5;i++)assert.equal(resolveStage('random',()=>i/5),STAGES[i].id);
