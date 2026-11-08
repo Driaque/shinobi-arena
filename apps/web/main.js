@@ -243,7 +243,7 @@ function paintHud(){
     $(`#awakening-label${i}`).textContent=active?`${active.name.toUpperCase()} · ${(f.awakeningTicks/60).toFixed(1)}s`:!form?'NO AWAKENING':f.awakeningUsed?'AWAKENING USED':awakeningReady(f)?`${form.name.toUpperCase()} · READY`:`${form.name.toUpperCase()} · ${Math.floor(Math.min(100,f.damageTaken/form.threshold*100))}%`;
     $(`#combo${i}`).textContent=f.combo.hits>1&&state.tick-f.combo.lastTick<60?`${f.y>0?'AIR · ':''}${f.combo.hits} HITS · ${f.combo.damage} DAMAGE`:'';
     $(`#name${i}`).textContent=render.preview()?`${i===0?'AREN':'SPARRING ECHO'} · ${f.name.toUpperCase()} KIT`:mode==='online'&&onlinePlayers[i]?`${onlinePlayers[i].name} · ${f.name}`:f.name.toUpperCase();
-    const labels=[...f.effects.map(e=>`${e.type==='metalVulnerable'?'METAL EXPOSED':e.type==='poisonslow'?'POISON-SLOW':e.type.toUpperCase()} ${(e.remaining/60).toFixed(1)}s`),...f.buffs.map(b=>`${({aquaGuard:'TRIUNE FLOW',skyforgedAegis:'SKYFORGED AEGIS GUARD',counter:'COUNTER READY',stormheart:'STORMHEART',poisonCoating:'POISON COATED'})[b.type]??b.type.toUpperCase()} ${(b.remaining/60).toFixed(1)}s`)];
+    const labels=[...f.effects.map(e=>`${e.type==='metalVulnerable'?'METAL EXPOSED':e.type==='poisonslow'?'POISON-SLOW':e.type.toUpperCase()} ${(e.remaining/60).toFixed(1)}s`),...f.buffs.map(b=>`${({aquaGuard:'TRIUNE FLOW',skyforgedAegis:'SKYFORGED AEGIS GUARD',counter:'COUNTER READY',stormheart:'STORMHEART',poisonCoating:'POISON COATED'})[b.type]??shortNames[b.type]??b.type.toUpperCase()} ${(b.remaining/60).toFixed(1)}s`)];
     if(f.crouching&&f.blocking)labels.push('CROUCH GUARD');
     if(f.invulnerable>0)labels.push('SUBSTITUTION');
     $(`#effects${i}`).textContent=labels.join(' · ');
