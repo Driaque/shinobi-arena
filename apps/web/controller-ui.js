@@ -24,7 +24,7 @@ export function createControllerUI({inputs,isPlaying,isLocal,onPause}){
 
  const paired=()=>isLocal()&&connected.has(1);
  const allowed=(slot,node)=>canControlSetup(slot,node.closest('[data-setup-player]')?.dataset.setupPlayer,paired());
- const menuStates=[0,1].map(slot=>({pointer:createControllerCursor({settings:experience,slot,canTarget:node=>allowed(slot,node),onFocus:node=>{menuStates[slot].focus=node;}}),focus:null,last:0,axis:0}));
+ const menuStates=[0,1].map(slot=>({pointer:createControllerCursor({settings:experience,slot,canTarget:node=>allowed(slot,node),getFocus:()=>menuStates[slot].focus??document.activeElement,onFocus:node=>{menuStates[slot].focus=node;}}),focus:null,last:0,axis:0}));
  const hidePointers=()=>menuStates.forEach(s=>s.pointer.hide());
  let method='touch',awaitNeutral=false;
  const status=document.createElement('span');status.id='controller-status';status.setAttribute('role','status');status.hidden=true;document.querySelector('.tools').append(status);

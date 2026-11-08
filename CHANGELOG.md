@@ -1,5 +1,11 @@
 # Release notes
 
+## 0.40.1
+
+- Use the right stick to scroll menu lists vertically and horizontally, independently of the left-stick cursor.
+- Scroll the panel under the cursor, or the focused list when the cursor is hidden.
+- Remove cursor-edge auto-scrolling; preserve two-controller ownership, D-pad navigation and combat aiming.
+
 ## 0.40.0
 
 - Original-world names and designs for moves, awakening forms, weapons and consumables.
