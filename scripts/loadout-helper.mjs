@@ -10,6 +10,7 @@ export async function equip(page,selector,value){
 
 // Select preview fighters for combat regression scenarios.
 export async function legacyRoster(page,{weapons=true}={}){
+ if(!await page.locator('#roster-era').count())return;
  await page.selectOption('#roster-era','all');
  for(const [i,id] of ['solan','vesper'].entries()){await page.locator(`#character${i} input[value=${id}]`).check();if(weapons)await equip(page,`#weapon${i}`,'conduitSpike');}
 }
