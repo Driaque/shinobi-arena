@@ -6,6 +6,7 @@ import {drawFighterDesign} from './fighter-designs.js';
 import {paintPracticeEffects} from './practice-effects.js';
 import {fighterPose,sampleFighters,projectLocalFighter} from './motion.js';
 import {actionPhase} from './packages/engine/training.js';
+import {createFightCamera} from './packages/presentation/camera.js';
 import { ARENA, fighterBody, MOVES as LIVE_MOVES, CHARACTERS as LIVE_CHARACTERS, AWAKENINGS as LIVE_AWAKENINGS } from './packages/engine/index.js';
 export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACTERS,awakenings=LIVE_AWAKENINGS}={}) {
   const MOVES=moves,CHARACTERS=characters;
@@ -17,13 +18,20 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
   const trails=[[],[]];
   let localTickSpan=0;
   let externalActors=false,nativeEffects=false,nativeAren=false,nativeFighters=[];
+  // Real-time impact cues: they keep moving while a local fight holds its struck frame.
+  const camera=createFightCamera(),hitSeen=new Map(),impacts=new Map();
+  let cameraTime=0,cameraSnap=true;
+  // The status panel overlaps the top of short arenas; it fades while an airborne fighter is behind it.
+  const hud=canvas.parentElement.querySelector('.hud');let hudBottom=0,hudFaded=false;
+  if(hud)hud.style.transition='opacity .14s linear';
   function resize(){
     const rect=canvas.parentElement.getBoundingClientRect();
     viewHeight=Math.min(720,Math.max(300,worldWidth*rect.height/Math.max(1,rect.width)));
     zoom=1;
+    hudBottom=hud?(hud.getBoundingClientRect().bottom-rect.top)*worldWidth/Math.max(1,rect.width):0;
 
   }
-  const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(canvas.parentElement);resize();
+  const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(canvas.parentElement);if(hud)resizeObserver.observe(hud);resize();
   const line = (x1,y1,x2,y2,color,width) => { c.strokeStyle=color;c.lineWidth=width;c.lineCap='round';c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke(); };
   const circle = (x,y,r,color) => { c.fillStyle=color;c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.fill(); };
   function background(tick,center=640) {
@@ -58,7 +66,7 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
     for(let i=0;i<(document.documentElement.dataset.effects==='off'?0:30);i++){const x=(i*137+tick*.3)%1320;const y=250+(i*89)%280;circle(x,y,1.5,'#d3e4c547');}
   }
   function ninja(f, state, ghost=false) {
-    if(externalActors||nativeAren&&f.character==='aren'||nativeFighters.includes(f.character)){if(!ghost)paintPracticeEffects(c,f,state,MOVES);return;}
+    if(externalActors||nativeAren&&f.character==='aren'||nativeFighters.includes(f.character)){if(!ghost)paintPracticeEffects(c,f,state);return;}
     const x=f.x, ground=ARENA.floor+(f.depth??0)*.65-f.y;
     c.save();c.translate(x,ground);c.scale(f.facing,1);
     if(ghost)c.globalAlpha*=.3;
@@ -206,7 +214,8 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
       localTickSpan=reset?0:authoritative.tick-frameTick;
       blendDuration=Math.min(65,Math.max(16,(authoritative.tick-frameTick)*1000/60));blendStart=now;
       targets=authoritative.fighters.map(f=>({...f,action:f.action?{...f.action}:null}));visualTick=reset?authoritative.tick:frameTick;
-      frameTick=authoritative.tick;frameRound=authoritative.round;if(reset)trails.forEach(t=>t.splice(0));
+      frameTick=authoritative.tick;frameRound=authoritative.round;if(reset){trails.forEach(t=>t.splice(0));impacts.clear();cameraSnap=true;}
+      for(const f of authoritative.fighters){const seen=hitSeen.get(f.id);hitSeen.set(f.id,f.lastHit);if(!reset&&seen!==undefined&&f.lastHit>seen&&authoritative.tick-f.lastHit<8)impacts.set(f.id,{at:now,damage:f.lastDamage??0,blocked:Boolean(f.blockedHit)});}
     }
     const blend=interpolate?Math.min(1,(now-blendStart)/blendDuration):1;shown=sampled?authoritative.fighters.map(f=>({...f})):sampleFighters(previous,targets,blend,interpolate);
     if(!interpolate&&!sampled&&localAlpha>0)shown=shown.map((f,i)=>projectLocalFighter(previous[i],f,localAlpha,localTickSpan));
@@ -217,13 +226,22 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
     const width=worldWidth*dpr,height=Math.round(viewHeight*dpr);
     if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height;}
     if(layers?.background===false){c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,canvas.width,canvas.height);}
-    // Reserve aerial headroom once per viewport, never resize the world on jump.
-    zoom=Math.min(1,viewHeight*.9/540);
-    c.setTransform(dpr*zoom,0,0,dpr*zoom,worldWidth*dpr*.5*(1-zoom),(viewHeight*.9-ARENA.floor*zoom)*dpr);
+    // The fight camera frames every living fighter. Reduced motion and the
+    // fixed-camera setting keep the whole arena at one scale.
+    let shakeX=0,shakeY=0,punch=0;const hits={};
+    for(const [id,impact] of impacts){const age=now-impact.at;if(age>400){impacts.delete(id);continue;}hits[id]=age;
+      if(reducedMotion.matches||document.documentElement.dataset.shake==='off'||age>=190)continue;
+      const decay=(1-age/190)**2,strength=(impact.blocked?1.5:Math.min(9,2.5+impact.damage/16))*decay;
+      if(strength>Math.hypot(shakeX,shakeY)){shakeX=Math.sin(now*.085)*strength;shakeY=Math.cos(now*.061)*strength*.6;}
+      if(!impact.blocked)punch=Math.max(punch,Math.min(.045,.012+impact.damage/3000)*decay);
+    }
+    const view=camera.update(state.fighters,{worldWidth,viewHeight},{dt:(now-cameraTime)/1000,fixed:reducedMotion.matches||document.documentElement.dataset.camera==='fixed',snap:cameraSnap,punch});
+    cameraTime=now;cameraSnap=false;zoom=view.zoom;
+    if(hud){const behind=state.status==='playing'&&state.fighters.some(f=>f.hp>0&&f.y>0&&view.ty+(ARENA.floor-f.y-110)*zoom<hudBottom);if(behind!==hudFaded){hudFaded=behind;hud.style.opacity=behind?'.28':'';}}
+    c.setTransform(dpr*zoom,0,0,dpr*zoom,view.tx*dpr,view.ty*dpr);
     c.save();
-    let shakeX=0,shakeY=0;
-    if(!reducedMotion.matches&&document.documentElement.dataset.shake!=='off'){const recent=state.fighters.find(f=>state.tick-f.lastHit<4);if(recent){const decay=Math.max(0,1-(state.tick-recent.lastHit)/4),strength=(recent.blockedHit?1:Math.min(4,1+(recent.lastDamage??0)/50))*decay;shakeX=Math.sin(state.tick*13)*strength;shakeY=Math.cos(state.tick*9)*strength*.5;c.translate(shakeX,shakeY);}}
-    render.frame={state,viewport:{worldWidth,viewHeight,zoom,shakeX,shakeY}};
+    c.translate(shakeX,shakeY);
+    render.frame={state,viewport:{...view,shakeX,shakeY,hits}};
     if(layers?.background!==false){paintStageCanvas(c,state.stage??'skyglass');}
     // Ground lanes and narrow/sweeping windups make depth separation readable.
     for(const depth of [-64,0,64]){line(46,ARENA.floor+depth*.65,worldWidth-46,ARENA.floor+depth*.65,'#a7d9cc22',1);}
@@ -269,10 +287,11 @@ c.save();c.translate(p.x,y);c.scale(p.direction,1);const color=MOVES[p.move].col
       c.restore();}
     paintBattleLife(c,state,{floor:ARENA.floor,reduced:reducedMotion.matches,effects:document.documentElement.dataset.effects!=='off'});
     const transformed=state.fighters.find(f=>f.awakeningFlash>0);
-    if(transformed){c.textAlign='center';c.font='bold 32px system-ui';c.fillStyle=activeAwakening(transformed).color;c.fillText(activeAwakening(transformed).name.toUpperCase(),640,270);}
     c.restore();
     c.setTransform(dpr,0,0,dpr,0,0);
-    c.font='10px system-ui';c.fillStyle='#b8cbcf55';c.textAlign='center';if(!state.training)c.fillText(stageFor(state.stage).name.toUpperCase(),640,viewHeight-12);
+    // Screen-space captions stay put while the camera moves.
+    if(transformed){c.textAlign='center';c.font='bold 32px system-ui';c.fillStyle=activeAwakening(transformed).color;c.fillText(activeAwakening(transformed).name.toUpperCase(),worldWidth/2,viewHeight*.48);}
+    c.font='10px system-ui';c.fillStyle='#b8cbcf55';c.textAlign='center';if(!state.training)c.fillText(stageFor(state.stage).name.toUpperCase(),worldWidth/2,viewHeight-12);
   };
   render.dispose=()=>resizeObserver.disconnect();
   return render;

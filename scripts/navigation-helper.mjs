@@ -11,6 +11,9 @@ export async function clickGame(page,selector){
  if(selector==='#play'&&await page.locator('#loadout-panel').isVisible()&&(await page.locator(selector).innerText())!=='View tournament bracket')await page.locator(selector).click();
  await page.locator(selector).click();
 }
+// Scenarios that script frame-exact timings in milliseconds opt out of impact
+// pause before the first load. Feel settings saved by the scenario still win.
+export const steadyTiming=page=>page.addInitScript(()=>{if(!localStorage.getItem('shinobi.experience.v1'))localStorage.setItem('shinobi.experience.v1',JSON.stringify({impact:false}));});
 export async function selectGame(page,selector,value){
  const group=await openNavigation(page,selector);await page.selectOption(selector,value);
  if(group&&await page.locator(group).getAttribute('open')!==null)await page.locator(group+' > summary').click();

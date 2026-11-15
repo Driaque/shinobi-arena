@@ -50,15 +50,30 @@ try{
       const host=document.createElement('div');host.style.cssText='width:800px;height:400px';const canvas=document.createElement('canvas');host.append(canvas);document.body.append(host);
       const render=createRenderer(canvas),state=createMatch();render(state);state.fighters[1].character='dora';render(state);
       const identity=render.frame.state.fighters[1].character;
-      // The real foreground renderer and external sprite scene must receive the
-      // same fixed scale through jump, double-jump, landing and four-actor scenes.
+      // With the fixed camera selected, the real foreground renderer and external
+      // sprite scene receive the same scale through jump, double-jump, landing and
+      // four-actor scenes.
+      const cameraSetting=document.documentElement.dataset.camera;document.documentElement.dataset.camera='fixed';
+      state.tick++;render(state);
       const zoom=render.frame.viewport.zoom;
+      if(zoom!==render.frame.viewport.baseZoom)throw Error('Fixed camera left the base scale');
       for(const air of [80,165,330,0]){
         state.tick++;state.fighters[0].y=air;render(state);
         if(render.frame.viewport.zoom!==zoom)throw Error('Jump changed arena scale');
       }
       state.fighters.push({...state.fighters[0],id:2,y:330},{...state.fighters[1],id:3});state.tick++;render(state);
       if(render.frame.viewport.zoom!==zoom)throw Error('Survival fighter changed arena scale');
+      // The dynamic fight camera closes in on a grounded exchange and never frames wider than the base view.
+      document.documentElement.dataset.camera='dynamic';
+      const duel=createMatch();duel.tick=state.tick+1;duel.fighters[0].x=700;duel.fighters[1].x=820;render(duel);
+      await new Promise(done=>setTimeout(done,60));duel.tick++;render(duel);
+      const close=render.frame.viewport;
+      if(!(close.zoom>close.baseZoom))throw Error('Dynamic camera did not close in');
+      duel.tick++;duel.fighters[0].x=120;duel.fighters[1].x=1480;duel.fighters[0].y=330;
+      for(let i=0;i<30;i++){await new Promise(done=>setTimeout(done,34));render(duel);}
+      const wide=render.frame.viewport;
+      if(!(wide.zoom<close.zoom&&wide.zoom>=wide.baseZoom))throw Error('Dynamic camera did not pull back');
+      if(cameraSetting===undefined)delete document.documentElement.dataset.camera;else document.documentElement.dataset.camera=cameraSetting;
       render.dispose();host.remove();return identity;
     });
     assert.equal(second,'dora','Player 2 model changes at the same tick');assert.deepEqual(errors,[]);await context.close();

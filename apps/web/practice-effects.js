@@ -1,11 +1,8 @@
-import { ARENA, WEAPONS } from "./packages/engine/index.js";
+import { ARENA } from "./packages/engine/index.js";
 
-// Compatibility layer for combat cues while Practice actors/scenery use sprites.
-// Positions and attack phases come from the same sampled state as the GPU scene.
-export function paintPracticeEffects(c, f, state, moves) {
-  const m = moves[f.action?.move],
-    age = f.action?.age ?? 0,
-    active = m && age >= m.startup && age < m.startup + m.active;
+// Status cues drawn over sprite fighters: charge, bind, ward, effect motes and
+// damage numbers. Weapons and strike trails belong to the sprite layer.
+export function paintPracticeEffects(c, f, state) {
   const ground = ARENA.floor + (f.depth ?? 0) * 0.65 - f.y;
   const line = (x1, y1, x2, y2, color, width = 3) => {
     c.strokeStyle = color;
@@ -19,49 +16,6 @@ export function paintPracticeEffects(c, f, state, moves) {
   c.translate(f.x, ground);
   c.scale(f.facing * (f.scale ?? 1), f.scale ?? 1);
   if (f.invulnerable) c.globalAlpha = 0.45;
-  if (m && !m.projectile && !m.buff && !m.utility && age >= m.startup - 3) {
-    c.save();
-    c.globalAlpha *= active ? 0.8 : 0.22;
-    c.strokeStyle = m.color ?? "#9fe9da";
-    c.lineWidth = m.sword ? 5 : 3;
-    c.beginPath();
-    c.ellipse(
-      30,
-      -70,
-      Math.min(m.reach ?? 90, 180) * 0.65,
-      35,
-      m.spike ? -0.6 : 0,
-      -1.5,
-      1.4,
-    );
-    c.stroke();
-    c.restore();
-  }
-  if (f.action?.source === "weapon") {
-    const color =
-      f.buffs.some((b) => b.type === "poisonCoating") || f.action.poison
-        ? "#b5e08b"
-        : "#e5f4fa";
-    if (f.weapon === "tideglassFans") {
-      c.fillStyle = color;
-      for (const x of [24, 65]) {
-        c.beginPath();
-        c.moveTo(x, -75);
-        c.arc(x, -75, 25, -1.3, 0.7);
-        c.closePath();
-        c.fill();
-      }
-    } else if (f.weapon === "orbitDisc") {
-      for (let i = 0; i < 4; i++) {
-        const a = (i * Math.PI) / 2 + state.tick * 0.1;
-        line(50, -80, 50 + Math.cos(a) * 18, -80 + Math.sin(a) * 18, color, 3);
-      }
-    } else {
-      const length = f.weapon === "oathknife" || f.weapon === "conduitSpike" ? 34 : 82;
-      line(22, -70, 22 + length, -85, color, 4);
-      line(30, -80, 32, -64, "#e9bd72", 4);
-    }
-  }
   if (f.charging)
     for (let i = 0; i < 6; i++) {
       const a = (i * Math.PI) / 3 + state.tick * 0.04;
@@ -107,14 +61,6 @@ export function paintPracticeEffects(c, f, state, moves) {
       f.x,
       ground - 140 - (state.tick - f.lastHit),
     );
-    c.restore();
-  }
-  if (f.action?.source === "weapon") {
-    c.save();
-    c.font = "9px system-ui";
-    c.textAlign = "center";
-    c.fillStyle = "#dfebee";
-    c.fillText(WEAPONS[f.weapon].name, f.x, ground + 18);
     c.restore();
   }
 }

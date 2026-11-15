@@ -22,3 +22,9 @@ Shared generation prompt: “Production transparent game combat sprite sheet for
 | Oryn | Gaunt man, grey-brown skin with faint aqua cracks, unkempt silver hair, haunted cyan eyes, weathered blue-grey coat, layered armor, belts and a caged cyan lantern at the hip. |
 
 Silent used the same pose layout with additional emphasis on his full-face mask and ice armor. Generated transparent edges are preserved. These sheets share pose semantics, rather than claiming a distinct clip for every move. Weapon geometry, physics and combat outcomes are not inferred from their pixels.
+
+## Weapons in hand
+
+Sheets stay empty-handed. During a weapon attack the painted equipment icon (`apps/web/assets/painted-v2/weapons/<id>-256.png`) is cut out of its flat backdrop at load time and drawn as a sprite at the fighter's leading hand, with a slash trail on the active frames. Grip and tip positions per weapon and the leading-hand position per fighter for poses 8 (anticipation), 9 (strike), 10 (follow-through) and 11 (aerial) live in `packages/presentation/weapons.js` (`WEAPON_ART`, `HAND_ANCHORS`).
+
+Whenever a fighter sheet is regenerated or a new fighter is added, re-measure that fighter's four hand positions (arena units from the root: source pixels from (192,340) × 120 / standingHeight) and update `HAND_ANCHORS`; `tests/weapon-presentation.test.js` fails if a sheet has no entry. A new weapon needs a painted icon on a flat backdrop plus a `WEAPON_ART` entry. This remains presentation only: reach, hitboxes and damage come from the engine.

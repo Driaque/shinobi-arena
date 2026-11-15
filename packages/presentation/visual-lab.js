@@ -175,6 +175,9 @@ export function sceneFor(state, { reduced = false, effects = true } = {}) {
           x: f.x,
           y: WORLD.floor + (f.depth ?? 0) * 0.65 - f.y - 65,
           age: state.tick - f.lastHit,
+          blocked: Boolean(f.blockedHit),
+          power: f.lastDamage ?? 0,
+          seed: f.lastHit,
         }))
     : [];
   return {

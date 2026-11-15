@@ -9,6 +9,7 @@ import {mountIcon} from './packages/ui/jutsu-icons.js';
 import {installMobileUI} from './mobile-ui.js';
 import {createControllerUI} from './controller-ui.js';
 import {createExperience,experience} from './experience.js';
+import {impactPauseMs} from './packages/presentation/impact.js';
 import {createPrediction} from './packages/network/prediction.js';
 import {summarizeFight} from './packages/engine/tactics.js';
 import {createAudio} from './audio.js';
@@ -39,7 +40,8 @@ try{difficulty=difficultyFor(localStorage.getItem('shinobi-arena.difficulty.v1')
 $('#difficulty').value=difficulty;
 const stages=createStagePicker(()=>{if(!started&&mode!=='online')state=newMatch(readLoadouts());});
 const newMatch=(loadouts=DEFAULT_FIGHTERS.map(character=>({character,weapon:CHARACTERS[character].defaultWeapon??'skyforgedBlade'})))=>{const next=$('#mode').value==='training'&&trainingUI?trainingUI.create(loadouts):createMatch(loadouts,{difficulty,stage:stages.value()});if(next.training)next.stage=stages.resolve();return next;};
-let state=newMatch(), paused=true, started=false, mode='cpu', cpu={}, lastTime=0, accumulator=0, feedbackUntil=0;
+let state=newMatch(), paused=true, started=false, mode='cpu', cpu={}, lastTime=0, accumulator=0, feedbackUntil=0, impactUntil=0, finishing=null;
+const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
 let setupStep='characters';
 const setupBack=document.createElement('button');setupBack.id='setup-back';setupBack.textContent='Back to characters';setupBack.hidden=true;$('#play').before(setupBack);
 function showSetupStep(step,keepTitle=false){
@@ -284,16 +286,22 @@ function frame(now){
     accumulator+=Math.min((now-lastTime)/1000,.1);
     while(accumulator>=1/TICK_RATE){const input=$('#rotate').hidden?inputs[0].consume():{},seq=online.send(input);if(seq!==null)prediction.push(seq,input);inputs[1].reset();accumulator-=1/TICK_RATE;}
   }else if(!paused&&state.status==='playing'){
-    accumulator+=Math.min((now-lastTime)/1000,.1)*(mode==='training'?experience().speed:1);
+    // Impact pause: hold the struck frame briefly before the next engine step.
+    if(now<impactUntil)accumulator=0;else accumulator+=Math.min((now-lastTime)/1000,.1)*(mode==='training'?experience().speed:1);
     while(accumulator>=1/TICK_RATE&&state.status==='playing'){
       if(mode==='cpu')cpu=computerInput(state);
       if(mode==='training')stepTraining(state,inputs[0].consume());else stepMatch(state,[inputs[0].consume(),mode==='cpu'?cpu:inputs[1].consume()]);accumulator-=1/TICK_RATE;
       const event=state.events.find(e=>['jutsuLink','aerialBlocked','airChase','airFinish','airEscape','weaponSwap','waypointWarp','smokeBlocked','parry','guardBreak','punish','exhausted','hit','block','empty','pierce','replacement','unavailable','poison','burn','cooldown','awakeningBlocked'].includes(e.type));
       if(event){const messages={jutsuLink:'JUTSU LINK · FULL COST / WATCH THE COUNTER',aerialBlocked:event.reason,airChase:'AIR CHASE · LINK BASIC OR AERIAL JUTSU',airFinish:'AERIAL FINISHER',airEscape:'JUGGLE LIMIT · AIR RECOVERY',weaponSwap:'WEAPON SWAPPED',waypointWarp:'WAYPOINT · WARP',smokeBlocked:'SMOKE BLOCKED PROJECTILE',parry:'PARRY · COUNTER NOW',guardBreak:'GUARD BROKEN',punish:'RECOVERY PUNISH · +20%',exhausted:'LOW STAMINA · CREATE SPACE',empty:'NOT ENOUGH CHAKRA',block:'GUARDED',replacement:'REPLACEMENT JUTSU',unavailable:'NO TECHNIQUE OR ITEM AVAILABLE',cooldown:'TECHNIQUE ON COOLDOWN',awakeningBlocked:'AWAKENING NOT READY OR UNABLE TO ACT'};
         $('#feedback').textContent=messages[event.type]??`${event.type==='pierce'?'GUARD PIERCED · ':event.type==='poison'?'POISON · ':event.type==='burn'?'BURN · ':''}${event.damage} DAMAGE`;feedbackUntil=now+700;}
+      const hold=experience().impact&&!reducedMotion.matches?impactPauseMs(state.events):0;
+      if(hold){impactUntil=now+hold;accumulator=0;}
     }
-    if(state.status!=='playing')finish();
+    // The finishing blow lingers before the result appears.
+    if(state.status!=='playing'){if(now<impactUntil)finishing=state;else finish();}
   }else accumulator=0;
+  if(finishing&&(finishing!==state||!started||mode==='online'||state.status==='playing'))finishing=null;
+  else if(finishing&&now>=impactUntil){finishing=null;finish();}
   if(lastTime&&now-lastTime<250){frameTimes.push(now-lastTime);if(frameTimes.length>120)frameTimes.shift();}const q=online?.quality;netLabel.textContent=mode==='online'?`${q?.label??'Measuring'} · RTT ${q?.rtt??'—'}ms · jitter ${q?.jitter??0}ms · ${experience().prediction?'movement prediction':'authoritative movement'}`:mode==='training'?`Practice ${experience().speed}× · frame p95 ${Math.round([...frameTimes].sort((a,b)=>a-b)[Math.floor(frameTimes.length*.95)]??0)}ms · ${render.status().label}`:'';
   lastTime=now;if(now>feedbackUntil)$('#feedback').textContent='';render(state,{localAlpha:mode!=='online'&&!paused&&state.status==='playing'?accumulator*TICK_RATE:0,interpolate:mode==='online',predicted:mode==='online'&&experience().prediction?prediction.sample(state):null,localSlot:online?.slot??0});sound.update(state,started&&!paused&&$('#rotate').hidden);paintHud();requestAnimationFrame(frame);
 }

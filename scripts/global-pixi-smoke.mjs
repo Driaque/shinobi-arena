@@ -17,7 +17,7 @@ try{
   assert.ok(await portrait.evaluate(img=>img.naturalWidth>0),'painted PNG portrait decodes');
   const source=await portrait.evaluate(img=>img.currentSrc);
   assert.match(source,/painted-v1\/portraits\/aren-\d+\.png$/);
-  assert.equal(await p.locator('#character0 [data-character=aren] canvas[data-animated-portrait]').count(),0,'original PNG portraits retain full detail');
+  assert.equal(await p.locator('#character0 [data-character=aren] canvas').count(),0,'original PNG portraits retain full detail');
   await p.emulateMedia({reducedMotion:'reduce'});
   assert.equal(await portrait.evaluate(img=>img.currentSrc),source,'reduced motion preserves the painted portrait');
   await p.emulateMedia({reducedMotion:'no-preference'});
@@ -27,10 +27,8 @@ try{
   for(const mode of ['cpu','local','training','online']){await selectGame(p,'#mode',mode);if(mode!=='online'){await clickGame(p,'#play');await p.waitForTimeout(100);}await p.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-pixi');assert.doesNotMatch(await p.locator('#name1').innerText(),/SPARRING ECHO/);}
   await selectGame(p,'#mode','training');await clickGame(p,'#play');await clickGame(p,'#training-settings');assert.equal(await p.locator('#training-charge').isDisabled(),true,'Aren has no awakening to charge');await p.click('#training-close');await clickGame(p,'#play');await p.screenshot({path:`test-results/global-pixi-${mobile?'portrait':'desktop'}.png`});
   await clickGame(p,'#graphics-settings');
-  assert.equal(await p.locator('#fighter-style').inputValue(),'painted');
+  assert.equal(await p.locator('#fighter-style').count(),0,'released fighters are sprites only');
   assert.equal(await p.locator('#canvas').getAttribute('data-fighter-style'),'painted');
-  await p.selectOption('#fighter-style','fluid');await p.waitForFunction(()=>document.querySelector('#canvas').dataset.fighterStyle==='fluid');
-  await p.selectOption('#fighter-style','painted');await p.waitForFunction(()=>document.querySelector('#canvas').dataset.fighterStyle==='painted');
   await p.selectOption('#battle-renderer','canvas');await p.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-canvas');await p.selectOption('#battle-renderer','pixi');await p.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-pixi');await p.click('#graphics-close');
   await p.evaluate(()=>document.querySelector('[data-practice-art=pixi]').dispatchEvent(new Event('webglcontextlost',{cancelable:true})));await p.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-canvas');
   await clickGame(p,'#graphics-settings');await p.click('#battle-graphics-retry');await p.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-pixi');await p.click('#graphics-close');
@@ -38,11 +36,10 @@ try{
    const {createRenderer}=await import('./renderer.js'),{createMatch}=await import('./packages/engine/index.js');const host=document.createElement('div');host.style.cssText='position:fixed;width:800px;height:400px;left:-1000px';const canvas=document.createElement('canvas');host.append(canvas);document.body.append(host);const render=createRenderer(canvas),state=createMatch();render(state,{sampled:true});state.fighters[0].x=777;render(state,{sampled:true});const x=render.frame.state.fighters[0].x;render.dispose();host.remove();return x;
   }),777,'replay samples at the same tick use the actual interpolated position');
   await p.reload();assert.equal(await p.locator('#include-unreleased').isChecked(),false);assert.equal(await p.locator('#character0 .character-card:visible').count(),10);assert.deepEqual(errors,[]);
-  await p.route('**/roster-pixi.js*',route=>route.abort());await p.reload();
   await p.waitForSelector('#character0 .character-portrait');
-  assert.equal(await p.locator('#character0 [data-animated-portrait]').count(),0,'failed Pixi module retains static portraits');
+  assert.equal(await p.locator('#character0 .character-card:visible canvas').count(),0,'roster portraits are static paintings');
   await p.locator('#character0 input[value=silent]').check();
-  assert.equal(await p.locator('#character0 input:checked').inputValue(),'silent','static fallback keeps selection usable');
+  assert.equal(await p.locator('#character0 input:checked').inputValue(),'silent','portrait cards keep selection usable');
   assert.deepEqual(errors,[]);
   await p.goto('http://127.0.0.1:4202/animation-review.html');
   await p.selectOption('#sequence','combo');await p.check('#joints');await p.click('#pause');

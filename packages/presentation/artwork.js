@@ -23,11 +23,11 @@ export function stageArtwork(id = 'skyglass') {
 export const paintedStageRect = Object.freeze({x:-160,y:-84,w:1920,h:1080});
 
 // Expand scenery around the combat ground line to cover short/wide cameras.
-export function paintedStageForView(view,width,height) {
+export function paintedStageForView(view,width,height,margin=1) {
   const base=paintedStageRect,ground=610,center=base.x+base.w/2;
   const left=-view.x/view.scale,right=(width-view.x)/view.scale;
   const top=-view.y/view.scale,bottom=(height-view.y)/view.scale;
   const factor=Math.max(1,2*Math.max(center-left,right-center)/base.w,
-    (ground-top)/(ground-base.y),(bottom-ground)/(base.y+base.h-ground));
+    (ground-top)/(ground-base.y),(bottom-ground)/(base.y+base.h-ground))*margin;
   return {x:center-base.w*factor/2,y:ground-(ground-base.y)*factor,w:base.w*factor,h:base.h*factor};
 }
