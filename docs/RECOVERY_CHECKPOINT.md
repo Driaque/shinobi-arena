@@ -232,3 +232,9 @@ User requested deployment to the existing Render production service for physical
 Release PR is #66. Local npm run verify passed with 386 tests and a v0.42.0 build. Browser CI is required before merge. Existing tests with explicit dock layout, direct control buttons and portrait tip assertions seed the saved dock preset. Expanded touch has separate portrait and landscape coverage in the global graphics smoke.
 
 Hosted PR #66 confirmed the build, arena, experience and network groups. The follow-up commit updates the Practice and low guard browser scenarios to open Kit, and widens the landscape Kit so the techniques fit. Local npm run verify (386 tests), Practice Pixi, Visual Lab and shield-scale checks passed. Hosted checks rerun on the latest head before merge.
+
+### v0.42.0 verified live
+
+PR #66 merged on 2026-11-15 at commit 8fb2734516be9f682a38d78a74ac87ae75a1550b. Feature head 8314d71. Local npm run verify passed 386 tests. The PR CI run 43756400644 and main CI run 43756889965 passed every browser group and the build. Deploy Render run 43757667003 succeeded on the existing shinobi-arena-online service. A separate GET https://shinobi-arena-online.onrender.com/health returned ok and storageHealthy with exactly v0.42.0 and the merge commit above. GitHub Release v0.42.0 was published successfully by run 43757786072 and its targetCommitish matched the same commit. The recovery result is on docs/checkpoint-0.42.0.
+
+The production mobile test is ready. Open the existing Render URL and start a match. If the phone has saved touch controls, choose Settings > Controls > Placement > Expanded touch and Save. Real-device feedback is the next action. All 35 roster slots remain selectable in this test release. No additional deployment is authorized by this checkpoint.
