@@ -143,7 +143,7 @@ $('#mode').addEventListener('change',event=>{
   document.querySelectorAll('#character1 .pick-mark').forEach(mark=>mark.textContent=mode==='training'?'DUMMY':mode==='cpu'?'CPU':'P2');
   $('#p2-help').textContent=mode==='cpu'?'CPU Vesper · Voltaic Lance + fireball':'P2 arrows · N hit · M guard · , Voltaic Lance · . fireball';
   describeLoadouts();dialog('BUILD YOUR FIGHTING STYLE','Choose your shinobi.',mode==='training'?'Pick your fighter and training dummy. Practice opens challenges and training settings.':'Pick both fighters, two weapons and four consumables before the battle.',mode==='online'?'Find opponent':mode==='training'?'Start training':'Start match');
-  if(mode==='online'){$('#overlay-description').textContent='Choose your fighter, two weapons and four consumables. Your opponent chooses their own.';$('#overlay-hint').textContent='Online fights continue when you open controls or leave the page. Leave match forfeits.';}
+  if(mode==='online'){$('#overlay-description').textContent='Choose your fighter, two weapons and four consumables. Your opponent chooses their own.';$('#overlay-hint').textContent='Brief connection interruptions can be resumed. Leave match ends your fight.';}
   trainingUI?.draw();
 });
 controls=createControls({inputs,onPause:pause,isPlaying:()=>!paused&&state.status==='playing'&&$('#rotate').hidden});
@@ -154,8 +154,16 @@ function useTrainingState(next){
 }
 trainingUI=createTrainingUI({pause,clearInputs,getState:()=>state,setState:useTrainingState,getLoadouts:readLoadouts,isTraining:()=>mode==='training',isStarted:()=>started,isEditing:()=>controls.editing,binding:action=>controls.binding(0,action),start:()=>{paused=false;started=true;accumulator=0;lastTime=performance.now();$('#overlay').hidden=true;}});
 
+function showMatchReconnect(self){
+ clearInputs();prediction.reset();paused=true;onlineScreen='';
+ $('#overlay').hidden=false;$('#online-lobby').hidden=true;$('#loadout-panel').hidden=true;
+ $('#overlay-kicker').textContent='ONLINE ARENA';
+ $('#overlay-title').textContent=self?'Reconnecting to your match…':'Waiting for your opponent to reconnect…';
+ $('#overlay-description').textContent='The fight is on hold. Play resumes when both players return.';
+ $('#overlay-hint').textContent='';$('#play').hidden=true;
+}
 const socialUI=createSocialUI({getOnline:()=>online});
-online=createOnline({onSocial:socialUI.update,onPhase:socialUI.phase,getProfile:()=>({...readLoadouts()[0],stage:stages.value()}),onStatus:()=>{
+online=createOnline({onReconnect:showMatchReconnect,onSocial:socialUI.update,onPhase:socialUI.phase,getProfile:()=>({...readLoadouts()[0],stage:stages.value()}),onStatus:()=>{
  if(mode==='online'){for(const el of document.querySelectorAll('#character0 input,#weapon0,#weapon-secondary0,#item0-0,#item0-1,#item0-2,#item0-3'))el.disabled=Boolean(online?.busy)||el.getAttribute('aria-disabled')==='true';$('#play').disabled=online?.busy??false;$('#play').textContent=online?.busy?'Finding opponent…':activeTournament?'View tournament bracket':setupStep==='characters'&&!started?'Continue to battle stage':'Find opponent';}
 },onEnd:message=>{
  if(mode!=='online')return;clearInputs();started=false;paused=true;onlineScreen='';
@@ -163,6 +171,8 @@ online=createOnline({onSocial:socialUI.update,onPhase:socialUI.phase,getProfile:
 },onState:(message,slot)=>{
  if(mode!=='online')return;if(message.tournament)activeTournament=message.tournament.id;if(message.players)onlinePlayers=message.players;
  prediction.reconcile(message,slot);state=message.state;started=true;paused=false;
+ if(message.reconnecting?.some(Boolean)){showMatchReconnect(false);return;}
+
  const key=`${message.phase}:${state.round}`;
  $('#mode-name').textContent=`ONLINE · YOU ARE P${slot+1}`;
  if(message.phase==='playing'){$('#overlay').hidden=true;onlineScreen=key;}
@@ -179,12 +189,12 @@ online=createOnline({onSocial:socialUI.update,onPhase:socialUI.phase,getProfile:
  }
  if(message.phase==='playing')$('#play').hidden=false;
  if(message.phase==='matchOver')showCoach(slot);
- if(message.phase==='matchOver')for(const el of document.querySelectorAll('#character0 input,#weapon0,#weapon-secondary0,#item0-0,#item0-1,#item0-2,#item0-3'))el.disabled=false;
+ if(message.phase==='matchOver')for(const el of document.querySelectorAll('#character0 input,#weapon0,#weapon-secondary0,#item0-0,#item0-1,#item0-2,#item0-3'))el.disabled=el.getAttribute('aria-disabled')==='true';
 }});
 
 createExperience({onOpen:()=>{clearInputs();pause();},onChange:()=>window.dispatchEvent(new Event('arena:experience'))});
 const netLabel=document.createElement('span');netLabel.id='network-quality';document.querySelector('.topbar').after(netLabel);
-const arenaHub=createArenaHub({onFight:id=>{online.reset();$('#mode').value='online';$('#mode').dispatchEvent(new Event('change'));activeTournament=id;online.join({tournamentId:id});},onTakeover:next=>{online.reset();$('#mode').value='training';$('#mode').dispatchEvent(new Event('change'));next.status='playing';next.result=null;next.training={drill:'free',dummy:'attack',unlimitedResources:false,refillHealth:true,instantCooldowns:false,showRanges:true,step:0,completed:false,feedback:'Replay takeover: practice from the preceding recorded sample as P1.',feedbackUntil:next.tick+240,stats:{damage:0,hits:0,bestCombo:0}};for(const f of next.fighters)f.hp=Math.max(1,f.hp);useTrainingState(next);$('#overlay').hidden=true;paused=false;started=true;clearInputs();},onOpen:()=>{clearInputs();pause();},isBusy:()=>mode==='online'&&['connecting','queued','playing','countdown','roundOver','lounge'].includes(online.phase)});
+const arenaHub=createArenaHub({onFight:id=>{online.reset();$('#mode').value='online';$('#mode').dispatchEvent(new Event('change'));activeTournament=id;online.join({tournamentId:id});},onTakeover:next=>{online.reset();$('#mode').value='training';$('#mode').dispatchEvent(new Event('change'));next.status='playing';next.result=null;next.training={drill:'free',dummy:'attack',unlimitedResources:false,refillHealth:true,instantCooldowns:false,showRanges:true,step:0,completed:false,feedback:'Replay takeover: practice from the preceding recorded sample as P1.',feedbackUntil:next.tick+240,stats:{damage:0,hits:0,bestCombo:0}};for(const f of next.fighters)f.hp=Math.max(1,f.hp);useTrainingState(next);$('#overlay').hidden=true;paused=false;started=true;clearInputs();},onOpen:()=>{clearInputs();pause();},isBusy:()=>mode==='online'&&['connecting','queued','playing','countdown','roundOver','lounge','reconnecting'].includes(online.phase)});
 createNavigation({hub:arenaHub,isBusy:()=>mode==='online'&&online.busy});
 showSetupStep('characters');
 techniqueTray=createTechniqueTray({input:inputs[0],getPlayer:()=>state.fighters[mode==='online'?online.slot:0],isPlaying:()=>started&&!paused&&!controls?.editing&&$('#rotate').hidden&&state.status==='playing'&&(mode!=='online'||online.phase==='playing'),binding:key=>controls.binding(0,key),visible:key=>controls.visible(key)});

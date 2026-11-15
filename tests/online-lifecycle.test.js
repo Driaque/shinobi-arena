@@ -9,7 +9,8 @@ const root=new URL('../',import.meta.url).href;
 const source=(await readFile(new URL('../apps/web/online.js',import.meta.url),'utf8'))
  .replaceAll("from './packages/",`from '${root}packages/`)
  .replace("from './arena-api.js'",`from '${root}apps/web/arena-api.js'`);
-const {createOnline}=await import('data:text/javascript,'+encodeURIComponent(source+'\n//# sourceURL=online-client.test-module.js'));
+const transport=(await readFile(new URL('../apps/web/match-socket.js',import.meta.url),'utf8')).replaceAll("from './packages/",`from '${root}packages/`);
+const {createOnline}=await import('data:text/javascript,'+encodeURIComponent(source.replace("'./match-socket.js'",JSON.stringify('data:text/javascript,'+encodeURIComponent(transport)))+'\n//# sourceURL=online-client.test-module.js'));
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
 const deferred=()=>{let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return {promise,resolve,reject};};
 async function setup(t,{identity=async()=> 'test-profile',delayedClose=false}={}){
@@ -17,7 +18,7 @@ async function setup(t,{identity=async()=> 'test-profile',delayedClose=false}={}
  for(const id of ['online-status','player-name','online-server','online-cancel','online-leave','online-queue'])fields.set('#'+id,Object.assign(new EventTarget(),{value:'',hidden:false,disabled:false,textContent:''}));
  fields.get('#online-server').value='https://arena.example';fields.get('#online-queue').value='casual';
  const storage=new Map(),saved=new Map();let client;
- for(const [key,value]of Object.entries({document:{querySelector:s=>fields.get(s)},localStorage:{getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v)},location:{protocol:'https:',host:'arena.example'},fetch:async()=>({ok:true,json:async()=>({url:'https://arena.example'})})})){
+ for(const [key,value]of Object.entries({document:Object.assign(new EventTarget(),{hidden:false,querySelector:s=>fields.get(s)}),localStorage:{getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v)},location:{protocol:'https:',host:'arena.example'},fetch:async()=>({ok:true,json:async()=>({url:'https://arena.example'})})})){
   saved.set(key,Object.getOwnPropertyDescriptor(globalThis,key));Object.defineProperty(globalThis,key,{configurable:true,writable:true,value});
  }
  t.after(()=>{client?.reset();for(const [key,descriptor]of saved)if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];});
@@ -76,7 +77,7 @@ test('socket errors finish once and clear quality; malformed messages do not cra
 });
 test('heartbeat loss unlocks requeue and never promises in-match reconnection',async t=>{
  t.mock.timers.enable({apis:['setTimeout','setInterval']});const f=await setup(t);await f.client.join();const s=f.sockets[0];f.hello(s);s.message({type:'queued',position:1});
- f.setClock(13101);t.mock.timers.tick(3000);unlocked(f);assert.match(f.ended[0],/cannot be resumed/);
+ f.setClock(13101);t.mock.timers.tick(3000);unlocked(f);assert.match(f.ended[0],/Join the queue again/);
 });
 test('concurrent guest identity requests cannot overwrite each other; failures allow retry',async t=>{
  const f=await setup(t),gate=deferred();let calls=0;
@@ -86,4 +87,27 @@ test('concurrent guest identity requests cannot overwrite each other; failures a
  assert.equal(f.storage.get('shinobi.profile.v1.https://unique.example'),'one-profile');
  globalThis.fetch=async()=>{throw Error('offline');};await assert.rejects(ensureIdentity('Silent','https://retry.example'));
  globalThis.fetch=async()=>({ok:true,json:async()=>({token:'retry-profile'})});assert.equal(await ensureIdentity('Silent','https://retry.example'),'retry-profile');
+});
+
+test('returning to the page resumes the original socket session and preserves input sequence',async t=>{
+ const f=await setup(t);await f.client.join();const original=f.sockets[0];f.hello(original);
+ const match={type:'matched',id:'duel',resumeKey:'match-secret',reconnectMs:45000,slot:1,phase:'playing'};
+ original.message(match);assert.equal(f.client.send({right:true}),0);
+ document.hidden=true;document.dispatchEvent(new Event('visibilitychange'));
+ assert.equal(f.client.phase,'reconnecting');
+ assert.equal(original.sent.some(m=>m.type==='cancel'),false);
+ assert.equal(f.sockets.length,1);
+ document.hidden=false;document.dispatchEvent(new Event('visibilitychange'));
+ const resumed=f.sockets[1];f.hello(resumed);
+ assert.deepEqual(resumed.sent[0],{type:'resume',protocol:PROTOCOL_VERSION,rules:RULES_VERSION,token:'test-profile',id:'duel',resumeKey:'match-secret'});
+ resumed.message(match);
+ assert.equal(f.client.slot,1);assert.equal(f.client.send({left:true}),1);
+ f.client.leave();assert.equal(resumed.sent.at(-1).type,'cancel');
+});
+
+test('leaving while a reconnect is pending allows another join',async t=>{
+ const f=await setup(t);await f.client.join();const original=f.sockets[0];f.hello(original);
+ original.message({type:'matched',id:'duel',resumeKey:'key',reconnectMs:45000,slot:0,phase:'playing'});
+ original.ackClose();f.client.leave();
+ await f.client.join();assert.equal(f.sockets.length,2);
 });

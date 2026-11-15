@@ -1,5 +1,15 @@
 # Release notes
 
+## 0.42.0
+
+- Expanded touch fills the battle surface and puts primary controls at the corners. The Kit shows items remaining and ready jutsus.
+- Show all 35 roster slots, shade the 24 fighters awaiting combat sprites, and add Vael's painted combat atlas.
+- Use painted loading backgrounds in both battlefield renderers.
+
+## 0.41.1
+
+- Resume an online fight or co-op expedition after a brief connection interruption.
+
 ## 0.41.0
 
 - Dynamic fight camera, impact pause and hit feedback, with Feel toggles; offline modes only for the pause.

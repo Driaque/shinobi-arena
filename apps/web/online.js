@@ -1,7 +1,8 @@
+import {matchSocket} from './match-socket.js';
 import {connectionQuality} from './packages/network/prediction.js';
 import {apiBase,ensureIdentity} from './arena-api.js';
 import {PROTOCOL_VERSION,RULES_VERSION,playerProfile} from './packages/network/protocol.js';
-export function createOnline({getProfile,onState,onEnd,onStatus,onSocial,onPhase},{identity=ensureIdentity,resolveBase=apiBase,Socket=WebSocket,now=()=>performance.now()}={}){
+export function createOnline({getProfile,onState,onEnd,onStatus,onSocial,onPhase,onReconnect},{identity=ensureIdentity,resolveBase=apiBase,Socket=WebSocket,now=()=>performance.now()}={}){
  let socket=null,generation=0,slot=0,phase='idle',seq=0,timeout,pingTimer,lastMessage=0,latency=null;const samples=[];
  const $=s=>document.querySelector(s),status=$('#online-status');
  const notify=text=>{onPhase?.(phase);status.textContent=text;onStatus?.(text);};
@@ -39,7 +40,7 @@ export function createOnline({getProfile,onState,onEnd,onStatus,onSocial,onPhase
  function leave(){cleanup();phase='idle';onEnd('You left online play.');notify('Choose your fighter and find another opponent.');}
  function fail(text){cleanup();phase='idle';onEnd(text);notify(text);}
  async function join({tournamentId=null,lounge=false}={}){
-  if(['connecting','queued','countdown','playing','roundOver'].includes(phase))return;
+  if(['connecting','queued','countdown','playing','roundOver','reconnecting'].includes(phase))return;
   let profile,url;
   try{profile=playerProfile({...getProfile(),name:$('#player-name').value});url=serverURL();}catch(e){notify(e.message);return;}
   const queue=$('#online-queue')?.value??'casual';
@@ -54,9 +55,9 @@ export function createOnline({getProfile,onState,onEnd,onStatus,onSocial,onPhase
   if(!closed){fail('Previous connection is still closing. Try again shortly.');return;}
   try{localStorage.setItem('shinobi-arena.player-name',profile.name);}catch{}
   let ws;
-  try{ws=socket=new Socket(url);}catch{fail('Could not connect to the arena. Check your connection and try again.');return;}
+  try{ws=socket=matchSocket(url,{Socket,token,onWaiting:()=>{phase='reconnecting';onPhase?.(phase);onReconnect?.(true);}});}catch{fail('Could not connect to the arena. Check your connection and try again.');return;}
   ws.addEventListener('open',()=>{if(current!==generation)return;lastMessage=now();
-   pingTimer=setInterval(()=>{if(now()-lastMessage>12000){fail('Connection lost. This fight cannot be resumed; join the queue again when connected.');return;}if(ws.readyState===Socket.OPEN)ws.send(JSON.stringify({type:'ping',sent:now()}));},3000);
+   pingTimer=setInterval(()=>{if(ws.readyState!==Socket.OPEN)return;if(now()-lastMessage>12000){if(!ws.interrupt())fail('Connection lost. Join the queue again when connected.');return;}if(ws.readyState===Socket.OPEN)ws.send(JSON.stringify({type:'ping',sent:now()}));},3000);
   });
   ws.addEventListener('message',event=>{
    if(current!==generation)return;let msg;try{msg=JSON.parse(event.data);}catch{return;}
@@ -64,20 +65,20 @@ export function createOnline({getProfile,onState,onEnd,onStatus,onSocial,onPhase
    lastMessage=now();
    if(msg.type==='hello'){
     if(msg.protocol!==PROTOCOL_VERSION||msg.rules!==RULES_VERSION){cleanup();phase='idle';notify('Server and game versions differ. Refresh the game.');onEnd('Version mismatch.');return;}
-    ws.send(JSON.stringify({type:lounge?'lounge':'join',protocol:PROTOCOL_VERSION,rules:RULES_VERSION,profile,token,tournamentId,queue}));
-   }else if(msg.type==='presence'){clearTimeout(timeout);if(!['countdown','playing','roundOver','matchOver'].includes(phase)){phase='lounge';notify('You are in the player lounge. Challenge an available rival.');}onSocial?.(msg);}
+    ws.send(JSON.stringify({type:lounge?'lounge':'join',protocol:PROTOCOL_VERSION,rules:RULES_VERSION,profile,token,tournamentId,queue,reconnect:true}));
+   }else if(msg.type==='presence'){clearTimeout(timeout);if(!['countdown','playing','roundOver','matchOver','reconnecting'].includes(phase)){phase='lounge';notify('You are in the player lounge. Challenge an available rival.');}onSocial?.(msg);}
    else if(['challenge','challengeClosed','gesture'].includes(msg.type)){onSocial?.(msg);}
    else if(msg.type==='socialError'){onSocial?.(msg);status.textContent=msg.message;}
    else if(msg.type==='queued'){clearTimeout(timeout);phase='queued';notify(msg.mode==='tournament'?'Waiting for your bracket opponent to check in. Open the bracket to see the pairing.':`Waiting for an opponent… Queue position ${msg.position}. You can cancel any time.`);}
-   else if(msg.type==='matched'){clearTimeout(timeout);slot=msg.slot;phase=msg.phase;onPhase?.(phase);$('#online-cancel').hidden=true;$('#online-leave').hidden=false;onState(msg,slot);}
-   else if(msg.type==='snapshot'){if(phase==='matchOver'&&msg.phase==='matchOver')return;phase=msg.phase;onPhase?.(phase);onState(msg,slot);}
+   else if(msg.type==='matched'){clearTimeout(timeout);slot=msg.slot;phase=msg.reconnecting?.some(Boolean)?'reconnecting':msg.phase;onPhase?.(phase);$('#online-cancel').hidden=true;$('#online-leave').hidden=false;onState(msg,slot);}
+   else if(msg.type==='snapshot'){if(phase==='matchOver'&&msg.phase==='matchOver')return;phase=msg.reconnecting?.some(Boolean)?'reconnecting':msg.phase;onPhase?.(phase);onState(msg,slot);}
    else if(msg.type==='pong'&&Number.isFinite(msg.sent)&&msg.sent>=0&&msg.sent<=now()){latency=Math.round(now()-msg.sent);samples.push(latency);if(samples.length>12)samples.shift();}
-   else if(msg.type==='ended'){const text=msg.reason==='tournament-updated'?'Tournament bracket updated. Open Arena → Tournaments.':msg.reason==='opponent-disconnected'||msg.reason==='opponent-left'?'Opponent left. You win by forfeit.':msg.reason==='server-shutdown'?'Server is restarting. Join again shortly.':msg.reason==='match-complete'?'Match complete. Find another opponent.':'Room expired. Join the queue again.';cleanup();phase='idle';onEnd(text);notify(text);}
+   else if(msg.type==='ended'){const text=msg.reason==='tournament-updated'?'Tournament bracket updated. Open Arena → Tournaments.':msg.reason==='opponent-disconnected'?'Opponent did not reconnect. Match ended.':msg.reason==='opponent-left'?'Opponent left. You win by forfeit.':msg.reason==='server-shutdown'?'Server is restarting. Join again shortly.':msg.reason==='match-complete'?'Match complete. Find another opponent.':'Room expired. Join the queue again.';cleanup();phase='idle';onEnd(text);notify(text);}
    else if(msg.type==='error'){cleanup();phase='idle';onEnd(msg.message);notify(msg.message);}
   });
   ws.addEventListener('error',()=>{if(current===generation)fail('Could not reach the arena. Check your connection and try again.');});
   ws.addEventListener('close',()=>{if(current!==generation)return;cleanup();phase='idle';const text='Connection closed. Check the server and join the queue again.';notify(text);onEnd(text);});
  }
  $('#online-cancel').addEventListener('click',leave);$('#online-leave').addEventListener('click',leave);
- return {join,leave,social(message){if(socket?.readyState===Socket.OPEN)socket.send(JSON.stringify(message));},reset(){cleanup();phase='idle';onPhase?.(phase);},send(input){if(phase==='playing'&&socket?.readyState===Socket.OPEN){const sent=seq++;socket.send(JSON.stringify({type:'input',seq:sent,input}));return sent;}return null;},ready(){if(phase==='roundOver'&&socket?.readyState===Socket.OPEN)socket.send(JSON.stringify({type:'ready'}));},get slot(){return slot;},get phase(){return phase;},get quality(){return connectionQuality(samples);},get latency(){return latency;},get busy(){return ['connecting','queued'].includes(phase);}};
+ return {join,leave,social(message){if(socket?.readyState===Socket.OPEN)socket.send(JSON.stringify(message));},reset(){cleanup();phase='idle';onPhase?.(phase);},send(input){if(phase==='playing'&&socket?.readyState===Socket.OPEN){const sent=seq++;socket.send(JSON.stringify({type:'input',seq:sent,input}));return sent;}return null;},ready(){if(phase==='roundOver'&&socket?.readyState===Socket.OPEN)socket.send(JSON.stringify({type:'ready'}));},get slot(){return slot;},get phase(){return phase;},get quality(){return connectionQuality(samples);},get latency(){return latency;},get busy(){return ['connecting','queued','reconnecting'].includes(phase);}};
 }

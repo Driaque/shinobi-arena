@@ -14,8 +14,8 @@ try{
  if(server)await new Promise((resolve,reject)=>{server.stdout.once('data',resolve);server.once('error',reject);server.once('exit',c=>reject(new Error(`Server exited ${c}`)));});
  browser=await chromium.launch({args:['--enable-unsafe-swiftshader'],headless:true,proxy,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH,args:['--no-sandbox','--disable-dev-shm-usage','--enable-unsafe-swiftshader',...(proxyURL?['--ignore-certificate-errors']:[])]}: {})});
  const errors=[];const context1=await browser.newContext({ignoreHTTPSErrors:Boolean(proxyURL),viewport:{width:1280,height:900}}),context2=await browser.newContext({ignoreHTTPSErrors:Boolean(proxyURL),viewport:{width:844,height:390},isMobile:true,hasTouch:true});
- const p=await context1.newPage(),q=await context2.newPage();let snapshot;
- q.on('websocket',socket=>socket.on('framereceived',({payload})=>{try{const msg=JSON.parse(payload);if(msg.state)snapshot=msg.state;}catch{}}));
+ const p=await context1.newPage(),q=await context2.newPage();let snapshot,matchId;const mobileMatches=[];
+ q.on('websocket',socket=>socket.on('framereceived',({payload})=>{try{const msg=JSON.parse(payload);if(msg.state){snapshot=msg.state;matchId=msg.id;}if(msg.type==='matched')mobileMatches.push({id:msg.id,slot:msg.slot});}catch{}}));
  const near=async()=>{const until=Date.now()+5000;while(Date.now()<until){if(snapshot&&Math.abs(snapshot.fighters[0].x-snapshot.fighters[1].x)<=60)return;await new Promise(r=>setTimeout(r,20));}throw new Error(`Did not approach: ${snapshot?.fighters.map(f=>f.x)}`);};
  for(const page of [p,q]){if(process.env.ONLINE_TEST_URL)page.on('console',m=>{if(m.type()==='error')console.error(m.text());});page.on('pageerror',e=>{errors.push(e.stack);console.error(e.stack);});await page.addInitScript(()=>localStorage.setItem('shinobi.experience.v1',JSON.stringify({prediction:true})));await page.goto(baseURL);await legacyRoster(page);await selectGame(page,'#mode','online');}
  await p.fill('#player-name','Silent');await p.locator('#character0 input[value=silent]').check();await equip(p,'#weapon0','frostmereSaber');await equip(p,'#weapon-secondary0','oathknife');await equip(p,'#item0-0','veilCanister');
@@ -61,7 +61,14 @@ try{
  await q.waitForTimeout(500);await q.locator('[data-action=special1]').tap();await p.waitForFunction(()=>document.querySelector('#effects0').textContent.includes('WEAKEN'));
  await mkdir('test-results',{recursive:true});await p.screenshot({path:'test-results/online-desktop.png'});await q.screenshot({path:'test-results/online-mobile.png'});
  await q.setViewportSize({width:390,height:844});await q.locator('#landscape-tip').waitFor({state:'visible'});assert.equal(await q.locator('#rotate').isVisible(),false);assert.equal(await q.locator('#game').evaluate(el=>el.inert),false);assert.equal(await q.locator('#overlay').isVisible(),false);await q.setViewportSize({width:844,height:390});await q.locator('#rotate').waitFor({state:'hidden'});assert.equal(await q.locator('#overlay').isVisible(),false);
- await q.close();await p.waitForFunction(()=>document.querySelector('#overlay-description').textContent.includes('win by forfeit'));assert.equal(await p.locator('#play').innerText(),'Continue to battle stage');
+ const originalMatch=matchId;
+ await q.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));});
+ await p.getByText('Waiting for your opponent to reconnect…',{exact:true}).waitFor();
+ await q.getByText('Reconnecting to your match…',{exact:true}).waitFor();
+ await q.evaluate(()=>{delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));});
+ for(const page of [p,q])await page.locator('#overlay').waitFor({state:'hidden'});
+ assert.deepEqual(mobileMatches,[{id:originalMatch,slot:1},{id:originalMatch,slot:1}]);
+ await q.locator('#online-leave').evaluate(button=>button.click());await p.waitForFunction(()=>document.querySelector('#overlay-description').textContent.includes('win by forfeit'));assert.equal(await p.locator('#play').innerText(),'Continue to battle stage');
  await clickGame(p,'#play');await p.waitForFunction(()=>document.querySelector('#online-status').textContent.includes('Waiting for an opponent'));await p.click('#online-cancel');
  await selectGame(p,'#mode','cpu');await clickGame(p,'#play');assert.equal(await p.locator('#overlay').isVisible(),false);assert.deepEqual(errors,[]);await p.close();console.log('Online desktop/mobile fight, disconnect and requeue passed.');
  const unconfigured=await context1.newPage();unconfigured.setDefaultTimeout(15000);await unconfigured.route('**/online-config.json',route=>route.fulfill({contentType:'application/json',body:'{"url":""}'}));await unconfigured.goto(baseURL);await legacyRoster(unconfigured);await selectGame(unconfigured,'#mode','online');await unconfigured.fill('#player-name','Player');await clickGame(unconfigured,'#play');assert.match(await unconfigured.locator('#online-status').innerText(),/needs its multiplayer server/);assert.equal(await unconfigured.locator('#play').isDisabled(),false);await unconfigured.close();
