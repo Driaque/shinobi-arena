@@ -1,6 +1,6 @@
 import {stageFor} from './packages/engine/stages.js';
 import {createRenderer} from './renderer.js';
-import {isOriginalFighter} from './packages/engine/originals.js';
+import {hasFighterAtlas} from './packages/presentation/fighter-atlases.js';
 export const GRAPHICS_KEY='fabled.practice.graphics.v2';
 export const BATTLE_GRAPHICS_KEY='fabled.battle.graphics.v1';
 const valid=v=>['classic','canvas','pixi'].includes(v)?v:'classic';
@@ -38,7 +38,7 @@ export function createPracticeRenderer(canvas,{getMode=()=>'',catalog={},viewer=
    // Released fighters are sprites only: nothing procedural is drawn while a sheet
    // loads. The original body returns solely when a sheet fails to load.
    const missingSheets=backends.failedSheets();
-   base(state,{...options,layers:{background:false,actors:!preview,nativeAren:true,nativeFighters:preview?[]:state.fighters.map(f=>f.character).filter(id=>isOriginalFighter(id)&&!missingSheets.includes(id)),nativeEffects:true}});
+   base(state,{...options,layers:{background:false,actors:!preview,nativeAren:true,nativeFighters:preview?[]:state.fighters.map(f=>f.character).filter(id=>hasFighterAtlas(id)&&!missingSheets.includes(id)),nativeEffects:true}});
    const actual=backends.draw(base.frame.state,base.frame.viewport,want,{preview,catalog});
    canvas.dataset.stage=state.stage??'skyglass';
    canvas.dataset.fighterStyle=preview?'preview':'painted';

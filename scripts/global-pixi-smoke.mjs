@@ -21,9 +21,16 @@ try{
   await p.emulateMedia({reducedMotion:'reduce'});
   assert.equal(await portrait.evaluate(img=>img.currentSrc),source,'reduced motion preserves the painted portrait');
   await p.emulateMedia({reducedMotion:'no-preference'});
-  assert.equal(await p.locator('#include-unreleased').isChecked(),false);assert.equal(await p.locator('#character0 .character-card:visible').count(),10);assert.ok(await p.locator('#character0').evaluate(el=>el.clientHeight>=260),'original grid exposes more rows');assert.equal(await p.locator('#character0 input:checked').inputValue(),'aren');assert.equal(await p.locator('#character1 input:checked').inputValue(),'winta');
+  assert.equal(await p.locator('#include-unreleased').count(),0);assert.equal(await p.locator('#character0 .character-card:visible').count(),35);assert.ok(await p.locator('#character0').evaluate(el=>el.clientHeight>=260),'original grid exposes more rows');assert.equal(await p.locator('#character0 input:checked').inputValue(),'aren');assert.equal(await p.locator('#character1 input:checked').inputValue(),'winta');
   for(const c of ['silent','winta','dora','aren','eira','kael','nyra','rook','veyra','oryn']){await p.locator(`#character0 input[value=${c}]`).check();assert.match(await p.locator('#kit0').innerText(),/Story & connections/);}
-  await p.locator('#include-unreleased').check();assert.equal(await p.locator('#character0 .character-card:visible').count(),35);await p.locator('#character0 input[value=solan]').check();await p.locator('#include-unreleased').uncheck();assert.equal(await p.locator('#character0 input:checked').inputValue(),'aren');assert.equal(await p.locator('#character0 .character-card:visible').count(),10);
+  const previewCard=p.locator('#character0 [data-character=solan]');
+  assert.equal(await previewCard.getAttribute('data-silhouette'),'true');
+  await previewCard.locator('input').check();
+  assert.equal(await p.locator('#character0 input:checked').inputValue(),'solan');
+  await p.locator('#character0 input[value=vael]').check();
+  await p.waitForFunction(()=>document.querySelector('[data-practice-art=pixi]').dataset.fighterModels.split(',').includes('vael'));
+  assert.equal(await p.locator('#character0 [data-character=vael]').getAttribute('data-silhouette'),'false');
+  await p.locator('#character0 input[value=aren]').check();
   for(const mode of ['cpu','local','training','online']){await selectGame(p,'#mode',mode);if(mode!=='online'){await clickGame(p,'#play');await p.waitForTimeout(100);}await p.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-pixi');assert.doesNotMatch(await p.locator('#name1').innerText(),/SPARRING ECHO/);}
   await selectGame(p,'#mode','training');await clickGame(p,'#play');await clickGame(p,'#training-settings');assert.equal(await p.locator('#training-charge').isDisabled(),true,'Aren has no awakening to charge');await p.click('#training-close');await clickGame(p,'#play');await p.screenshot({path:`test-results/global-pixi-${mobile?'portrait':'desktop'}.png`});
   await clickGame(p,'#graphics-settings');
@@ -35,12 +42,23 @@ try{
   assert.equal(await p.evaluate(async()=>{
    const {createRenderer}=await import('./renderer.js'),{createMatch}=await import('./packages/engine/index.js');const host=document.createElement('div');host.style.cssText='position:fixed;width:800px;height:400px;left:-1000px';const canvas=document.createElement('canvas');host.append(canvas);document.body.append(host);const render=createRenderer(canvas),state=createMatch();render(state,{sampled:true});state.fighters[0].x=777;render(state,{sampled:true});const x=render.frame.state.fighters[0].x;render.dispose();host.remove();return x;
   }),777,'replay samples at the same tick use the actual interpolated position');
-  await p.reload();assert.equal(await p.locator('#include-unreleased').isChecked(),false);assert.equal(await p.locator('#character0 .character-card:visible').count(),10);assert.deepEqual(errors,[]);
+  await p.reload();assert.equal(await p.locator('#include-unreleased').count(),0);assert.equal(await p.locator('#character0 .character-card:visible').count(),35);assert.deepEqual(errors,[]);
   await p.waitForSelector('#character0 .character-portrait');
   assert.equal(await p.locator('#character0 .character-card:visible canvas').count(),0,'roster portraits are static paintings');
   await p.locator('#character0 input[value=silent]').check();
   assert.equal(await p.locator('#character0 input:checked').inputValue(),'silent','portrait cards keep selection usable');
   assert.deepEqual(errors,[]);
+  await p.route('http://127.0.0.1:4202/',async route=>{
+    const response=await route.fetch();
+    await route.fulfill({response,body:(await response.text()).replace('data-story-locks="off"','data-story-locks="on"')});
+  });
+  await p.goto('http://127.0.0.1:4202/');
+  const locked=p.locator('#character0 [data-character=vael]');
+  assert.equal(await locked.getAttribute('data-silhouette'),'true');
+  assert.equal(await locked.locator('input').isDisabled(),true);
+  assert.match(await locked.innerText(),/Future story encounter/);
+  assert.equal(await p.locator('#character0 input[value=aren]').isEnabled(),true);
+  await p.unroute('http://127.0.0.1:4202/');
   await p.goto('http://127.0.0.1:4202/animation-review.html');
   await p.selectOption('#sequence','combo');await p.check('#joints');await p.click('#pause');
   const reviewTick=Number(await p.locator('#review').getAttribute('data-tick'));
@@ -50,5 +68,5 @@ try{
   await p.emulateMedia({reducedMotion:'reduce'});assert.equal(await p.locator('#pause').innerText(),'Play');
   assert.deepEqual(errors,[]);await context.close();
  }
- console.log('Global Pixi/original roster passed: 10 originals and stories, explicit anime opt-in/reset, CPU/local/Training/online presentation, selected fighter identity, native WebGL, global Canvas choice, context loss/retry, portrait and desktop.');
+ console.log('Global Pixi/original roster passed: 10 originals and stories, visible preview silhouettes and launch locks, CPU/local/Training/online presentation, selected fighter identity, native WebGL, global Canvas choice, context loss/retry, portrait and desktop.');
 }finally{await browser?.close();server.kill();}

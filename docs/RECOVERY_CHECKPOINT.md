@@ -208,3 +208,13 @@ Push, open the PR, wait for CI (Build and unit checks plus five browser groups),
 
 ### Next action
 The user plays 0.41.0 on their phone and reports back. Sprite-sheet and stage art quality is planned on a separate branch; it needs the art masters and an image generator, neither of which is in this checkout.
+
+## Sprite conversion and stage art
+
+Source checkout docs/checkpoint-0.41.0 at bf1808c. User selected art generation and full sprite integration for the preview roster, plus battle stage art improvements. First generated source is art-source/fighters/vael-draft.png. The raw sheet needs frame cropping and alpha inspection before registration. The live sprite path currently gates fighters through settings.atlasFighters in packages/presentation/practice-scene.js. Next steps are to normalize and test Vael in battle, generate the rest of the roster against the painted portraits, switch fighter and stage rendering to bitmap assets, and verify the five stages and supported battle modes in a browser. No gameplay checks or deployment for this change yet. Current approval scope is local asset generation and integration.
+
+### Option B integration checkpoint
+
+Feature branch: feat/story-roster-sprite-atlas, based on bf1808c. The commit containing this entry has the complete checkpoint. The 35 roster slots are visible by default. The 24 fighters without combat atlases are shaded and selectable in development. The launch setting is data-story-locks="on" in apps/web/index.html. It uses encounter unlock metadata from packages/engine/story.js and device-local completed-encounter progress independent of the replay checkpoint. Northern Echoes currently assigns no preview unlocks. Vael uses apps/web/assets/fighter-sprites/vael.png, derived from art-source/fighters/vael-draft.png, with pose and weapon-grip metadata in packages/presentation. Both active arena backends fall back to painted arena art. Remaining preview fighters still use procedural bodies in development battles.
+
+Checks: npm run verify passed with 382 tests and a static build. Chrome global graphics smoke passed in desktop and touch portrait layouts with all five stage selections, Vael's atlas, development silhouettes, the launch lock setting, and Canvas/WebGL switching. No chapter currently exercises an actual preview unlock. Next: assign unlocks as the new encounters land, finish fighter atlases in story order, refresh painted stages, and remove the remaining procedural fallback. Feature-branch push only. No version bump, PR, production deployment, or release was requested for this checkpoint.

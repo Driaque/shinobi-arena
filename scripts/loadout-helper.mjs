@@ -8,10 +8,8 @@ export async function equip(page,selector,value){
  await page.locator(`#edit-loadout${player}`).click();await page.locator(`[data-loadout-tab=${kind}]`).click();await page.locator(`[data-loadout-slot="${slot}"]`).click();await page.locator(`[data-pick-kind="${kind}"][data-pick-id="${value}"]`).click();await page.locator('#loadout-save').click();
 }
 
-// Existing combat regression scenarios explicitly opt into the legacy roster.
-// Original-default behavior is covered separately by the global graphics suite.
+// Select preview fighters for combat regression scenarios.
 export async function legacyRoster(page,{weapons=true}={}){
- if(!await page.locator('#include-unreleased').count())return;
- await page.locator('#include-unreleased').check();await page.selectOption('#roster-era','all');
+ await page.selectOption('#roster-era','all');
  for(const [i,id] of ['solan','vesper'].entries()){await page.locator(`#character${i} input[value=${id}]`).check();if(weapons)await equip(page,`#weapon${i}`,'conduitSpike');}
 }

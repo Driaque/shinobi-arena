@@ -6,7 +6,9 @@ import { FIGHTER_ATLAS_DATA } from './fighter-atlas-data.js';
 export const FIGHTER_FRAMES = Object.freeze(Array.from({length:16},(_,i)=>Object.freeze({
   x:(i%4)*384, y:Math.floor(i/4)*384, w:384, h:384, rootX:192, rootY:340,
 })));
-export const hasFighterAtlas = id => Object.hasOwn(ORIGINAL_FIGHTERS,id);
+export const hasFighterAtlas = id => Object.hasOwn(FIGHTER_ATLAS_DATA,id);
+export const fighterAtlasUrl = id => FIGHTER_ATLAS_DATA[id]?.url ??
+  (Object.hasOwn(ORIGINAL_FIGHTERS,id) ? 'assets/originals/'+id+'.webp' : undefined);
 export const fighterAtlasData = id => FIGHTER_ATLAS_DATA[id];
 
 // Rendering never awaits art. Individual failures preserve the existing fighter,

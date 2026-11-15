@@ -4,7 +4,7 @@ mountCombatControls(document.querySelector('.arena'));
 import {createNavigation} from './navigation.js';
 import {createSocialUI} from './social.js';
 import {createStagePicker} from './stage-picker.js';
-import {DEFAULT_FIGHTERS,isOriginalFighter} from './packages/engine/originals.js';
+import {DEFAULT_FIGHTERS} from './packages/engine/originals.js';
 import {mountIcon} from './packages/ui/jutsu-icons.js';
 import {installMobileUI} from './mobile-ui.js';
 import {createControllerUI} from './controller-ui.js';
@@ -80,22 +80,14 @@ for(const i of [0,1]){
 loadoutUI=createLoadouts({onChange:describeLoadouts});
 function filterRoster(){
   const query=$('#roster-search').value.trim().toLowerCase(),era=$('#roster-era').value;
-  for(const o of $('#roster-era').options)if(o.value==='Future')o.disabled=!$('#include-unreleased').checked;
   let count=0;for(const character of Object.values(CHARACTERS)){
-    const show=(isOriginalFighter(character.id)||$('#include-unreleased').checked)&&(!query||`${character.name} ${character.title}`.toLowerCase().includes(query))&&(era==='all'||character.era===era);
+    const show=(!query||`${character.name} ${character.title}`.toLowerCase().includes(query))&&(era==='all'||character.era===era);
     for(const card of document.querySelectorAll(`.character-card[data-character="${character.id}"]`))card.hidden=!show;
     if(show)count++;
   }
   $('#roster-count').textContent=`${count} fighter${count===1?'':'s'}`;
   for(const empty of document.querySelectorAll('.roster-empty'))empty.hidden=count>0;
 }
-$('#include-unreleased').addEventListener('change',()=>{
- if(!$('#include-unreleased').checked){
-  if(!['all','Original'].includes($('#roster-era').value))$('#roster-era').value='all';
-  for(const i of [0,1]){const selected=$(`#character${i} input:checked`);if(selected&&!isOriginalFighter(selected.value)){const fallback=$(`#character${i} input[value="${DEFAULT_FIGHTERS[i]}"]`);fallback.checked=true;fallback.dispatchEvent(new Event('change'));}}
- }
- filterRoster();
-});
 $('#roster-search').addEventListener('input',filterRoster);$('#roster-era').addEventListener('change',filterRoster);
 describeLoadouts();filterRoster();
 function clearInputs(){controls?.reset();inputs.forEach(i=>i.reset());cpu={};buttons.forEach(b=>b.classList.remove('active'));}
@@ -145,7 +137,7 @@ $('#difficulty').addEventListener('change',event=>{
 });
 
 $('#mode').addEventListener('change',event=>{
-  activeTournament=null;prediction.reset();coach.hidden=true;online?.reset();for(const el of document.querySelectorAll('#character0 input,#weapon0,#weapon-secondary0,#item0-0,#item0-1,#item0-2,#item0-3'))el.disabled=false;onlineScreen='';mode=event.target.value;document.body.classList.toggle('online-mode',mode==='online');$('#online-lobby').hidden=mode!=='online';$('#play').disabled=false;$('#difficulty').disabled=mode!=='cpu';$('.difficulty-label').hidden=mode==='training'||mode==='online';state=newMatch();paused=true;started=false;clearInputs();
+  activeTournament=null;prediction.reset();coach.hidden=true;online?.reset();for(const el of document.querySelectorAll('#character0 input,#weapon0,#weapon-secondary0,#item0-0,#item0-1,#item0-2,#item0-3'))el.disabled=el.getAttribute('aria-disabled')==='true';onlineScreen='';mode=event.target.value;document.body.classList.toggle('online-mode',mode==='online');$('#online-lobby').hidden=mode!=='online';$('#play').disabled=false;$('#difficulty').disabled=mode!=='cpu';$('.difficulty-label').hidden=mode==='training'||mode==='online';state=newMatch();paused=true;started=false;clearInputs();
   $('#mode-name').textContent=mode==='training'?'TRAINING':mode==='cpu'?`CPU · ${difficultyFor(difficulty).name.toUpperCase()}`:mode==='online'?`ONLINE · P${(online?.slot??0)+1}${online?.latency!==null?' · '+online.latency+'ms':''}`:'LOCAL TWO PLAYER';
   $('#opponent-label').textContent=mode==='training'?'TRAINING DUMMY':mode==='cpu'?'COMPUTER':'PLAYER TWO';
   document.querySelectorAll('#character1 .pick-mark').forEach(mark=>mark.textContent=mode==='training'?'DUMMY':mode==='cpu'?'CPU':'P2');
@@ -156,7 +148,7 @@ $('#mode').addEventListener('change',event=>{
 });
 controls=createControls({inputs,onPause:pause,isPlaying:()=>!paused&&state.status==='playing'&&$('#rotate').hidden});
 function useTrainingState(next){
- state=next;started=true;if(next.loadouts.some(l=>!isOriginalFighter(l.character)))$('#include-unreleased').checked=true;filterRoster();
+ state=next;started=true;filterRoster();
  for(const i of [0,1]){$(`#character${i} input[value="${state.loadouts[i].character}"]`).checked=true;loadoutUI.update(i,state.loadouts[i]);$(`#weapon${i}`).value=state.loadouts[i].weapon;$(`#weapon-secondary${i}`).value=state.loadouts[i].weapons[1]??'';for(const slot of [0,1,2,3])$(`#item${i}-${slot}`).value=state.loadouts[i].items[slot]??'';}
  describeLoadouts();
 }
@@ -164,7 +156,7 @@ trainingUI=createTrainingUI({pause,clearInputs,getState:()=>state,setState:useTr
 
 const socialUI=createSocialUI({getOnline:()=>online});
 online=createOnline({onSocial:socialUI.update,onPhase:socialUI.phase,getProfile:()=>({...readLoadouts()[0],stage:stages.value()}),onStatus:()=>{
- if(mode==='online'){for(const el of document.querySelectorAll('#character0 input,#weapon0,#weapon-secondary0,#item0-0,#item0-1,#item0-2,#item0-3'))el.disabled=online?.busy??false;$('#play').disabled=online?.busy??false;$('#play').textContent=online?.busy?'Finding opponent…':activeTournament?'View tournament bracket':setupStep==='characters'&&!started?'Continue to battle stage':'Find opponent';}
+ if(mode==='online'){for(const el of document.querySelectorAll('#character0 input,#weapon0,#weapon-secondary0,#item0-0,#item0-1,#item0-2,#item0-3'))el.disabled=Boolean(online?.busy)||el.getAttribute('aria-disabled')==='true';$('#play').disabled=online?.busy??false;$('#play').textContent=online?.busy?'Finding opponent…':activeTournament?'View tournament bracket':setupStep==='characters'&&!started?'Continue to battle stage':'Find opponent';}
 },onEnd:message=>{
  if(mode!=='online')return;clearInputs();started=false;paused=true;onlineScreen='';
  dialog('ONLINE ARENA',activeTournament?'Tournament update':'Return to the lobby',message,activeTournament?'View tournament bracket':'Find opponent');$('#play').disabled=false;

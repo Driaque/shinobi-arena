@@ -1,5 +1,4 @@
 import {stageArtwork,paintedStageForView} from './packages/presentation/artwork.js';
-import {stageShapes} from './packages/presentation/stages.js';
 import {sceneryFor,projectileShapes} from './packages/presentation/battlefield.js';
 import {
   Application,
@@ -126,7 +125,7 @@ export function createCanvasLab(canvas, art, resolution) {
     const painted=scene.stage&&stageArtwork(scene.stage);
     canvas.dataset.paintedStage=painted?scene.stage:'';
     scene.painted=Boolean(painted);
-    if(painted){const r=paintedStageForView(stageView(scene,view,canvas.width,canvas.height),canvas.width,canvas.height,stageMargin(scene));ctx.drawImage(painted,r.x,r.y,r.w,r.h);}else if(!scene.stage||scene.stage==='skyglass')ctx.drawImage(art.arena, bg.x, bg.y, bg.w, bg.h);else shapes(stageShapes(scene.stage));
+    if(painted){const r=paintedStageForView(stageView(scene,view,canvas.width,canvas.height),canvas.width,canvas.height,stageMargin(scene));ctx.drawImage(painted,r.x,r.y,r.w,r.h);}else ctx.drawImage(art.arena, bg.x, bg.y, bg.w, bg.h);
     shapes(sceneryFor(scene));
     const ellipse = (x, y, rx, ry, color) => {
       ctx.fillStyle = color;
@@ -326,10 +325,9 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
     if(painted&&!paintedTextures.has(painted))paintedTextures.set(painted,Texture.from(painted));
     canvas.dataset.paintedStage=painted?stage:'';
     bg.texture=painted?paintedTextures.get(painted):bgTexture;
-    bg.visible=Boolean(painted)||stage==='skyglass';
     const terrainKey=stage+Boolean(painted);
     scene.painted=Boolean(painted);
-    if(terrainStage!==terrainKey){terrain.clear();if(!painted&&stage!=='skyglass')shapes(terrain,stageShapes(stage));staticScenery=sceneryFor({decorative:false,painted:scene.painted});shapes(terrain,staticScenery);terrainStage=terrainKey;}
+    if(terrainStage!==terrainKey){terrain.clear();staticScenery=sceneryFor({decorative:false,painted:scene.painted});shapes(terrain,staticScenery);terrainStage=terrainKey;}
     const view = camera(scene, app.screen.width, app.screen.height);
     root.scale.set(view.scale);
     root.position.set(view.x, view.y);

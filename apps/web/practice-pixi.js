@@ -5,7 +5,7 @@ import {
   createPixiLab,
 } from "./visual-lab-renderers.js";
 import { practiceSceneFor } from "./packages/presentation/practice-scene.js";
-import { createFighterAtlasStore } from './packages/presentation/fighter-atlases.js';
+import { createFighterAtlasStore, fighterAtlasUrl, hasFighterAtlas } from './packages/presentation/fighter-atlases.js';
 import {WEAPON_ART,weaponArtUrl,cutoutBackground} from './packages/presentation/weapons.js';
 import {ITEM_ART,itemArtUrl} from './packages/presentation/items.js';
 
@@ -23,7 +23,7 @@ export async function createPracticeBackends(parent, onLost, onArtChange=()=>{})
   const observer=new ResizeObserver(()=>{bounds=parent.getBoundingClientRect();});
   observer.observe(parent);
   const sheets=createFighterAtlasStore(async id=>{
-    const url=new URL('./assets/originals/'+id+'.webp',import.meta.url);
+    const url=new URL(fighterAtlasUrl(id),import.meta.url);
     url.search=new URL(import.meta.url).search;
     const image=new Image();image.src=url.href;await image.decode();return image;
   },onArtChange);
@@ -109,8 +109,8 @@ export async function createPracticeBackends(parent, onLost, onArtChange=()=>{})
     failedFighters:()=>[...new Set([...sheets.failedIds(),...runs.failedIds()])].filter(id=>selectedFighters.includes(id)),
     draw(state, viewport, requested, {preview=true,catalog={}}={}) {
       if (disposed) return;
-      selectedFighters=preview?[]:state.fighters.map(f=>f.character).filter(isOriginalFighter);
-      if(!preview){sheets.request(selectedFighters);runs.request(selectedFighters);}
+      selectedFighters=preview?[]:state.fighters.map(f=>f.character).filter(hasFighterAtlas);
+      if(!preview){sheets.request(selectedFighters);runs.request(selectedFighters.filter(isOriginalFighter));}
       const carried=state.fighters.flatMap(f=>(f.items??[]).map(item=>item.id));
       // Orbit Pack throws the painted disc, so it needs that weapon's art too.
       requestArt(weapons,WEAPON_ART,weaponArtUrl,[...state.fighters.flatMap(f=>[f.weapon,...(f.weapons??[])]),...(carried.includes('orbitPack')?['orbitDisc']:[])]);
