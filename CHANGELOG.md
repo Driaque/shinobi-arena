@@ -1,5 +1,9 @@
 # Release notes
 
+## 0.41.1
+
+- Resume an online fight or co-op expedition after a brief connection interruption.
+
 ## 0.41.0
 
 - Dynamic fight camera, impact pause and hit feedback, with Feel toggles; offline modes only for the pause.

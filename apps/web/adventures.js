@@ -1,3 +1,4 @@
+import {matchSocket} from './match-socket.js';
 import {mountCombatControls} from './combat-controls-view.js';
 import {createControls} from './controls.js';
 import {createTechniqueTray} from './technique-tray.js';
@@ -18,7 +19,7 @@ const KEY='fabled.story.northern-echoes.v1';let checkpoint=0;
 try{const n=Number(localStorage.getItem(KEY));if(Number.isInteger(n)&&n>=0&&n<=3)checkpoint=n;}catch{}
 const saveCheckpoint=()=>{try{localStorage.setItem(KEY,String(checkpoint));}catch{}$('#story-checkpoint').textContent=checkpoint===3?'Chapter complete. Replay any time.':checkpoint?`Continue at encounter ${checkpoint+1} of 3.`:'Three encounters. One shared truth.';$('#start-story').textContent=checkpoint===3?'Replay chapter':checkpoint?'Continue chapter':'Begin chapter';};saveCheckpoint();
 let mode='',state=null,index=0,paused=true,socket=null,generation=0,seq=0,slot=0,phase='',last=0,accumulator=0,pingTimer,timeout,lastMessage=0,nextAction=()=>{};
-const status=text=>{$('#adventure-status').textContent=text;};
+const status=text=>{const label=$('#adventure-status');if(label.textContent!==text)label.textContent=text;};
 function dialogue(kicker,title,copy,label,action){paused=true;controls.reset();$('#story-kicker').textContent=kicker;$('#story-heading').textContent=title;$('#story-copy').textContent=copy;$('#story-next').textContent=label;nextAction=action;if(!$('#story-dialog').open)$('#story-dialog').showModal();}
 $('#story-next').onclick=()=>{$('#story-dialog').close();nextAction();};
 $('#story-dialog').addEventListener('cancel',e=>e.preventDefault());
@@ -42,17 +43,19 @@ async function join(room){
  if(socket||phase==='connecting')return;closeConnection();const gen=generation;mode='coop';phase='connecting';status('Connecting to co-op…');$('#leave-adventure').hidden=false;$('#host-coop').disabled=true;$('#join-coop').disabled=true;
  timeout=setTimeout(()=>{if(gen===generation)fail('Connection timed out. Check your connection and try again.');},15000);
  try{const name=$('#adventure-name').value.trim();if(!/^[\p{L}\p{N} _.-]{2,20}$/u.test(name))throw new Error('Use 2–20 letters, numbers, spaces, dots, underscores or hyphens for your name.');const base=await apiBase(),token=await ensureIdentity(name,base);if(gen!==generation)return;
- const url=new URL('/ws',base);url.protocol=url.protocol==='https:'?'wss:':'ws:';const ws=socket=new WebSocket(url);seq=0;lastMessage=performance.now();
- ws.onmessage=e=>{if(gen!==generation)return;let m;try{m=JSON.parse(e.data);}catch{return;}lastMessage=performance.now();
- if(m.type==='hello'){if(m.protocol!==PROTOCOL_VERSION||m.rules!==RULES_VERSION){fail('Game and server versions differ. Refresh after both are deployed.');return;}const character=$('#coop-fighter').value;ws.send(JSON.stringify({type:'join',queue:'coop',room,token,protocol:PROTOCOL_VERSION,rules:RULES_VERSION,profile:{name,character,weapon:CHARACTERS[character].defaultWeapon??'skyforgedBlade'}}));}
+ const url=new URL('/ws',base);url.protocol=url.protocol==='https:'?'wss:':'ws:';const ws=socket=matchSocket(url,{token,onWaiting:()=>{paused=true;controls.reset();status('Reconnecting to your expedition…');}});seq=0;lastMessage=performance.now();
+ ws.addEventListener('message',e=>{if(gen!==generation)return;let m;try{m=JSON.parse(e.data);}catch{return;}lastMessage=performance.now();
+ if(m.type==='hello'){if(m.protocol!==PROTOCOL_VERSION||m.rules!==RULES_VERSION){fail('Game and server versions differ. Refresh after both are deployed.');return;}const character=$('#coop-fighter').value;ws.send(JSON.stringify({type:'join',queue:'coop',room,token,reconnect:true,protocol:PROTOCOL_VERSION,rules:RULES_VERSION,profile:{name,character,weapon:CHARACTERS[character].defaultWeapon??'skyforgedBlade'}}));}
  if(m.type==='queued'){clearTimeout(timeout);phase='queued';status(`Room ${room} · Waiting for your friend. Share this code; they must choose Join room.`);}
- if(m.type==='matched'||m.type==='snapshot'){clearTimeout(timeout);if(m.type==='matched'){slot=m.slot;playView();status(`Room ${room} · You control ${m.players[slot].name}, P${slot+1}.`);}phase=m.phase;state=m.state;paused=phase!=='playing';$('#adventure-title').textContent=`Hold the Terrace · Wave ${state.coop.wave}/${state.coop.totalWaves}`;if(phase==='countdown')status(`Room ${room} · Both allies ready. Starting in ${m.countdown}…`);
+ if(m.type==='matched'||m.type==='snapshot'){clearTimeout(timeout);if(m.type==='matched'){slot=m.slot;playView();status(`Room ${room} · You control ${m.players[slot].name}, P${slot+1}.`);}phase=m.phase;state=m.state;
+ if(m.reconnecting?.some(Boolean)){paused=true;controls.reset();status('Waiting for your ally to reconnect…');return;}
+ paused=phase!=='playing';if(phase==='playing')status(`Room ${room} · You control ${m.players[slot].name}, P${slot+1}.`);$('#adventure-title').textContent=`Hold the Terrace · Wave ${state.coop.wave}/${state.coop.totalWaves}`;if(phase==='countdown')status(`Room ${room} · Both allies ready. Starting in ${m.countdown}…`);
  if(phase==='matchOver'){const won=state.coop.outcome==='victory';closeConnection();dialogue(won?'TERRACE SECURED':'EXPEDITION ENDED',won?'You held the line together.':'Regroup and try again.',won?'All three waves cleared. Both allies share the victory.':'The team fell or the wave timer expired. Create a new room to retry.','Return to adventures',()=>{menu();status('');});}}
  if(m.type==='error')fail(m.message);
  if(m.type==='ended')fail(m.reason==='server-shutdown'?'Server restarting. Create a new room shortly.':'Your ally left or the room closed. Create a new room to regroup.');
- };
- ws.onopen=()=>{pingTimer=setInterval(()=>{if(gen!==generation)return;if(performance.now()-lastMessage>12000){fail('Connection lost. This expedition cannot reconnect; create a new room.');return;}if(ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:'ping',sent:performance.now()}));},3000);};
- ws.onerror=()=>{if(gen===generation)fail('Could not reach the co-op server. Try again shortly.');};ws.onclose=()=>{if(gen===generation)fail('Connection closed. Create a new room to regroup.');};
+ });
+ ws.addEventListener('open',()=>{pingTimer=setInterval(()=>{if(gen!==generation||ws.readyState!==WebSocket.OPEN)return;if(performance.now()-lastMessage>12000){if(!ws.interrupt())fail('Connection lost. Create a new room to regroup.');return;}if(ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:'ping',sent:performance.now()}));},3000);});
+ ws.addEventListener('error',()=>{if(gen===generation)fail('Could not reach the co-op server. Try again shortly.');});ws.addEventListener('close',()=>{if(gen===generation)fail('Connection closed. Create a new room to regroup.');});
  }catch(e){if(gen===generation)fail(e.message);}finally{if(gen===generation){$('#host-coop').disabled=false;$('#join-coop').disabled=false;}}
 }
 $('#host-coop').onclick=()=>{const bytes=crypto.getRandomValues(new Uint8Array(8)),alphabet='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',room=Array.from(bytes,n=>alphabet[n%alphabet.length]).join('');$('#coop-room').value=room;join(room);};
@@ -64,7 +67,7 @@ const techniques=createTechniqueTray({input,getPlayer:()=>state?.fighters[mode==
 $('#jutsu-toggle').hidden=true;
 const gamepads=createControllerUI({inputs,isPlaying:()=>active()&&!controls.editing,isLocal:()=>false,onPause:()=>{if(mode==='coop')$('#experience-settings').click();else pauseStory();}});
 function clearInput(){controls.reset();document.querySelectorAll('.active').forEach(b=>b.classList.remove('active'));pauseStory();}
-window.addEventListener('blur',clearInput);document.addEventListener('visibilitychange',()=>{if(document.hidden)clearInput();});window.addEventListener('pagehide',()=>{closeConnection();render.dispose();});
+window.addEventListener('blur',clearInput);document.addEventListener('visibilitychange',()=>{if(document.hidden)clearInput();});window.addEventListener('pagehide',event=>{if(!event.persisted)render.dispose();});
 let impactUntil=0,finishing=null;const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
 let hudKey='';function hud(){const title=state.coop?`Wave ${state.coop.wave}/${state.coop.totalWaves}`:`Encounter ${index+1}/3`;$('#adventure-clock').textContent=state.coop?.breakTicks?'Regrouping…':`${Math.ceil(state.remainingTicks/60)}s`;const next=JSON.stringify(state.fighters.map(f=>[f.character,f.hp,f.chakra,f.stamina,f.guard]));if(next!==hudKey){hudKey=next;const list=$('#adventure-vitals');list.replaceChildren();state.fighters.forEach((f,i)=>{const n=document.createElement('div');n.className='vital'+(state.coop?f.team===1?' enemy':'':i===1?' enemy':'');const name=document.createElement('strong');name.textContent=`${state.coop?(f.team===0?i===slot?'YOU · ':'ALLY · ':'ENEMY · '):''}${f.name} · ${Math.ceil(f.hp)} HP`;const bar=document.createElement('meter');bar.min=0;bar.max=1000;bar.value=f.hp;bar.setAttribute('aria-label',`${f.name} health`);const meta=document.createElement('span');meta.textContent=`Chakra ${Math.floor(f.chakra)} · Stamina ${Math.floor(f.stamina)}`;n.append(name,bar,meta);list.append(n);});}
  const me=state.fighters[mode==='coop'?slot:0];
