@@ -38,6 +38,7 @@ export function cutoutBackground(data,width,height,{inner=22,outer=54,tight=12}=
 // the sprite root, for the anticipation (8), strike (9), follow-through (10)
 // and aerial (11) poses. The painted grip is pinned to these.
 export const HAND_ANCHORS=Object.freeze({
+  vael:{8:[112,-188],9:[-31,-273],10:[100,-108],11:[119,-191]},
   aren:{8:[22,-81],9:[63,-88],10:[48,-46],11:[34,-118]},
   dora:{8:[18,-93],9:[37,-90],10:[40,-62],11:[38,-121]},
   eira:{8:[57,-91],9:[96,-95],10:[93,-55],11:[-7,-112]},

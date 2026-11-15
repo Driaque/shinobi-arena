@@ -1,3 +1,4 @@
+import {freshSettings,STORAGE_KEY} from '../packages/input/preferences.js';
 import {clickGame,selectGame,openNavigation} from './navigation-helper.mjs';
 import {legacyRoster} from './loadout-helper.mjs';
 import {chromium} from 'playwright';
@@ -11,7 +12,7 @@ try{
  await mkdir('test-results',{recursive:true});const errors=[];
  for(const mobile of [false,true]){
   const context=await browser.newContext(mobile?{viewport:{width:844,height:390},isMobile:true,hasTouch:true}:{viewport:{width:1280,height:900}}),page=await context.newPage();page.on('pageerror',e=>errors.push(e.stack));
-  await page.clock.install({time:new Date('2030-01-01T00:00:00Z')});await page.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));await page.goto('http://127.0.0.1:4187');await legacyRoster(page);
+  if(mobile)await context.addInitScript(({key,value})=>{if(!localStorage.getItem(key))localStorage.setItem(key,value);},{key:STORAGE_KEY,value:JSON.stringify(freshSettings())});await page.clock.install({time:new Date('2030-01-01T00:00:00Z')});await page.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));await page.goto('http://127.0.0.1:4187');await legacyRoster(page);
   await page.selectOption('#roster-era','Original');await page.locator('#character0 input[value=dora]').check();assert.equal(await page.locator('#selected0').innerText(),'Dora');assert.equal(await page.locator('#weapon0').inputValue(),'tideglassFans');assert.equal(await page.locator('#weapon-secondary0').inputValue(),'skyforgedBlade');assert.match(await page.locator('#kit0').innerText(),/Limit Release/);
   const portrait=page.locator('#character0 [data-character=dora] .concept-portrait');assert.ok(await portrait.evaluate(async el=>{if(el instanceof HTMLImageElement){await el.decode();return el.naturalWidth>0;}return el.dataset.animatedPortrait==='dora'&&el.getContext('2d').getImageData(0,0,el.width,el.height).data.some((n,i)=>i%4===3&&n>0);}),'Dora concept portrait rendered');await page.screenshot({path:`test-results/dora-${mobile?'mobile':'desktop'}-select.png`});
   await selectGame(page,'#mode','training');await clickGame(page,'#play');await page.clock.runFor(32);assert.equal(await page.locator('#name0').innerText(),'DORA');assert.equal(await page.locator('#s1-name').innerText(),'TIDAL EDICT');

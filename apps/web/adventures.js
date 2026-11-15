@@ -15,7 +15,8 @@ import {PROTOCOL_VERSION,RULES_VERSION} from './packages/network/protocol.js';
 import {createPracticeRenderer} from './practice-renderer.js';
 import {apiBase,ensureIdentity} from './arena-api.js';
 const $=s=>document.querySelector(s),input=createInput(),render=createPracticeRenderer($('#adventure-canvas'),{viewer:true});
-const KEY='fabled.story.northern-echoes.v1';let checkpoint=0;
+import {STORY_CHECKPOINT_KEY as KEY, STORY_UNLOCK_PROGRESS_KEY, savedStoryVictories} from './story-roster.js';
+let checkpoint=0;
 try{const n=Number(localStorage.getItem(KEY));if(Number.isInteger(n)&&n>=0&&n<=3)checkpoint=n;}catch{}
 const saveCheckpoint=()=>{try{localStorage.setItem(KEY,String(checkpoint));}catch{}$('#story-checkpoint').textContent=checkpoint===3?'Chapter complete. Replay any time.':checkpoint?`Continue at encounter ${checkpoint+1} of 3.`:'Three encounters. One shared truth.';$('#start-story').textContent=checkpoint===3?'Replay chapter':checkpoint?'Continue chapter':'Begin chapter';};saveCheckpoint();
 let mode='',state=null,index=0,paused=true,socket=null,generation=0,seq=0,slot=0,phase='',last=0,accumulator=0,pingTimer,timeout,lastMessage=0,nextAction=()=>{};
@@ -29,10 +30,19 @@ function menu(){document.body.classList.remove('adventure-active');closeConnecti
 function playView(){document.body.classList.add('adventure-active');controls.reset();$('#control-settings').hidden=false;$('#adventure-menu').hidden=true;$('#adventure-play').hidden=false;$('#leave-adventure').hidden=false;$('#pause-adventure').hidden=mode!=='story';last=0;accumulator=0;}
 function beginEncounter(){state=createStoryFight(index,$('#story-difficulty').value);playView();const e=STORY_CHAPTER.encounters[index];$('#adventure-title').textContent=`${index+1}/3 · ${e.title}`;dialogue(STORY_CHAPTER.subtitle,e.speaker,e.before,'Fight',()=>{paused=false;last=0;});}
 $('#start-story').onclick=()=>{closeConnection();mode='story';index=checkpoint===3?0:checkpoint;status('');beginEncounter();};
-$('#restart-story').onclick=()=>{checkpoint=0;saveCheckpoint();$('#start-story').click();};
+$('#restart-story').onclick=()=>{saveStoryVictories(savedStoryVictories());checkpoint=0;saveCheckpoint();$('#start-story').click();};
+function saveStoryVictories(count){
+ try{localStorage.setItem(STORY_UNLOCK_PROGRESS_KEY,String(count));}catch{}
+}
 function finishStory(){paused=true;input.reset();if(state.status==='roundOver'){dialogue('ROUND COMPLETE',state.result==='player1'?'Round won':state.result==='draw'?'Draw':'Round lost','Take a breath. The encounter continues.','Next round',()=>{nextRound(state);paused=false;last=0;});return;}
  if(state.result!=='player1'){dialogue('TRY AGAIN','The story continues when you are ready.','Retry this encounter with the same kit. Your earlier chapter progress is safe.','Retry encounter',beginEncounter);return;}
- checkpoint=Math.max(checkpoint,index+1);saveCheckpoint();const e=STORY_CHAPTER.encounters[index];dialogue('ENCOUNTER COMPLETE',e.title,e.after,index===2?'Read ending':'Continue',()=>{if(index===2)dialogue('CHAPTER COMPLETE','Northern Echoes',STORY_CHAPTER.ending,'Return to adventures',()=>{menu();status('Northern Echoes complete. Your chapter progress is saved on this device.');});else{index++;beginEncounter();}});
+ const previous=savedStoryVictories();
+ saveStoryVictories(Math.max(previous,index+1));
+ checkpoint=Math.max(checkpoint,index+1);saveCheckpoint();
+ const e=STORY_CHAPTER.encounters[index];
+ const unlocks=previous<=index?(e.unlocks??[]).map(id=>CHARACTERS[id]?.name).filter(Boolean):[];
+ const aftermath=unlocks.length?e.after+' Fighter unlocked: '+unlocks.join(', ')+'.':e.after;
+ dialogue('ENCOUNTER COMPLETE',e.title,aftermath,index===2?'Read ending':'Continue',()=>{if(index===2)dialogue('CHAPTER COMPLETE','Northern Echoes',STORY_CHAPTER.ending,'Return to adventures',()=>{menu();status('Northern Echoes complete. Your chapter progress is saved on this device.');});else{index++;beginEncounter();}});
 }
 function pauseStory(){if(mode!=='story'||!active())return;dialogue('PAUSED','Your journey can wait.','Resume when you are ready.','Resume',()=>{paused=false;last=0;});}
 $('#pause-adventure').onclick=pauseStory;

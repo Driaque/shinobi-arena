@@ -1,3 +1,4 @@
+import {freshSettings,STORAGE_KEY} from '../packages/input/preferences.js';
 import {clickGame,selectGame,openNavigation} from './navigation-helper.mjs';
 import {legacyRoster} from './loadout-helper.mjs';
 import {equip} from './loadout-helper.mjs';
@@ -127,6 +128,7 @@ try {
  await page.keyboard.up('KeyK');await page.screenshot({path:'test-results/originals-combat.png'});
  assert.deepEqual(errors,[],'no desktop page errors');await page.close();
  const context=await browser.newContext({viewport:{width:844,height:390},isMobile:true,hasTouch:true});
+ await context.addInitScript(({key,value})=>{if(!localStorage.getItem(key))localStorage.setItem(key,value);},{key:STORAGE_KEY,value:JSON.stringify(freshSettings())});
  const mobile=await context.newPage();const mobileErrors=[];mobile.on('pageerror',e=>mobileErrors.push(e.message));
  await mobile.clock.install({time:new Date('2030-01-01T00:00:00Z')});await mobile.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));await mobile.goto('http://127.0.0.1:4183');await legacyRoster(mobile);await mobile.screenshot({path:'test-results/mobile-loadouts.png'});
  await mobile.selectOption('#roster-era','Original');await mobile.locator('#character0 input[value="silent"]').check();await mobile.locator('#character1 input[value="winta"]').check();

@@ -125,7 +125,7 @@ export function readSettings(raw) {
       const candidate=value.dockLayouts?.[profile];if(!candidate)continue;
       const result={};for(const id of CONTROL_IDS){const size=profile==='portrait'?[390,680]:profile==='small'?[627,287]:profile==='medium'?[804,344]:[1238,684];const c=candidate[id]??(value.version<5?defaultDockLayout(...size)[id]:null);if(!c||![c.x,c.y,c.size].every(Number.isFinite))throw new Error('Invalid dock layout');result[id]={x:clamp(c.x,0,1),y:clamp(c.y,0,1),size:clamp(c.size,id==='stick'?88:48,id==='stick'?120:90)};}if(value.version<5){const size=profile==='portrait'?[390,680]:profile==='small'?[627,287]:profile==='medium'?[804,344]:[1238,684];fitInventoryControls(result,...size,'dock',visibility);}dockLayouts[profile]=result;
     }
-    return {version:SETTINGS_VERSION,keys,layouts,dockLayouts,visibility,opacity:Number.isFinite(value.opacity)?clamp(value.opacity,.25,1):.65,placement:value.placement==='overlay'?'overlay':'dock'};
+    return {version:SETTINGS_VERSION,keys,layouts,dockLayouts,visibility,opacity:Number.isFinite(value.opacity)?clamp(value.opacity,.25,1):.65,placement:['expanded','overlay'].includes(value.placement)?value.placement:'dock'};
   }catch{return fallback;}
 }
 export function keyLabel(code) {

@@ -189,3 +189,46 @@ On 2026-11-15 the user asked in the conversation to open a PR with all changes s
 
 ### Next action
 Push, open the PR, wait for CI (Build and unit checks plus five browser groups), merge, watch Deploy Render, then confirm version 0.41.0 and the merge commit at https://shinobi-arena-online.onrender.com/health and that Release notes published v0.41.0. Do not call it live before /health matches. Record the PR number, merge commit and deployment result in the next checkpoint.
+
+## Release 0.41.0 live on Render, 2026-11-15
+
+### Result
+- PR #64 (https://github.com/Driaque/shinobi-arena/pull/64) merged to main as 990339587d5df1dba9b8dae800cdb499572571b7 after all seven PR checks passed on f1cd0c5.
+- CI on main: run 43686295765, success. Deploy Render: run 43686849692, success. Release notes: run 43686849661, success; GitHub Release v0.41.0 published 2026-11-15T06:46:39Z.
+- https://shinobi-arena-online.onrender.com/health reports version 0.41.0 and commit 990339587d5df1dba9b8dae800cdb499572571b7. The previous production build was 0.40.1 at ec9cf11. Nothing was published to GitHub Pages.
+
+### Stage paintings on phones
+- Before this release, production served truncated stages/skyglass-1280.png (196,673 bytes; requested by screens up to 900px wide) and stages/forge-1600.png (1,638,729 bytes; wider screens). Neither decoded in a phone-sized headless Chromium.
+- On 0.41.0 all ten stage exports the game can request (five stages at 1280 and 1600) decode fully from production in the same check.
+- Not checked: a physical phone. If other stages fail to load on a device, that is a different cause.
+
+### Limits
+- The new sounds were not checked by ear, and physical phones and controllers were not checked.
+- This checkpoint is on branch docs/checkpoint-0.41.0, not on main, so that a docs-only commit does not start another production deploy. Merge it with the next change.
+
+### Next action
+The user plays 0.41.0 on their phone and reports back. Sprite-sheet and stage art quality is planned on a separate branch; it needs the art masters and an image generator, neither of which is in this checkout.
+
+## Sprite conversion and stage art
+
+Source checkout docs/checkpoint-0.41.0 at bf1808c. User selected art generation and full sprite integration for the preview roster, plus battle stage art improvements. First generated source is art-source/fighters/vael-draft.png. The raw sheet needs frame cropping and alpha inspection before registration. The live sprite path currently gates fighters through settings.atlasFighters in packages/presentation/practice-scene.js. Next steps are to normalize and test Vael in battle, generate the rest of the roster against the painted portraits, switch fighter and stage rendering to bitmap assets, and verify the five stages and supported battle modes in a browser. No gameplay checks or deployment for this change yet. Current approval scope is local asset generation and integration.
+
+### Option B integration checkpoint
+
+Feature branch: feat/story-roster-sprite-atlas, based on bf1808c. The commit containing this entry has the complete checkpoint. The 35 roster slots are visible by default. The 24 fighters without combat atlases are shaded and selectable in development. The launch setting is data-story-locks="on" in apps/web/index.html. It uses encounter unlock metadata from packages/engine/story.js and device-local completed-encounter progress independent of the replay checkpoint. Northern Echoes currently assigns no preview unlocks. Vael uses apps/web/assets/fighter-sprites/vael.png, derived from art-source/fighters/vael-draft.png, with pose and weapon-grip metadata in packages/presentation. Both active arena backends fall back to painted arena art. Remaining preview fighters still use procedural bodies in development battles.
+
+Checks: npm run verify passed with 382 tests and a static build. Chrome global graphics smoke passed in desktop and touch portrait layouts with all five stage selections, Vael's atlas, development silhouettes, the launch lock setting, and Canvas/WebGL switching. No chapter currently exercises an actual preview unlock. Next: assign unlocks as the new encounters land, finish fighter atlases in story order, refresh painted stages, and remove the remaining procedural fallback. Feature-branch push only. No version bump, PR, production deployment, or release was requested for this checkpoint.
+
+### Expanded mobile touch viewport
+
+Branch feat/story-roster-sprite-atlas, based on 64cd422. The commit containing this entry has the complete checkpoint. Expanded touch is the default when a coarse pointer is available and no controls preference is saved. Saved layouts continue to load. Settings > Controls > Placement selects Expanded touch, the below-arena dock, or a customizable overlay. The expanded preset puts movement and primary actions at the edges, moves equipment and techniques into the Kit, and raises the fight camera's floor line. Arena movement bounds are unchanged. No new assets were needed.
+
+Verification: npm run verify passed with 382 tests and a fresh build. Chrome global graphics smoke passed with expanded portrait and landscape bounds, touch jump, item cycling, kit open/close and renderer recovery. Existing browser-smoke and gamepad-smoke passed against the saved dock and controller layouts. Screenshots are test-results/expanded-touch-390.png and test-results/expanded-touch-844.png. Real-device Safari was not exercised. Approval scope is feature-branch commit and push only. Next production action, if requested, is version/release preparation and verified Render deployment. No PR or deployment ID.
+
+### v0.42.0 mobile test release preparation
+
+User requested deployment to the existing Render production service for physical mobile testing. Feature branch feat/story-roster-sprite-atlas contains roster and expanded touch work through 323e0b5. Integrated main 8353ffac05ddcbf555836380657c53d9cc2e0cda (v0.41.1 online reconnection). Production baseline health matched that exact commit. Versioned notes are docs/releases/0.42.0.md. Approval scope covers verification, PR merge after passing checks, Render deployment through the existing workflow and the matching GitHub Release. Next action is verify and submit the PR. No deployment has started.
+
+Release PR is #66. Local npm run verify passed with 386 tests and a v0.42.0 build. Browser CI is required before merge. Existing tests with explicit dock layout, direct control buttons and portrait tip assertions seed the saved dock preset. Expanded touch has separate portrait and landscape coverage in the global graphics smoke.
+
+Hosted PR #66 confirmed the build, arena, experience and network groups. The follow-up commit updates the Practice and low guard browser scenarios to open Kit, and widens the landscape Kit so the techniques fit. Local npm run verify (386 tests), Practice Pixi, Visual Lab and shield-scale checks passed. Hosted checks rerun on the latest head before merge.
