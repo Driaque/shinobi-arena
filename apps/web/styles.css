@@ -453,3 +453,10 @@ html[data-setup-controllers=paired] [data-setup-player]>.roster-heading::after{c
   html.in-match #game.training-mode:has(.arena.touch-kit) #network-quality,
   html.in-match body.training-mode #game:has(.arena.touch-kit) #network-quality{display:none}
 }
+
+@media (orientation:landscape) and (max-height:520px) {
+  .touch-kit #jutsu-tray {width:min(620px,calc(100% - var(--touch-edge) * 2))}
+  .touch-kit #jutsu-tray #combat-techniques:not([hidden]) {
+    grid-template-columns:repeat(auto-fit,minmax(54px,1fr))
+  }
+}
