@@ -228,3 +228,5 @@ Verification: npm run verify passed with 382 tests and a fresh build. Chrome glo
 ### v0.42.0 mobile test release preparation
 
 User requested deployment to the existing Render production service for physical mobile testing. Feature branch feat/story-roster-sprite-atlas contains roster and expanded touch work through 323e0b5. Integrated main 8353ffac05ddcbf555836380657c53d9cc2e0cda (v0.41.1 online reconnection). Production baseline health matched that exact commit. Versioned notes are docs/releases/0.42.0.md. Approval scope covers verification, PR merge after passing checks, Render deployment through the existing workflow and the matching GitHub Release. Next action is verify and submit the PR. No deployment has started.
+
+Release PR is #66. Local npm run verify passed with 386 tests and a v0.42.0 build. Browser CI is required before merge. Existing tests with explicit dock layout, direct control buttons and portrait tip assertions seed the saved dock preset. Expanded touch has separate portrait and landscape coverage in the global graphics smoke.

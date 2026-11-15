@@ -1,3 +1,4 @@
+import {freshSettings,STORAGE_KEY} from '../packages/input/preferences.js';
 import {clickGame,selectGame,openNavigation} from './navigation-helper.mjs';
 import {legacyRoster} from './loadout-helper.mjs';
 import {equip} from './loadout-helper.mjs';
@@ -14,6 +15,7 @@ try{
  if(server)await new Promise((resolve,reject)=>{server.stdout.once('data',resolve);server.once('error',reject);server.once('exit',c=>reject(new Error(`Server exited ${c}`)));});
  browser=await chromium.launch({args:['--enable-unsafe-swiftshader'],headless:true,proxy,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH,args:['--no-sandbox','--disable-dev-shm-usage','--enable-unsafe-swiftshader',...(proxyURL?['--ignore-certificate-errors']:[])]}: {})});
  const errors=[];const context1=await browser.newContext({ignoreHTTPSErrors:Boolean(proxyURL),viewport:{width:1280,height:900}}),context2=await browser.newContext({ignoreHTTPSErrors:Boolean(proxyURL),viewport:{width:844,height:390},isMobile:true,hasTouch:true});
+await context2.addInitScript(({key,value})=>{if(!localStorage.getItem(key))localStorage.setItem(key,value);},{key:STORAGE_KEY,value:JSON.stringify(freshSettings())});
  const p=await context1.newPage(),q=await context2.newPage();let snapshot,matchId;const mobileMatches=[];
  q.on('websocket',socket=>socket.on('framereceived',({payload})=>{try{const msg=JSON.parse(payload);if(msg.state){snapshot=msg.state;matchId=msg.id;}if(msg.type==='matched')mobileMatches.push({id:msg.id,slot:msg.slot});}catch{}}));
  const near=async()=>{const until=Date.now()+5000;while(Date.now()<until){if(snapshot&&Math.abs(snapshot.fighters[0].x-snapshot.fighters[1].x)<=60)return;await new Promise(r=>setTimeout(r,20));}throw new Error(`Did not approach: ${snapshot?.fighters.map(f=>f.x)}`);};
