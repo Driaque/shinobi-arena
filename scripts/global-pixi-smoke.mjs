@@ -33,6 +33,30 @@ try{
   await p.locator('#character0 input[value=aren]').check();
   for(const mode of ['cpu','local','training','online']){await selectGame(p,'#mode',mode);if(mode!=='online'){await clickGame(p,'#play');await p.waitForTimeout(100);}await p.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-pixi');assert.doesNotMatch(await p.locator('#name1').innerText(),/SPARRING ECHO/);}
   await selectGame(p,'#mode','training');await clickGame(p,'#play');await clickGame(p,'#training-settings');assert.equal(await p.locator('#training-charge').isDisabled(),true,'Aren has no awakening to charge');await p.click('#training-close');await clickGame(p,'#play');await p.screenshot({path:`test-results/global-pixi-${mobile?'portrait':'desktop'}.png`});
+  if(mobile){
+   await p.waitForSelector('#touch-kit-toggle:visible');
+   assert.equal(await p.locator('.arena').getAttribute('data-control-placement'),'expanded');
+   for(const size of [{width:390,height:844},{width:844,height:390}]){
+    await p.setViewportSize(size);
+    await p.waitForFunction(()=>{const a=document.querySelector('.arena').getBoundingClientRect(),b=document.querySelector('.battle-view').getBoundingClientRect();return a.height>innerHeight-85&&Math.abs(a.height-b.height)<1;});
+    assert.equal(await p.locator('#combat-techniques').isVisible(),false);
+    const stick=await p.locator('#joystick').boundingBox(),attack=await p.locator('[data-action=attack]').boundingBox();
+    assert.ok(stick.x+stick.width<attack.x&&attack.y+attack.height<=size.height,'controls stay apart and on-screen');
+    await p.locator('[data-action=jump]').tap();
+    await p.waitForFunction(()=>document.querySelector('#movement-state').textContent.includes('AIR'));
+    await p.locator('#touch-kit-toggle').tap();
+    assert.equal(await p.locator('#touch-kit-toggle').getAttribute('aria-expanded'),'true');
+    assert.match(await p.locator('#touch-kit-toggle').innerText(),/items?.*jutsu ready/);
+    assert.equal(await p.locator('#jutsu-tray [data-action=weapon]').isVisible(),true);
+    const item=await p.locator('#item-cycle-meta').innerText();
+    await p.locator('#jutsu-tray [data-action=cycleItem]').tap();
+    await p.waitForFunction(item=>document.querySelector('#item-cycle-meta').textContent!==item,item);
+    await p.locator('#jutsu-tray header button').tap();
+    assert.equal(await p.locator('#jutsu-tray').isVisible(),false);
+    await p.screenshot({path:'test-results/expanded-touch-'+size.width+'.png'});
+   }
+   await p.setViewportSize({width:390,height:844});
+  }
   await clickGame(p,'#graphics-settings');
   assert.equal(await p.locator('#fighter-style').count(),0,'released fighters are sprites only');
   assert.equal(await p.locator('#canvas').getAttribute('data-fighter-style'),'painted');

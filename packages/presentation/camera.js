@@ -8,7 +8,7 @@ export function cameraForScene(scene, width, height) {
       fit = Math.min(width / v.worldWidth, height / v.viewHeight);
     // The fight camera supplies its own pan; older viewports stay centred.
     const tx = v.tx ?? v.worldWidth * 0.5 * (1 - v.zoom),
-      ty = v.ty ?? v.viewHeight * 0.9 - ENGINE_FLOOR * v.zoom;
+      ty = v.ty ?? (v.baseFloor ?? v.viewHeight * 0.9) - ENGINE_FLOOR * v.zoom;
     return {
       scale: fit * v.zoom,
       x: (width - v.worldWidth * fit) / 2 + (tx + v.shakeX * v.zoom) * fit,
@@ -31,8 +31,9 @@ export function cameraForScene(scene, width, height) {
 // Widest framing: the whole arena with aerial headroom. The fight camera never
 // shows anything this view would not, so stage art sized for it always covers.
 export const baseZoomFor = (viewHeight) => Math.min(1, (viewHeight * 0.9) / 540);
-const floorLine = (viewHeight, zoom) =>
-  viewHeight - Math.max(viewHeight * 0.1, 48 * zoom);
+const floorLine = (viewHeight, zoom, bottomInset = 0) =>
+  viewHeight - Math.max(viewHeight * 0.1, 48 * zoom, bottomInset);
+const zoomForSize = ({viewHeight,bottomInset=0}) => baseZoomFor(viewHeight-bottomInset);
 const clampCenter = (x, zoom, base, worldWidth) => {
   const slack = worldWidth / (2 * base) - worldWidth / (2 * zoom);
   return Math.max(worldWidth / 2 - slack, Math.min(worldWidth / 2 + slack, x));
@@ -40,8 +41,9 @@ const clampCenter = (x, zoom, base, worldWidth) => {
 
 // Where the camera wants to be: close when fighters are close, wide when they
 // separate or leave the ground. Engine units; presentation only.
-export function fightCameraTarget(fighters, { worldWidth, viewHeight }) {
-  const base = baseZoomFor(viewHeight),
+export function fightCameraTarget(fighters, size) {
+  const {worldWidth,viewHeight,bottomInset=0}=size;
+  const base=zoomForSize(size),
     living = fighters.filter((f) => f.hp > 0),
     framed = living.length ? living : fighters;
   if (!framed.length) return { zoom: base, centerX: worldWidth / 2 };
@@ -53,26 +55,29 @@ export function fightCameraTarget(fighters, { worldWidth, viewHeight }) {
     right = Math.max(right, f.x);
     air = Math.max(air, f.y ?? 0);
   }
-  const closest = Math.max(base, Math.min(base * 2.1, viewHeight / 330)),
+  const available=viewHeight-bottomInset;
+  const closest = Math.max(base, Math.min(base * 2.1, available / 330)),
     horizontal = worldWidth / (right - left + 500),
     // Heads stay on screen through jumps and double jumps.
     vertical = Math.min(
-      (viewHeight * 0.84) / (air + 150),
-      (viewHeight * 0.94) / (air + 210),
+      (available * 0.84) / (air + 150),
+      (available * 0.94) / (air + 210),
     ),
     zoom = Math.max(base, Math.min(closest, horizontal, vertical));
   return { zoom, centerX: clampCenter((left + right) / 2, zoom, base, worldWidth) };
 }
 
-export function fightViewport(camera, { worldWidth, viewHeight }, punch = 0) {
+export function fightViewport(camera, size, punch = 0) {
+  const {worldWidth,viewHeight,bottomInset}=size;
   const zoom = camera.zoom * (1 + punch);
   return {
     worldWidth,
     viewHeight,
     zoom,
-    baseZoom: baseZoomFor(viewHeight),
+    baseZoom: zoomForSize(size),
+    ...(bottomInset?{baseFloor:floorLine(viewHeight,zoomForSize(size),bottomInset)}:{}),
     tx: worldWidth * 0.5 - camera.centerX * zoom,
-    ty: floorLine(viewHeight, camera.zoom) - ENGINE_FLOOR * zoom,
+    ty: floorLine(viewHeight, camera.zoom,bottomInset) - ENGINE_FLOOR * zoom,
   };
 }
 
@@ -82,7 +87,7 @@ export function createFightCamera() {
   let current = null;
   return {
     update(fighters, size, { dt = 0, fixed = false, snap = false, punch = 0 } = {}) {
-      const base = baseZoomFor(size.viewHeight);
+      const base = zoomForSize(size);
       if (fixed) {
         current = null;
         return fightViewport({ zoom: base, centerX: size.worldWidth / 2 }, size);

@@ -297,3 +297,159 @@ label:has(select){cursor:pointer}label:has(select)>select{flex:1;min-width:0}
 #controller-cursor-p2{background:#de91ff99!important;border-color:#f5d8ff!important}
 #controller-cursor-p2::after{content:'P2';position:absolute;left:18px;top:0;font-size:10px;font-weight:800;color:#f5d8ff;text-shadow:0 1px 3px #000}
 html[data-setup-controllers=paired] [data-setup-player]>.roster-heading::after{content:'Own controller';font-size:10px;color:#b0dce4}
+
+/* Expanded touch uses the full battle surface and keeps input at the edges. */
+.arena[data-control-placement=expanded] {
+  --touch-edge: 12px;
+  --touch-bottom: max(12px,env(safe-area-inset-bottom));
+  --touch-size: clamp(46px, 12vw, 56px);
+  --touch-step: calc(var(--touch-size) + 7px);
+}
+.arena[data-control-placement=expanded] .controls [data-control] {
+  inset: auto var(--touch-edge) var(--touch-bottom) auto;
+  width: var(--touch-size);
+  height: var(--touch-size);
+  transform: none;
+  backdrop-filter: none;
+}
+.arena[data-control-placement=expanded] .controls [data-control=stick] {
+  inset: auto auto var(--touch-bottom) var(--touch-edge);
+  width: 98px;
+  height: 98px;
+}
+.arena[data-control-placement=expanded] .controls [data-control=jump] {
+  right: calc(var(--touch-edge) + var(--touch-step) * 2);
+}
+.arena[data-control-placement=expanded] .controls [data-control=block],
+.arena[data-control-placement=expanded] .controls [data-control=dashForward],
+.arena[data-control-placement=expanded] .controls [data-control=dashBack] {
+  bottom: calc(var(--touch-bottom) + var(--touch-step));
+}
+.arena[data-control-placement=expanded] .controls [data-control=dashForward] {
+  right: calc(var(--touch-edge) + var(--touch-step));
+}
+.arena[data-control-placement=expanded] .controls [data-control=dashBack] {
+  right: calc(var(--touch-edge) + var(--touch-step) * 2);
+}
+.arena[data-control-placement=expanded] .controls [data-control]:is(
+  [data-control=special1],[data-control=special2],[data-control=bloodline],
+  [data-control=weapon],[data-control=swapWeapon],[data-control=cycleItem],
+  [data-control=useItem],[data-control=replacement],[data-control=awakening]
+){display:none}
+.arena[data-control-placement=expanded][data-touch-handed=left] .controls {direction:rtl}
+.arena[data-control-placement=expanded][data-touch-handed=left] .controls [data-control] {
+  left: var(--touch-edge);
+  right: auto;
+  direction:ltr;
+}
+.arena[data-control-placement=expanded][data-touch-handed=left] .controls [data-control=stick] {
+  left: auto;
+  right: var(--touch-edge);
+}
+.arena[data-control-placement=expanded][data-touch-handed=left] .controls [data-control=dashForward] {
+  left: calc(var(--touch-edge) + var(--touch-step));
+}
+.arena[data-control-placement=expanded][data-touch-handed=left] .controls [data-control=jump],
+.arena[data-control-placement=expanded][data-touch-handed=left] .controls [data-control=dashBack] {
+  left: calc(var(--touch-edge) + var(--touch-step) * 2);
+}
+#touch-kit-toggle {
+  position:absolute;
+  z-index:4;
+  right:calc(var(--touch-edge) + var(--touch-step));
+  bottom:var(--touch-bottom);
+  width:var(--touch-size);
+  min-height:var(--touch-size);
+  padding:4px;
+  line-height:1.1;
+  background:#152b3dd9;
+  border-color:#7dabbd88;
+  touch-action:manipulation;
+}
+#touch-kit-toggle[hidden]{display:none}
+#touch-kit-toggle small {display:block;margin-top:3px;font-size:8px;color:#d4e6ee}
+.arena[data-touch-handed=left] #touch-kit-toggle {
+  left:calc(var(--touch-edge) + var(--touch-step));
+  right:auto;
+}
+.touch-kit #jutsu-tray {
+  bottom:calc(var(--touch-bottom) + var(--touch-step) * 2);
+  right:var(--touch-edge);
+  width:min(460px,calc(100% - var(--touch-edge) * 2));
+  max-height:calc(100% - var(--touch-bottom) - var(--touch-step) * 2 - 10px);
+  overflow:auto;
+  overscroll-behavior:contain;
+  padding:7px;
+}
+.touch-kit[data-touch-handed=left] #jutsu-tray {left:var(--touch-edge);right:auto}
+.touch-kit #jutsu-tray header {margin:0 0 6px}
+.touch-kit #jutsu-tray header button {min-height:40px}
+.touch-kit #jutsu-tray>.jutsu-quick-grid,
+.touch-kit #jutsu-tray>#charge-chakra,
+.touch-kit #jutsu-tray>small {display:none}
+.touch-kit .touch-kit-equipment, .touch-kit #jutsu-tray #combat-techniques:not([hidden]) {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(62px,1fr));
+  gap:5px;
+}
+.touch-kit .touch-kit-equipment button, .touch-kit #jutsu-tray #combat-techniques button {
+  width:auto;
+  max-width:none;
+  min-width:0;
+  min-height:44px;
+  height:auto;
+  padding:4px;
+  font-size:9px;
+  touch-action:none;
+}
+.touch-kit .touch-kit-equipment small {display:block;font-size:8px;color:#b6d3e5}
+.touch-kit #jutsu-tray #combat-techniques {
+  position:static;
+  height:auto;
+  margin-top:6px;
+  transform:none;
+  opacity:1;
+  overflow:visible;
+}
+.touch-kit #jutsu-tray #combat-techniques .technique-art {height:22px;width:22px}
+#game:has(.arena.touch-kit) #jutsu-toggle {display:none}
+@media(any-pointer:coarse){
+  html.in-match #game:has(.arena.touch-kit){
+    height:100dvh;
+    max-height:none;
+    padding-inline:env(safe-area-inset-left) env(safe-area-inset-right);
+    padding-bottom:0;
+  }
+  html.in-match #game:has(.arena.touch-kit) .arena{border:0;border-radius:0}
+  html.in-match #game:has(.arena.touch-kit) #landscape-tip{display:none}
+  html.in-match #game:has(.arena.touch-kit) .topbar>.brand{display:none}
+  html.in-match #game:has(.arena.touch-kit) .topbar .tools {
+    width:100%;
+    justify-content:flex-end;
+    padding-inline:6px;
+  }
+  html.in-match #game:has(.arena.touch-kit) .topbar .tools >
+  :not(:is(#pause,#fullscreen,#control-settings,#online-leave,#training-settings,#training-reset,#training-coach-toggle,#game-settings,#game-menu)) {display:none}
+  html.in-match #game:has(.arena.touch-kit) .topbar button:not([hidden]){min-height:36px;padding:5px 9px}
+}
+
+
+.touch-kit .controls{z-index:3}
+.training-mode .touch-kit #training-coach{
+  top:116px;bottom:auto;left:12px;right:12px;max-width:420px;max-height:65px;overflow:auto
+}
+@media (orientation:landscape) {
+  .training-mode .touch-kit #training-coach{top:80px;max-height:52px}
+}
+
+@media(any-pointer:coarse){
+  html.in-match #game:has(.arena.touch-kit) .topbar .tools{justify-content:center}
+  html.in-match #game:has(.arena.touch-kit) .nav-group>summary{
+    min-height:36px;padding:8px;font-size:11px
+  }
+  html.in-match #game:has(.arena.touch-kit) .topbar .tools>button:not([hidden]){
+    padding-inline:6px;font-size:10px
+  }
+  html.in-match #game.training-mode:has(.arena.touch-kit) #network-quality,
+  html.in-match body.training-mode #game:has(.arena.touch-kit) #network-quality{display:none}
+}

@@ -11,7 +11,8 @@ import { ARENA, fighterBody, MOVES as LIVE_MOVES, CHARACTERS as LIVE_CHARACTERS,
 export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACTERS,awakenings=LIVE_AWAKENINGS}={}) {
   const MOVES=moves,CHARACTERS=characters;
   const activeAwakening=f=>f.awakeningTicks>0?awakenings[CHARACTERS[f.character].awakening]:null;
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const pixelRatio=Math.min(window.devicePixelRatio || 1,2);
+  let dpr=pixelRatio;
   const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
   const c=canvas.getContext('2d');
   let worldWidth=ARENA.width,viewHeight=ARENA.height,zoom=1,frameTick=-1,frameRound=-1,blendStart=0,blendDuration=16,previous=[],targets=[],shown=[],visualTick=0,projectilePrevious=[],projectileTargets=[],projectileShown=[];
@@ -24,9 +25,21 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
   // The status panel overlaps the top of short arenas; it fades while an airborne fighter is behind it.
   const hud=canvas.parentElement.querySelector('.hud');let hudBottom=0,hudFaded=false;
   if(hud)hud.style.transition='opacity .14s linear';
+  const arena=canvas.closest('.arena');
+  const expandedTouch=()=>Boolean(arena?.matches('[data-control-placement=expanded]:not(.controller-view)'));
+  let expanded=false,bottomInset=0;
   function resize(){
     const rect=canvas.parentElement.getBoundingClientRect();
-    viewHeight=Math.min(720,Math.max(300,worldWidth*rect.height/Math.max(1,rect.width)));
+    const unitsPerPixel=worldWidth/Math.max(1,rect.width);
+    expanded=expandedTouch();
+    const fullHeight=unitsPerPixel*rect.height;
+    const nextHeight=expanded?Math.max(1,fullHeight):Math.min(720,Math.max(300,fullHeight));
+    if(nextHeight!==viewHeight)cameraSnap=true;
+    viewHeight=nextHeight;
+    dpr=Math.min(pixelRatio,2400/viewHeight);
+    const controlClearance=rect.height>rect.width?rect.height*.34:Math.min(132,rect.height*.38);
+    bottomInset=expanded?controlClearance*unitsPerPixel:0;
+    cameraSnap=true;
     zoom=1;
     hudBottom=hud?(hud.getBoundingClientRect().bottom-rect.top)*worldWidth/Math.max(1,rect.width):0;
 
@@ -206,7 +219,7 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
   const render=function render(authoritative,{interpolate=false,predicted=null,localSlot=0,layers=null,sampled=false,localAlpha=0}={}) {
     externalActors=layers?.actors===false;nativeEffects=layers?.nativeEffects===true;nativeAren=layers?.nativeAren===true;
     nativeFighters=layers?.nativeFighters??[];
-    const now=performance.now();const nextWidth=authoritative.arena?.width??1280;if(nextWidth!==worldWidth){worldWidth=nextWidth;resize();}
+    const now=performance.now();const nextWidth=authoritative.arena?.width??1280;if(nextWidth!==worldWidth||expanded!==expandedTouch()){worldWidth=nextWidth;resize();}
     if(frameTick!==authoritative.tick||frameRound!==authoritative.round||authoritative.fighters.some((f,i)=>targets[i]?.character!==f.character)){
       const reset=frameTick<0||authoritative.tick<frameTick||frameRound!==authoritative.round;
       projectilePrevious=reset?[]:projectileShown;projectileTargets=authoritative.projectiles.map(p=>({...p}));
@@ -223,7 +236,7 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
     projectileShown=sampled?authoritative.projectiles.map(p=>({...p})):projectileTargets.map(p=>{const a=projectilePrevious.find(old=>old.id===p.id);return a?{...p,x:a.x+(p.x-a.x)*blend,y:a.y+(p.y-a.y)*blend}:p;});
     const state={...authoritative,projectiles:projectileShown,tick:sampled?authoritative.tick:visualTick+(authoritative.tick-visualTick)*blend+(!interpolate?Math.max(0,Math.min(1,localAlpha)):0),fighters:shown};
 
-    const width=worldWidth*dpr,height=Math.round(viewHeight*dpr);
+    const width=Math.max(1,Math.round(worldWidth*dpr)),height=Math.max(1,Math.round(viewHeight*dpr));
     if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height;}
     if(layers?.background===false){c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,canvas.width,canvas.height);}
     // The fight camera frames every living fighter. Reduced motion and the
@@ -235,7 +248,7 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
       if(strength>Math.hypot(shakeX,shakeY)){shakeX=Math.sin(now*.085)*strength;shakeY=Math.cos(now*.061)*strength*.6;}
       if(!impact.blocked)punch=Math.max(punch,Math.min(.045,.012+impact.damage/3000)*decay);
     }
-    const view=camera.update(state.fighters,{worldWidth,viewHeight},{dt:(now-cameraTime)/1000,fixed:reducedMotion.matches||document.documentElement.dataset.camera==='fixed',snap:cameraSnap,punch});
+    const view=camera.update(state.fighters,{worldWidth,viewHeight,bottomInset},{dt:(now-cameraTime)/1000,fixed:reducedMotion.matches||document.documentElement.dataset.camera==='fixed',snap:cameraSnap,punch});
     cameraTime=now;cameraSnap=false;zoom=view.zoom;
     if(hud){const behind=state.status==='playing'&&state.fighters.some(f=>f.hp>0&&f.y>0&&view.ty+(ARENA.floor-f.y-110)*zoom<hudBottom);if(behind!==hudFaded){hudFaded=behind;hud.style.opacity=behind?'.28':'';}}
     c.setTransform(dpr*zoom,0,0,dpr*zoom,view.tx*dpr,view.ty*dpr);

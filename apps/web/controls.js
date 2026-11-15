@@ -8,7 +8,12 @@ export function createControls({inputs,onPause,isPlaying,onOpen=onPause}) {
   const $=s=>document.querySelector(s),arena=$('.arena'),stick=$('#joystick');
   const nodes=Object.fromEntries(CONTROL_IDS.map(id=>[id,$(`[data-control="${id}"]`)]));
   const editor=$('#layout-editor'),keysDialog=$('#keys-dialog'),overlay=$('#overlay')??{hidden:true};
-  let settings;try{settings=readSettings(localStorage.getItem(STORAGE_KEY));}catch{settings=freshSettings();}
+  const defaultSettings=()=>({...freshSettings(),placement:matchMedia('(any-pointer: coarse)').matches?'expanded':'dock'});
+  let settings;
+  try{
+    const saved=localStorage.getItem(STORAGE_KEY);
+    settings=saved?readSettings(saved):defaultSettings();
+  }catch{settings=defaultSettings();}
   const gestures=createStickGestures(()=>({doublePullMs:experience().doublePullMs}));
   let draft=null,editing=false,selected='stick',drag=null,stickPointer=null,listening=null,previousOverlay=false;
   const current=()=>draft??settings;
@@ -20,29 +25,33 @@ export function createControls({inputs,onPause,isPlaying,onOpen=onPause}) {
   function message(text){$('#editor-message').textContent=text;}
   function resetStick(cancel=true){stickPointer=null;inputs[0].release('stick');inputs[0].release('stick-crouch');if(cancel)gestures.reset();else gestures.release();stick.style.setProperty('--stick-x','0px');stick.style.setProperty('--stick-y','0px');stick.classList.remove('active');}
   function reset(){resetStick();drag=null;inputs.forEach(i=>i.reset());}
-  function collisionMessage(){const {width,height}=dimensions(),pairs=layoutOverlaps(layout(),width,height,current().placement,current().visibility);return pairs.length?`Separate ${ACTION_LABELS[pairs[0][0]]} and ${ACTION_LABELS[pairs[0][1]]} before saving.`:'';}
+  function collisionMessage(){if(current().placement==='expanded')return '';const {width,height}=dimensions(),pairs=layoutOverlaps(layout(),width,height,current().placement,current().visibility);return pairs.length?`Separate ${ACTION_LABELS[pairs[0][0]]} and ${ACTION_LABELS[pairs[0][1]]} before saving.`:'';}
   function applyLayout(){
     const {width,height}=dimensions(),positions=layout();
     arena.dataset.controlPlacement=current().placement;
+    arena.dataset.touchHanded=experience().leftHanded?'left':'right';
     arena.style.setProperty('--control-opacity',current().opacity);
     $('#control-opacity').value=Math.round(current().opacity*100);$('#opacity-value').textContent=`${Math.round(current().opacity*100)}%`;
     $('#control-placement').value=current().placement;
+    const expanded=current().placement==='expanded';
     for(const [id,node]of Object.entries(nodes)){
       node.hidden=current().visibility[id]===false;
       const raw=positions[id],p=projectControl(experience().leftHanded?{...raw,x:1-raw.x}:raw,width,height,id,current().placement);
-      Object.assign(node.style,{left:`${p.x}px`,top:`${p.y}px`,width:`${p.size}px`,height:`${p.size}px`});
+      if(expanded)for(const property of ['left','top','width','height'])node.style.removeProperty(property);
+      else Object.assign(node.style,{left:`${p.x}px`,top:`${p.y}px`,width:`${p.size}px`,height:`${p.size}px`});
       node.classList.toggle('selected-control',editing&&selected===id);
     }
     if(editing){
       $('#control-select').value=selected;$('#control-size').min=selected==='stick'?88:48;$('#control-size').max=selected==='stick'?(current().placement==='dock'?120:160):90;
       $('#control-size').value=positions[selected].size;$('#size-value').textContent=`${Math.round(positions[selected].size)} px`;
       for(const box of document.querySelectorAll('[data-control-visible]'))box.checked=current().visibility[box.dataset.controlVisible];
-      message(collisionMessage()||'Drag visible controls. Uncheck to hide; keyboard bindings still work. Online fights continue.');
+      message(expanded?'Expanded touch keeps primary buttons in the corners. Select Over arena to move controls.':collisionMessage()||'Drag visible controls. Uncheck to hide; keyboard bindings still work. Online fights continue.');
     }
   }
   function select(id){selected=id;applyLayout();}
   function dragStart(event,id){
     if(!editing)return false;
+    if(current().placement==='expanded')return true;
     event.preventDefault();select(id);const rect=nodes[id].getBoundingClientRect();
     drag={id,pointer:event.pointerId,offsetX:event.clientX-rect.left-rect.width/2,offsetY:event.clientY-rect.top-rect.height/2};
     nodes[id].setPointerCapture(event.pointerId);return true;
@@ -129,7 +138,7 @@ export function createControls({inputs,onPause,isPlaying,onOpen=onPause}) {
   $('#control-opacity').addEventListener('input',event=>{draft.opacity=Number(event.target.value)/100;applyLayout();});
   $('#control-placement').addEventListener('change',event=>{reset();draft.placement=event.target.value;applyLayout();});
   // Suppress native zoom/scroll only on the live play surface; menus retain normal scrolling.
-  const preventPlayGesture=event=>{if(!editing&&isPlaying()&&!event.target.closest('#overlay,#layout-editor,#jutsu-tray,#training-coach,dialog'))event.preventDefault();};
+  const preventPlayGesture=event=>{if(!editing&&isPlaying()&&!event.target.closest('#overlay,#layout-editor,#jutsu-tray,#touch-kit-toggle,#training-coach,dialog'))event.preventDefault();};
   for(const type of ['touchstart','touchmove','gesturestart','gesturechange','gestureend','dblclick'])arena.addEventListener(type,preventPlayGesture,{passive:false});
   for(const id of CONTROL_IDS)$('#control-select').add(new Option(ACTION_LABELS[id],id));
   $('#control-select').addEventListener('change',event=>select(event.target.value));
