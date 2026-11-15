@@ -3,6 +3,7 @@ import { MOVES } from '../engine/index.js';
 import { FIGHTER_FRAMES, fighterAtlasData } from './fighter-atlases.js';
 import {runningFrameFor,runningAtlasData} from './running-atlases.js';
 import {weaponPoseFor,strikeArcFor} from './weapons.js';
+import {itemCuesFor,ITEM_PROJECTILES} from './items.js';
 
 // Presentation only: the selected character IDs, loadouts, physics and results stay intact.
 export function practiceSceneFor(state, viewport, settings = {}) {
@@ -44,9 +45,12 @@ export function practiceSceneFor(state, viewport, settings = {}) {
       if(!fighter.blockedHit&&ms<150){actor.flash=1-ms/150;actor.jolt=Math.sin(ms*.09)*4*actor.flash;}
     }
   }
-  // Native elemental fields; smoke, item cues and all text stay in the overlay.
+  // Items in hand, in flight and on the ground join the guard crest in the sprite layer.
+  const items=itemCuesFor(state,{reduced:settings.reduced,effects:settings.effects!==false,frames:Object.fromEntries(scene.fighters.map(a=>[a.id,a.frameIndex]))});
+  scene.cues={shapes:[...scene.cues.shapes,...items.shapes],props:items.props};
+  // Native elemental fields; labels and other text stay in the overlay.
   scene.zones = (state.zones ?? []).filter(z => z.kind === 'elemental').map(z => ({...z, element: MOVES[z.move]?.ground?.element ?? 'water'}));
-  scene.projectiles = (state.projectiles??[]).map(p=>({...p,sprite:p.move==='orbitDisc'?'orbitDisc':undefined,color:settings.catalog?.moves?.[p.move]?.color??MOVES[p.move]?.color??'#ffcb88',element:settings.catalog?.moves?.[p.move]?.element??MOVES[p.move]?.element??(MOVES[p.move]?.effect==='burn'?'fire':undefined)}));
+  scene.projectiles = (state.projectiles??[]).map(p=>({...p,sprite:p.move==='orbitDisc'||p.move==='itemOrbit'?'orbitDisc':undefined,cue:ITEM_PROJECTILES.includes(p.move),color:settings.catalog?.moves?.[p.move]?.color??MOVES[p.move]?.color??'#ffcb88',element:settings.catalog?.moves?.[p.move]?.element??MOVES[p.move]?.element??(MOVES[p.move]?.effect==='burn'?'fire':undefined)}));
   if(settings.selected)scene.fighters=scene.fighters.filter(f=>state.fighters[f.id].character==='aren'||settings.atlasFighters?.includes(state.fighters[f.id].character));
   return scene;
 }

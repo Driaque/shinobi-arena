@@ -15,9 +15,8 @@ import { FIGHTER_FRAMES } from './packages/presentation/fighter-atlases.js';
 
 import { cameraForScene as camera } from "./packages/presentation/camera.js";
 import { weaponSpriteFor } from "./packages/presentation/weapons.js";
+import { impactCuesFor } from "./packages/presentation/impact.js";
 
-const teal = 0x8eead7,
-  gold = 0xffcb88;
 const fieldColors = {fire:0xf28c52,water:0x69c6e2,earth:0xd2b77f,poison:0xb2d36d};
 const fieldColor = z => fieldColors[z.element] ?? 0x69c6e2;
 // Stage art is sized for the widest framing so it stays put while the fight camera moves.
@@ -26,25 +25,20 @@ const stageView = (scene, view, width, height) =>
     ? camera({viewport:{...scene.viewport,zoom:scene.viewport.baseZoom,tx:undefined,ty:undefined,shakeX:0,shakeY:0}},width,height)
     : view;
 const stageMargin = scene => scene.viewport?.baseZoom ? 1.04 : 1;
-// Impact spark: ring, hot core and streaks. Guarded hits keep a cool ring only.
-function burstParts(p) {
-  const t = Math.min(1, p.age / 12),
-    power = 1 + Math.min(1.2, (p.power ?? 0) / 90),
-    streaks = [];
-  if (!p.blocked && p.seed !== undefined)
-    for (let i = 0; i < 7; i++) {
-      const a = p.seed * 0.7 + i * 2.399,
-        from = (10 + t * 46) * power,
-        to = from + 26 * (1 - t) * power;
-      streaks.push([p.x + Math.cos(a) * from, p.y + Math.sin(a) * from, p.x + Math.cos(a) * to, p.y + Math.sin(a) * to]);
-    }
-  return { t, ring: (8 + p.age * 4) * power, core: p.blocked || p.seed === undefined ? 0 : (16 - t * 14) * power, streaks };
-}
 // Thrown weapons with painted art; everything else stays a vector shape.
 const DISC_SIZE = 46;
 const spriteProjectiles = (scene, art) => (scene.projectiles ?? []).filter((p) => p.sprite && art.weapons?.get(p.sprite));
-const shapeProjectiles = (scene, art) => ({ ...scene, projectiles: (scene.projectiles ?? []).filter((p) => !(p.sprite && art.weapons?.get(p.sprite))) });
+const shapeProjectiles = (scene, art) => ({ ...scene, projectiles: (scene.projectiles ?? []).filter((p) => !p.cue && !(p.sprite && art.weapons?.get(p.sprite))) });
 const projectileSpin = (scene, p) => (scene.reduced ? 0 : scene.tick * 0.45 * (p.direction ?? 1));
+// Cues: guard crest and item shapes plus painted props. Ground cues sit under the fighters.
+const artImage = (art, key) => art[key.slice(0, key.indexOf("/"))]?.get(key.slice(key.indexOf("/") + 1));
+const cueShapes = (scene, ground) => (scene.cues?.shapes ?? []).filter((s) => (s.layer === "ground") === ground);
+const cueProps = (scene, art, ground) =>
+  [
+    ...(ground ? [] : spriteProjectiles(scene, art).map((p) => ({ image: "weapons/" + p.sprite, x: p.x, y: WORLD.floor + (p.depth ?? 0) * 0.65 - p.y, size: DISC_SIZE, rotation: projectileSpin(scene, p) }))),
+    ...(scene.cues?.props ?? []).filter((p) => (p.layer === "ground") === ground),
+  ].filter((p) => artImage(art, p.image));
+const clamp01 = (n) => Math.max(0, Math.min(1, n));
 async function loadImage(url) {
   const image = new Image();
   image.src = url;
@@ -117,7 +111,11 @@ export function createCanvasLab(canvas, art, resolution) {
     }
     ctx.restore();
   }
-  function shapes(items){for(const s of items){ctx.save();ctx.globalAlpha=s.alpha??1;ctx.fillStyle=ctx.strokeStyle='#'+s.color.toString(16).padStart(6,'0');ctx.lineWidth=s.width??1;ctx.beginPath();if(s.kind==='ellipse')ctx.ellipse(s.x,s.y,s.rx,s.ry,0,0,Math.PI*2);else if(s.kind==='line'){ctx.moveTo(s.x,s.y);ctx.lineTo(s.x2,s.y2);}else{s.points.forEach((n,i)=>{if(i%2===0)(i?ctx.lineTo:ctx.moveTo).call(ctx,n,s.points[i+1]);});ctx.closePath();}if(s.kind==='line')ctx.stroke();else ctx.fill();ctx.restore();}}
+  function shapes(items){for(const s of items){ctx.save();if(s.add)ctx.globalCompositeOperation='lighter';ctx.globalAlpha=clamp01(s.alpha??1);ctx.fillStyle=ctx.strokeStyle='#'+s.color.toString(16).padStart(6,'0');ctx.lineWidth=s.width??1;ctx.lineCap=ctx.lineJoin='round';ctx.beginPath();if(s.kind==='ellipse')ctx.ellipse(s.x,s.y,Math.max(0,s.rx),Math.max(0,s.ry),0,0,Math.PI*2);else if(s.kind==='line'){ctx.moveTo(s.x,s.y);ctx.lineTo(s.x2,s.y2);}else{s.points.forEach((n,i)=>{if(i%2===0)(i?ctx.lineTo:ctx.moveTo).call(ctx,n,s.points[i+1]);});if(s.kind!=='path')ctx.closePath();}if(s.kind==='line'||s.kind==='path')ctx.stroke();else ctx.fill();ctx.restore();}}
+  // Tinted copies of white effect textures, made once per colour.
+  const tints=new Map();
+  function tinted(image,key,tint){const id=key+tint;if(!tints.has(id)){const c=document.createElement('canvas');c.width=image.width;c.height=image.height;const x=c.getContext('2d');x.drawImage(image,0,0);x.globalCompositeOperation='source-in';x.fillStyle='#'+tint.toString(16).padStart(6,'0');x.fillRect(0,0,c.width,c.height);tints.set(id,c);}return tints.get(id);}
+  function props(items){for(const p of items){const source=artImage(art,p.image),image=p.tint===undefined?source:tinted(source,p.image,p.tint);ctx.save();if(p.add)ctx.globalCompositeOperation='lighter';ctx.globalAlpha=clamp01(p.alpha??1);ctx.translate(p.x,p.y);ctx.rotate(p.rotation??0);ctx.scale(p.flip??1,p.squash??1);ctx.drawImage(image,-p.size/2,-p.size/2,p.size,p.size);ctx.restore();}}
   function draw(scene) {
     ctx.resetTransform();
     ctx.fillStyle = "#0c1825";
@@ -163,44 +161,21 @@ export function createCanvasLab(canvas, art, resolution) {
             `rgba(93,237,211,${0.025 * i})`,
           );
     }
+    shapes(cueShapes(scene, true));
+    props(cueProps(scene, art, true));
     for (const f of [...scene.fighters].sort((a, b) => a.depth - b.depth)) {
       if (!scene.reduced && (f.pose === "Dash" || f.motion?.trail))
         for (let i = 3; i > 0; i--)
           fighter(f, 0.09 * (4 - i), -f.facing * i * 22);
       fighter(f);
       gear(f);
-      if (f.blocking) {
-        const height=(f.crouching?68:110)*(f.bodyScale??1);
-        ellipse(f.x + f.facing * 18, f.y - height/2, 25, height/2, "#88ead74a");
-      }
     }
     shapes(projectileShapes(shapeProjectiles(scene, art)));
-    for (const p of spriteProjectiles(scene, art)) {
-      const image = art.weapons.get(p.sprite);
-      ctx.save();
-      ctx.translate(p.x, WORLD.floor + (p.depth ?? 0) * 0.65 - p.y);
-      ctx.rotate(projectileSpin(scene, p));
-      ctx.drawImage(image, -DISC_SIZE / 2, -DISC_SIZE / 2, DISC_SIZE, DISC_SIZE);
-      ctx.restore();
-    }
+    props(cueProps(scene, art, false));
+    shapes(cueShapes(scene, false));
     for (const p of scene.motes)
       ellipse(p.x, p.y, p.r, p.r, `rgba(172,237,227,${p.alpha})`);
-    for (const p of scene.bursts) {
-      const b = burstParts(p);
-      ctx.globalAlpha = 1 - b.t;
-      ctx.strokeStyle = p.blocked ? "#8eead7" : "#ffe0a9";
-      ctx.lineWidth = 3;
-      ctx.lineCap = "round";
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, b.ring, 0, Math.PI * 2);
-      for (const [x, y, xx, yy] of b.streaks) {
-        ctx.moveTo(x, y);
-        ctx.lineTo(xx, yy);
-      }
-      ctx.stroke();
-      if (b.core) ellipse(p.x, p.y, b.core, b.core, "#fff6de");
-      ctx.globalAlpha = 1;
-    }
+    shapes(impactCuesFor(scene.bursts));
   }
   return { draw, resize, destroy() {}, name: "Canvas 2D" };
 }
@@ -240,14 +215,36 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
   const ground = new Graphics(),
     fighters = new Container(),
     props = new Container(),
-    effects = new Graphics();
-  root.addChild(terrain, ground, fighters, props, effects);
+    effects = new Graphics(),
+    // Additive light for cues, under and over the fighters.
+    groundGlow = new Graphics(),
+    glow = new Graphics(),
+    groundProps = new Container();
+  groundGlow.blendMode = glow.blendMode = "add";
+  root.addChild(terrain, ground, groundGlow, groundProps, fighters, props, effects, glow);
   const weaponTextures = new Map(),
-    thrown = [];
-  function weaponTexture(id) {
-    const image = art.weapons?.get(id);
-    if (image && !weaponTextures.has(id)) weaponTextures.set(id, Texture.from(image));
-    return image ? weaponTextures.get(id) : null;
+    pools = { ground: [], front: [] };
+  function propTexture(key) {
+    const image = artImage(art, key);
+    if (image && !weaponTextures.has(key)) weaponTextures.set(key, Texture.from(image));
+    return image ? weaponTextures.get(key) : null;
+  }
+  const weaponTexture = (id) => propTexture("weapons/" + id);
+  function placeProps(pool, parent, items) {
+    items.forEach((p, i) => {
+      const s = (pool[i] ??= parent.addChild(new Sprite())),
+        texture = propTexture(p.image);
+      s.anchor.set(0.5);
+      s.texture = texture;
+      s.visible = true;
+      s.position.set(p.x, p.y);
+      s.rotation = p.rotation ?? 0;
+      s.alpha = clamp01(p.alpha ?? 1);
+      s.tint = p.tint ?? 0xffffff;
+      s.blendMode = p.add ? "add" : "normal";
+      s.scale.set((p.size / texture.width) * (p.flip ?? 1), (p.size / texture.height) * (p.squash ?? 1));
+    });
+    for (let i = items.length; i < pool.length; i++) pool[i].visible = false;
   }
   fighters.sortableChildren = true;
   const atlas = Texture.from(art.fighter),
@@ -319,7 +316,9 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
   function resize(w, h) {
     app.renderer.resize(w, h);
   }
-  function shapes(graphics,items){for(const s of items){if(s.kind==='ellipse')graphics.ellipse(s.x,s.y,s.rx,s.ry).fill({color:s.color,alpha:s.alpha??1});else if(s.kind==='line')graphics.moveTo(s.x,s.y).lineTo(s.x2,s.y2).stroke({color:s.color,alpha:s.alpha??1,width:s.width??1});else graphics.poly(s.points).fill({color:s.color,alpha:s.alpha??1});}}
+  function shapes(graphics,items){for(const s of items){const alpha=clamp01(s.alpha??1);if(s.kind==='ellipse')graphics.ellipse(s.x,s.y,Math.max(0,s.rx),Math.max(0,s.ry)).fill({color:s.color,alpha});else if(s.kind==='line')graphics.moveTo(s.x,s.y).lineTo(s.x2,s.y2).stroke({color:s.color,alpha,width:s.width??1});else if(s.kind==='path'){graphics.moveTo(s.points[0],s.points[1]);for(let i=2;i<s.points.length;i+=2)graphics.lineTo(s.points[i],s.points[i+1]);graphics.stroke({color:s.color,alpha,width:s.width??1,cap:'round',join:'round'});}else graphics.poly(s.points).fill({color:s.color,alpha});}}
+  // Solid cue shapes go to one layer, their light to the additive layer above it.
+  function cues(items,solid,light){shapes(solid,items.filter(s=>!s.add));shapes(light,items.filter(s=>s.add));}
   function draw(scene) {
     if (lost) return;
     const stage=scene.stage??'skyglass';
@@ -340,6 +339,8 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
     bg.height = rect.h;
     ground.clear();
     effects.clear();
+    groundGlow.clear();
+    glow.clear();
     // Retain static geometry; rebuild only the animated additions.
     shapes(ground,sceneryFor(scene).slice(staticScenery.length));
     for(const a of actors.values())a.container.visible=false;
@@ -398,38 +399,15 @@ export async function createPixiLab(canvas, art, resolution, onLost) {
         a.weapon.scale.set(s.scale);
         a.weapon.alpha = f.weapon.alpha;
       }
-      if (f.blocking) {
-        const height=(f.crouching?68:110)*(f.bodyScale??1);
-        effects.ellipse(f.x + f.facing*18, f.y-height/2, 25, height/2)
-          .fill({color:teal,alpha:0.18}).stroke({color:teal,width:2,alpha:0.65});
-      }
     }
     shapes(effects,projectileShapes(shapeProjectiles(scene, art)));
-    const flying = spriteProjectiles(scene, art);
-    for (const [i, p] of flying.entries()) {
-      if (!thrown[i]) {
-        thrown[i] = new Sprite();
-        thrown[i].anchor.set(0.5);
-        props.addChild(thrown[i]);
-      }
-      const s = thrown[i];
-      s.texture = weaponTexture(p.sprite);
-      s.visible = true;
-      s.position.set(p.x, WORLD.floor + (p.depth ?? 0) * 0.65 - p.y);
-      s.rotation = projectileSpin(scene, p);
-      s.width = s.height = DISC_SIZE;
-    }
-    for (let i = flying.length; i < thrown.length; i++) thrown[i].visible = false;
+    cues(cueShapes(scene, true), ground, groundGlow);
+    cues(cueShapes(scene, false), effects, glow);
+    placeProps(pools.ground, groundProps, cueProps(scene, art, true));
+    placeProps(pools.front, props, cueProps(scene, art, false));
     for (const p of scene.motes)
       effects.circle(p.x, p.y, p.r).fill({ color: 0xacede3, alpha: p.alpha });
-    for (const p of scene.bursts) {
-      const b = burstParts(p),
-        alpha = 1 - b.t;
-      effects.circle(p.x, p.y, b.ring).stroke({ color: p.blocked ? teal : 0xffe0a9, alpha, width: 3 });
-      for (const [x, y, xx, yy] of b.streaks)
-        effects.moveTo(x, y).lineTo(xx, yy).stroke({ color: 0xfff0c8, alpha, width: 3 });
-      if (b.core) effects.circle(p.x, p.y, b.core).fill({ color: 0xfff6de, alpha: alpha * 0.85 });
-    }
+    cues(impactCuesFor(scene.bursts), effects, glow);
     app.renderer.render(app.stage);
   }
   return {

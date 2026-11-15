@@ -259,13 +259,15 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
     for(const z of state.zones??[]){
       if(z.kind==='elemental'){const zoneFloor=ARENA.floor+(z.depth??0)*.65,m=MOVES[z.move],color=({fire:'#ef9c62',water:'#69c6e2',earth:'#d2b77f',poison:'#b2d36d'})[m.ground.element];c.save();c.globalAlpha=Math.min(.7,z.remaining/60);if(!nativeEffects){c.fillStyle=color+'55';c.strokeStyle=color;c.lineWidth=2;c.beginPath();c.ellipse(z.x,zoneFloor,z.radius,36,0,0,Math.PI*2);c.fill();c.stroke();for(let i=0;i<7;i++){const x=z.x-z.radius+20+i*34;line(x,zoneFloor,x+Math.sin(state.tick*.1+i)*8,zoneFloor-15-(state.tick+i*9)%45,color+'99',2);}}c.font='bold 12px system-ui';c.textAlign='center';c.fillStyle=color;c.fillText(m.name.toUpperCase(),z.x,zoneFloor+35);c.restore();continue;}
       const y=ARENA.floor+(z.depth??0)*.65-z.y;c.save();
+      // Sprite battlefields draw smoke and blasts themselves, with painted item art.
+      if(nativeEffects){c.restore();continue;}
       if(z.kind==='smoke'){
         c.globalAlpha=Math.min(.55,z.remaining/60);for(let i=0;i<5;i++)circle(z.x-70+i*35,y+Math.sin(state.tick*.04+i)*12,60,z.appearance==='victory'?'#c8b3da':'#99acbb');
         c.fillStyle='#e5eef7';c.font='bold 13px system-ui';c.textAlign='center';c.fillText('SMOKE · PROJECTILE COVER',z.x,y-75);
       }else{c.globalAlpha=z.remaining/15;c.strokeStyle='#ffcf79';c.lineWidth=8;c.beginPath();c.arc(z.x,y,z.radius*(1.5-z.remaining/30),0,Math.PI*2);c.stroke();}
       c.restore();
     }
-    for(const f of state.fighters)if(f.waypointMark){const x=f.waypointMark.x;c.save();line(x,ARENA.floor-75,x,ARENA.floor-5,'#ffd87977',2);circle(x,ARENA.floor-7,8,'#ffd879');c.font='bold 12px system-ui';c.fillStyle='#ffd879';c.textAlign='center';c.fillText(`WAYPOINT · ${(f.waypointMark.remaining/60).toFixed(1)}s`,x,ARENA.floor-85);c.restore();}
+    if(!nativeEffects)for(const f of state.fighters)if(f.waypointMark){const x=f.waypointMark.x;c.save();line(x,ARENA.floor-75,x,ARENA.floor-5,'#ffd87977',2);circle(x,ARENA.floor-7,8,'#ffd879');c.font='bold 12px system-ui';c.fillStyle='#ffd879';c.textAlign='center';c.fillText(`WAYPOINT · ${(f.waypointMark.remaining/60).toFixed(1)}s`,x,ARENA.floor-85);c.restore();}
     for(const f of [...state.fighters].sort((a,b)=>(a.depth??0)-(b.depth??0))){
       trails[f.id]??=[];
       if(f.replacement){const r=f.replacement,y=ARENA.floor+(r.depth??0)*.65-r.y;c.fillStyle='#96663c';c.fillRect(r.x-15,y-70,30,65);circle(r.x,y-70,15,'#c09361');line(r.x-8,y-62,r.x-8,y-12,'#d2a176',3);for(let i=0;i<3;i++)circle(r.x-28+i*27,y-60-i*15,15,'#cadde74a');}
@@ -274,7 +276,7 @@ export function createRenderer(canvas, {moves=LIVE_MOVES,characters=LIVE_CHARACT
       if(state.tick>=(f.landedAt??-100)&&state.tick-(f.landedAt??-100)<13){const age=state.tick-f.landedAt;c.save();c.globalAlpha=(1-age/13)*.4;for(let i=0;i<5;i++)circle(f.x-25+i*12+(i-2)*age*1.3,ARENA.floor-3-age*.5,3+age*.5,'#a7b7ac');c.restore();}
       if(f.airTech){c.font='bold 12px system-ui';c.textAlign='center';c.fillStyle='#9be4e8';c.fillText('AIR RECOVERY',f.x,ARENA.floor-f.y-170);}
     }
-    for(const p of state.projectiles){const y=ARENA.floor+(p.depth??0)*.65-p.y;if(nativeEffects){if(p.move==='itemBomb'){c.font='bold 11px system-ui';c.fillStyle='#ffe2a4';c.textAlign='center';c.fillText((p.life/60).toFixed(1),p.x,y-19);}continue;}
+    for(const p of state.projectiles){const y=ARENA.floor+(p.depth??0)*.65-p.y;if(nativeEffects)continue;
       if(p.move==='itemBomb'){circle(p.x,y,12,'#2c2522');circle(p.x,y,8,'#ffbd70');c.font='bold 11px system-ui';c.fillStyle='#ffe2a4';c.textAlign='center';c.fillText((p.life/60).toFixed(1),p.x,y-19);continue;}
       if(['itemSpike','itemWaypoint'].includes(p.move)){line(p.x-18*p.direction,y,p.x+14*p.direction,y,'#d9e6ee',4);if(p.move==='itemWaypoint')circle(p.x,y,18,'#ffd87955');continue;}
 
