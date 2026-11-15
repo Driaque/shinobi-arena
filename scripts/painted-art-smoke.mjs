@@ -10,7 +10,7 @@ try{
  for(const viewport of [{width:1440,height:900},{width:390,height:844},{width:844,height:390},{width:768,height:1024}]){
   const context=await browser.newContext({viewport,deviceScaleFactor:2}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto('http://127.0.0.1:4227');await page.click('#entry-guest');
-  assert.equal(await page.locator('#character0 img[data-painted-portrait]').count(),10);
+  assert.equal(await page.locator('#character0 .character-card:not([hidden]) img[data-painted-portrait]').count(),10);
   for(const id of ['silent','winta','dora','aren','eira','kael','nyra','rook','veyra','oryn']){
    const image=page.locator(`#character0 img[data-painted-portrait=${id}]`);await image.scrollIntoViewIfNeeded();
    await image.evaluate(img=>img.decode());assert.ok(await image.evaluate(img=>img.naturalWidth>0));

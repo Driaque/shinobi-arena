@@ -41,6 +41,11 @@ try{
   await page.locator('#controller-mapping summary').click();const layer=page.locator('[data-pad-ability="0"]');await layer.selectOption('jutsu7');assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('fabled.pad.abilities.v1'))[0]),'jutsu7');await layer.selectOption('special1');
   const slider=page.locator('[data-experience=deadZone]'),before=Number(await slider.inputValue());await slider.focus();await pulse(15);assert.ok(Number(await slider.inputValue())>before,'D-pad changes a focused sensitivity slider');
   await pulse(1);assert.equal(await page.locator('#experience-dialog').isVisible(),false);
+  // Right stick scrolls a focused menu without moving/showing the left-stick cursor.
+  await page.evaluate(()=>{document.querySelector('#experience-settings').click();document.querySelector('[data-experience=deadZone]').focus();document.querySelector('#experience-dialog').scrollTop=0;window.testPads[0].axes[3]=1;});
+  await page.waitForFunction(()=>document.querySelector('#experience-dialog').scrollTop>15);
+  await page.evaluate(()=>window.testPads[0].axes[3]=0);await page.waitForTimeout(100);const stopped=await page.locator('#experience-dialog').evaluate(n=>n.scrollTop);await page.waitForTimeout(100);assert.equal(await page.locator('#experience-dialog').evaluate(n=>n.scrollTop),stopped,'right-stick scrolling stops on release');assert.equal(await page.locator('#controller-cursor').isVisible(),false,'scrolling does not activate the cursor');
+  await page.evaluate(()=>document.querySelector('#experience-dialog').close());
   // Left-stick cursor selects an actual modal button and disappears in combat.
   await page.evaluate(()=>document.querySelector('#experience-settings').click());
   await page.evaluate(()=>{document.querySelector('#experience-close').scrollIntoView({block:'center'});window.testPads[0].axes[0]=.7;});await page.waitForSelector('#controller-cursor:visible');
@@ -56,6 +61,19 @@ try{
   await page.waitForSelector('.adventure-arena.controller-view');await page.waitForTimeout(250);
   assert.equal(await page.locator('#joystick').isVisible(),false);assert.match(await page.locator('#controller-hint').innerText(),/LB.*RB/);
   await page.screenshot({path:`test-results/controller-adventure-${viewport.width}.png`});assert.deepEqual(errors,[]);
+  // Local setup routes the second pad to P2 and protects the shared editor.
+  await page.goto('http://127.0.0.1:4207');await page.waitForFunction(()=>document.documentElement.dataset.gameReady==='true');await selectGame(page,'#mode','local');
+  await page.evaluate(()=>{window.testPads=[0,1].map(index=>({index,id:'Xbox '+index,connected:true,axes:[0,0,0,0],buttons:Array.from({length:16},()=>({pressed:false}))}));});
+  const press=async(slot,button)=>{await page.evaluate(({slot,button})=>window.testPads[slot].buttons[button].pressed=true,{slot,button});await page.waitForTimeout(80);await page.evaluate(({slot,button})=>window.testPads[slot].buttons[button].pressed=false,{slot,button});await page.waitForTimeout(60);};
+  await page.waitForFunction(()=>document.documentElement.dataset.setupControllers==='paired');
+  const p1=await page.locator('#character0 input:checked').inputValue();await press(1,13);await press(1,0);
+  assert.equal(await page.locator('#character1 input:checked').inputValue(),await page.locator('#character1 input').first().inputValue(),'pad 2 selects its own fighter');assert.equal(await page.locator('#character0 input:checked').inputValue(),p1);
+  const p2=await page.locator('#weapon1').inputValue();await page.locator('#weapon1').focus();await press(0,15);assert.equal(await page.locator('#weapon1').inputValue(),p2,'pad 1 cannot change P2 equipment');
+  await page.evaluate(()=>{document.querySelector('#game-menu').open=false;document.querySelector('#edit-loadout1').click();});
+  await press(0,1);assert.equal(await page.locator('#loadout-book').isVisible(),true,'pad 1 cannot cancel P2 editor');await press(1,1);assert.equal(await page.locator('#loadout-book').isVisible(),false,'pad 2 owns its editor');
+  // Both player cursors can appear independently while on the setup screen.
+  await page.evaluate(()=>{window.testPads[0].axes[0]=.5;window.testPads[1].axes[0]=-.5;});await page.waitForSelector('#controller-cursor:visible');await page.waitForSelector('#controller-cursor-p2:visible');await page.evaluate(()=>window.testPads.forEach(p=>p.axes=[0,0,0,0]));
+  assert.deepEqual(errors,[]);
   await context.close();
  }
  console.log('Controller mobile portrait/landscape and adventure checks passed');

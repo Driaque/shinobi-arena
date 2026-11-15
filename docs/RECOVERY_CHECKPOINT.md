@@ -76,7 +76,35 @@ All seven consumables and seven weapons have distinct painted PNG masters and 64
 Generated the remaining 47 move and 17 future-fighter masters using built-in image generation, one distinct asset per call. Masters preserved at /workspace/scratch/51863306bb15/{move-masters,future-masters,equipment-masters}. Complete exports now cover 64 moves, 7 weapons, 7 consumables and 25 future portraits, 309 PNG variants totaling 44.01 MiB. Exporter now validates temporary PNGs before atomic replacement. All 309 exports decoded and dimensions/bytes verified. Contact sheets visually reviewed for all 64 moves and 25 future rivals. Full npm run verify passed (351 tests), v0.40.0 static build passed. Canonical art briefs and roster-plan IDs regenerated from runtime catalogs. Franchise-term scan across source/docs/scripts/tests returned zero matches.
 Desktop cloud-browser QA at http://terminal.local:4173 confirmed toggle switches core10 to35, new move icons display, and all seven consumable images load. Startup required Play offline because this local preview has no online backend. Full hosted browser suite and mobile/tablet visual QA still pending. No production deployment, merge or release performed. Next: push artwork branch, run hosted browser gates and address failures before any deployment. Source repository remains Driaque/shinobi-arena, sole production host remains shinobi-arena-online Render. No Blob uploads used.
 
-## Fight feel and sprite-only fighters, 2026-11-14 (local, uncommitted)
+## Local two-controller selection update
+
+Branch: fix/player-controller-selection, based on e3f4ac1 (v0.39.0 artwork).
+Scope: pad 1 edits only P1 and pad 2 only P2 in local versus with a second controller; independent cursors/focus, owned shared equipment dialogs, vertical/horizontal cursor-edge list scrolling. P1 controls shared stage/start actions. Editor remains one shared modal, not simultaneous two-player equipment editors. User also explicitly requested cursor auto-scrolling through character and other lists.
+Files: controller-ui.js, controller-cursor.js, loadouts.js, styles.css, packages/input/setup-ownership.js, ownership tests and gamepad browser suite. Version v0.39.1.
+Verification: 350 unit/integration tests and build passed locally; browser CI pending. Physical two-pad test pending. Render-only deployment policy retained.
+Next: publish branch/PR, run browser CI, merge after passing checks and verify exact deployed version/commit on Render /health. No PR or deployment created yet for this update. Approval scope: requested implementation; existing project approvals cover push, merge and Render-only deployment, subject to native tool approval review.
+
+Publishing outcome: automatic approval review rejected create_tree upload to Driaque/shinobi-arena, requiring explicit current authorization for this update's source publication. Remote branch fix/player-controller-selection was created at e3f4ac1 but contains no update commit yet. All source changes and tests are saved in the local branch. Final verification: 350 tests and build passed; browser CI has not run. Next approval must cover upload to Driaque/shinobi-arena, PR, merge after CI, and deployment only to the existing Render service. Do not regenerate artwork or repeat previous design work.
+
+Current authorization: user explicitly approved uploading this update, opening its PR, merging after successful CI, and deploying to Render only. Publication is now in progress. Read the final branch/PR state before resuming; earlier upload rejection is historical.
+
+Published PR: https://github.com/Driaque/shinobi-arena/pull/58 (fix/player-controller-selection). Initial source head: 25bb5998444e7578bf90dd23a08f40aa718dda42. Browser CI pending. Next: inspect PR #58 checks, fix any observed failure, merge approved work after success and verify v0.39.1 plus exact merged commit at the existing Render /health. No further approval is needed for that approved scope unless native approval review rejects an action.
+
+## PR #60 conflict resolution
+Merged origin/main d007b0960c14d74c1fcdd1543275acb6a4adc221 into feat/painted-move-icons (original head 673bd1078f8567be079d7eef103fcc4cfafa5abe). Kept v0.40.0 original-world artwork and release/help text; retained v0.39.1 controller ownership, scrolling, tests and release history. User authorized resolving and publishing the conflict fix. npm run verify passed: 354 tests and v0.40.0 build; git diff --cached --check passed. Local browser smoke blocked by missing Chromium and corrupt download response; hosted browser CI must pass before merge. This action does not merge PR #60 or deploy. Next: inspect CI and mergeability at https://github.com/Driaque/shinobi-arena/pull/60.
+
+PR #60 deployment authorized by user. Hosted browser gates exposed stale renamed roster filter, hidden-portrait count, move labels and replay rules assertions. Corrected those checks and Future filter disabled-state logic; 354 tests/build passed. Hosted CI must rerun. Render workspace selection awaiting confirmation of My Workspace (tea-dbgua0etlv9c73ddk47g). No merge/deployment yet.
+
+## Right-stick menu scrolling update
+
+Branch: fix/right-stick-menu-scroll, based on c88fd3342dba51999c356c4b2df9470b4d901f14 (v0.40.0). Version v0.40.1.
+User requested right analog scrolling. Left stick remains cursor-only; D-pad remains focus navigation. Right stick scrolls the hovered list or focused control's container on both axes, preserving per-pad ownership. Cursor-edge scrolling removed. Combat aiming unchanged.
+Files: controller-cursor.js, controller-ui.js, packages/input/cursor.js, cursor tests and gamepad browser suite. No art regenerated.
+Checks: local verify pending final result; browser CI pending. Next: publish branch/PR, verify CI, merge within approved project scope and confirm exact Render /health version/commit. Render-only policy retained. PR/deployment IDs not yet assigned.
+
+Right-stick scrolling publication: PR https://github.com/Driaque/shinobi-arena/pull/61. Initial source head cca5e55dcf531f0aaf71da270a04c4430c6dd69d. Local verify passed: 356 tests and production build. Browser CI pending. User requested this control adjustment; prior project authorization covers publication, merge after CI, and Render-only deployment. Next: inspect PR #61 latest checks, resolve observed failures, merge and verify exact Render version/commit. Do not regenerate assets. If resuming after a completed merge, inspect main and /health instead of republishing the feature.
+
+## Fight feel and sprite-only fighters, 2026-11-14
 
 Branch feat/ui-css-audit at 2e6664c. Everything below is uncommitted working-tree work on top of the user's own staged CSS changes (apps/web/index.html, apps/web/styles.css, deleted styles-audit-improvements.css), which were not touched. Nothing was committed, pushed, merged or deployed. Version stays 0.40.0; no release notes, CHANGELOG entry or in-game link were changed because no version was bumped.
 
@@ -105,7 +133,7 @@ User request: play the game headlessly, make fighter art uniform (sprites only, 
 ### Next action and approval scope
 User reviews the local build (node scripts/build.mjs, then node scripts/serve.mjs --port 4173). If accepted: commit, bump to 0.41.0 with docs/releases/0.41.0.md, CHANGELOG and in-game release-notes link, fix the six stale browser suites, run npm run verify on an LF checkout, then push and deploy to the shinobi-arena-online Render service only. No approval has been given yet for commit, push, PR or deployment.
 
-## Painted weapons in hand and cleanup, 2026-11-15 (local, uncommitted)
+## Painted weapons in hand and cleanup, 2026-11-15
 
 Branch feat/fight-feel, created from 673bd10 and pushed to origin on 2026-11-15 at the user's request (feat/ui-css-audit with the dropped audit commit 2e6664c is left as it was). This section and the previous one are committed together on that branch. The user dropped the CSS audit work (2e6664c); their staged revert of it (apps/web/index.html, apps/web/styles.css, deleted styles-audit-improvements.css) is untouched, so the working tree equals 673bd10 plus this work. Not merged and not deployed; production is unchanged. Version stays 0.40.0.
 
@@ -133,3 +161,31 @@ User request: replace the line-drawn weapon animation, drop the CSS audit, delet
 
 ### Next action and approval scope
 User tests the branch build locally and on a phone over the LAN (node scripts/build.mjs, then node scripts/serve.mjs --port 4173 --host 0.0.0.0). Approved so far: commit and push of this branch only. Not approved: PR, merge to main, version bump or Render deployment. Next work, on separate branches: item art and item-use animation, guard/shield identity, then sprite-sheet and stage art quality.
+
+## Release 0.41.0 prepared: fight feel, sprite-only fighters, crest and items, 2026-11-15
+
+Branch feat/items-guard-identity. It contains feat/fight-feel (baa8c21: the two sections above, now committed and pushed), the guard and item work (5fdb840) and a merge of origin/main at ec9cf11 (v0.40.1, PRs #58 to #61). The only merge conflict was this file; both histories are kept.
+
+### Approval scope
+On 2026-11-15 the user asked in the conversation to open a PR with all changes so far, merge it and deploy to Render. That covers: push of this branch, one PR to main, merge after CI passes, and the automatic Deploy Render run to the existing shinobi-arena-online service. Nothing goes to GitHub Pages. The GitHub CLI was not logged in and the GitHub MCP server failed to connect; the user chose to run gh auth login themselves.
+
+### Completed in this step
+- The Rival's Crest guard (packages/presentation/guard.js), the Rival's Mark hit spark (impactCuesFor in packages/presentation/impact.js) and painted item cues (packages/presentation/items.js) on shared shape helpers (packages/presentation/shapes.js). Drawn by apps/web/visual-lab-renderers.js in both the Canvas and Pixi labs; item art is loaded and cut out in apps/web/practice-pixi.js. The overlay in apps/web/renderer.js no longer draws smoke circles, the blast ring, the waypoint marker or the bomb timer text in sprite mode. Charge and ward restyled in apps/web/practice-effects.js.
+- Sounds in apps/web/audio.js: toss, blast, warp, shatter; item actions no longer use the generic wind sound and a guard break plays once.
+- Version 0.41.0: package.json, package-lock.json, docs/releases/0.41.0.md, CHANGELOG.md and the in-game release-notes link in apps/web/index.html.
+- docs/ORIGINAL_FIGHTER_ART.md documents the guard, impact and item cues and what a new item needs.
+- Tests: new tests/item-guard-presentation.test.js (13 tests). scripts/browser-smoke.mjs now waits for the third hit of the timed chain, because impact pauses land it slightly later in real time; the chain itself still connects with the pause on and off.
+
+### Checks
+- node scripts/check.mjs and node scripts/check-release.mjs pass (the new release notes are LF). node scripts/run-checks.mjs: 382 tests, 382 pass. node scripts/build.mjs: Static build dist/ v0.41.0.
+- All 24 browser suites pass locally against the v0.41.0 build. The six suites that failed on the older branch base were fixed on main by 10a4de3 and pass after the merge.
+- Headless captures of guard, parry, guard break, hits and all seven items on the Pixi and Canvas paths, plus training-mode play of the real build on both: no page errors.
+- Not checked: the new sounds by ear, and physical phones or controllers.
+
+### Limits
+- Presentation only. Engine, rules version and online protocol are unchanged.
+- Sprite and stage art were not regenerated; masters are not in this checkout. That work is planned for a separate branch.
+- Unreleased preview rivals still use the procedural body and line-drawn weapons.
+
+### Next action
+Push, open the PR, wait for CI (Build and unit checks plus five browser groups), merge, watch Deploy Render, then confirm version 0.41.0 and the merge commit at https://shinobi-arena-online.onrender.com/health and that Release notes published v0.41.0. Do not call it live before /health matches. Record the PR number, merge commit and deployment result in the next checkpoint.

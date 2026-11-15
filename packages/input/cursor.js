@@ -7,3 +7,6 @@ export function cursorStep(position,axes,dt,speed,bounds){
 
 // D-pad is the sole source of keyboard-style menu focus movement.
 export function menuDirection(buttons){return buttons?.[12]?-1:buttons?.[13]?1:buttons?.[14]?-1:buttons?.[15]?1:0;}
+
+// Menu scrolling uses only the right stick; pointer movement never scrolls lists.
+export function menuScrollDelta(intent,dt){const seconds=Math.min(.05,Math.max(0,dt));const axis=n=>Math.abs(n??0)<=.1?0:Math.sign(n)*Math.pow(Math.min(1,Math.abs(n)),1.3)*600*seconds;return {x:axis(intent.aimX),y:axis(intent.aimZ)};}

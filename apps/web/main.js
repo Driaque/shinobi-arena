@@ -80,7 +80,7 @@ for(const i of [0,1]){
 loadoutUI=createLoadouts({onChange:describeLoadouts});
 function filterRoster(){
   const query=$('#roster-search').value.trim().toLowerCase(),era=$('#roster-era').value;
-  for(const o of $('#roster-era').options)if(['Solan','Lumen','Concord Challengers'].includes(o.value))o.disabled=!$('#include-unreleased').checked;
+  for(const o of $('#roster-era').options)if(o.value==='Future')o.disabled=!$('#include-unreleased').checked;
   let count=0;for(const character of Object.values(CHARACTERS)){
     const show=(isOriginalFighter(character.id)||$('#include-unreleased').checked)&&(!query||`${character.name} ${character.title}`.toLowerCase().includes(query))&&(era==='all'||character.era===era);
     for(const card of document.querySelectorAll(`.character-card[data-character="${character.id}"]`))card.hidden=!show;
@@ -245,7 +245,7 @@ function paintHud(){
     $(`#awakening-label${i}`).textContent=active?`${active.name.toUpperCase()} · ${(f.awakeningTicks/60).toFixed(1)}s`:!form?'NO AWAKENING':f.awakeningUsed?'AWAKENING USED':awakeningReady(f)?`${form.name.toUpperCase()} · READY`:`${form.name.toUpperCase()} · ${Math.floor(Math.min(100,f.damageTaken/form.threshold*100))}%`;
     $(`#combo${i}`).textContent=f.combo.hits>1&&state.tick-f.combo.lastTick<60?`${f.y>0?'AIR · ':''}${f.combo.hits} HITS · ${f.combo.damage} DAMAGE`:'';
     $(`#name${i}`).textContent=render.preview()?`${i===0?'AREN':'SPARRING ECHO'} · ${f.name.toUpperCase()} KIT`:mode==='online'&&onlinePlayers[i]?`${onlinePlayers[i].name} · ${f.name}`:f.name.toUpperCase();
-    const labels=[...f.effects.map(e=>`${e.type==='metalVulnerable'?'METAL EXPOSED':e.type==='poisonslow'?'POISON-SLOW':e.type.toUpperCase()} ${(e.remaining/60).toFixed(1)}s`),...f.buffs.map(b=>`${({aquaGuard:'TRIUNE FLOW',skyforgedAegis:'SKYFORGED AEGIS GUARD',counter:'COUNTER READY',stormheart:'STORMHEART',poisonCoating:'POISON COATED'})[b.type]??b.type.toUpperCase()} ${(b.remaining/60).toFixed(1)}s`)];
+    const labels=[...f.effects.map(e=>`${e.type==='metalVulnerable'?'METAL EXPOSED':e.type==='poisonslow'?'POISON-SLOW':e.type.toUpperCase()} ${(e.remaining/60).toFixed(1)}s`),...f.buffs.map(b=>`${({aquaGuard:'TRIUNE FLOW',skyforgedAegis:'SKYFORGED AEGIS GUARD',counter:'COUNTER READY',stormheart:'STORMHEART',poisonCoating:'POISON COATED'})[b.type]??shortNames[b.type]??b.type.toUpperCase()} ${(b.remaining/60).toFixed(1)}s`)];
     if(f.crouching&&f.blocking)labels.push('CROUCH GUARD');
     if(f.invulnerable>0)labels.push('SUBSTITUTION');
     $(`#effects${i}`).textContent=labels.join(' · ');
