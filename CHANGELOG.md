@@ -1,5 +1,12 @@
 # Release notes
 
+## 0.41.0
+
+- Dynamic fight camera, impact pause and hit feedback, with Feel toggles; offline modes only for the pause.
+- Released fighters always render as painted sprites, with painted weapons in hand.
+- The Rival's Crest guard, the Rival's Mark hit spark and painted consumables in hand, in flight and on the ground, with their own sounds.
+- Repair three damaged stage and portrait PNG exports.
+
 ## 0.40.1
 
 - Use the right stick to scroll menu lists vertically and horizontally, independently of the left-stick cursor.

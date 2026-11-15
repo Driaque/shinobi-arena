@@ -237,7 +237,7 @@
           "file": "portraits/rook-768.png",
           "width": 768,
           "height": 1024,
-          "bytes": 458865
+          "bytes": 1017826
         }
       ]
     },
@@ -329,7 +329,7 @@
           "file": "stages/skyglass-1280.png",
           "width": 1280,
           "height": 720,
-          "bytes": 196673
+          "bytes": 1631518
         },
         {
           "file": "stages/skyglass-1600.png",
@@ -407,7 +407,7 @@
           "file": "stages/forge-1600.png",
           "width": 1600,
           "height": 900,
-          "bytes": 1638729
+          "bytes": 1988685
         }
       ]
     },

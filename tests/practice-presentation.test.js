@@ -64,10 +64,20 @@ test('native fields retain element, depth and expiry while smoke stays in the co
  assert.equal(scene.zones[0].element,'water');assert.equal(scene.zones[0].depth,18);assert.equal(scene.zones[0].remaining,24);
 });
 
-test('fluid fighters retain effects and authoritative state without loading painted bodies',()=>{
+test('selected fights always carry sprite fighters; real-time impacts add sparks, flash and jolt without touching state',()=>{
  const state=createTraining([{character:'silent',weapon:'frostmereSaber'},{character:'aren',weapon:'skyforgedBlade'}]);
- const before=structuredClone(state),scene=practiceSceneFor(state,{}, {selected:true,fluid:true});
- assert.equal(scene.fighters.length,0);
+ state.fighters[1].lastHit=state.tick;state.fighters[1].lastDamage=60;
+ const before=structuredClone(state),calm=practiceSceneFor(state,{}, {selected:true,atlasFighters:['silent','aren']});
+ assert.equal(calm.fighters.length,2);assert.ok(calm.motes.length>0);
+ const struck=practiceSceneFor(state,{hits:{[state.fighters[1].id]:40}},{selected:true,atlasFighters:['silent','aren']});
+ assert.equal(struck.bursts.length,1);assert.equal(struck.bursts[0].power,60);assert.equal(struck.bursts[0].blocked,false);
+ const victim=struck.fighters.find(f=>f.id===1),other=struck.fighters.find(f=>f.id===0);
+ assert.ok(victim.flash>0&&victim.flash<1);assert.ok(Number.isFinite(victim.jolt));assert.equal(other.flash,undefined);
+ // Sparks end with the cue; guarded hits ring without flashing the body.
+ assert.equal(practiceSceneFor(state,{hits:{[state.fighters[1].id]:260}},{selected:true,atlasFighters:['silent','aren']}).bursts.length,0);
+ state.fighters[1].blockedHit=true;const guarded=practiceSceneFor(state,{hits:{[state.fighters[1].id]:40}},{selected:true,atlasFighters:['silent','aren']});
+ assert.equal(guarded.bursts[0].blocked,true);assert.equal(guarded.fighters.find(f=>f.id===1).flash,undefined);
+ state.fighters[1].blockedHit=before.fighters[1].blockedHit;
+ assert.equal(practiceSceneFor(state,{hits:{[state.fighters[1].id]:40}},{selected:true,atlasFighters:['silent','aren'],reduced:true}).bursts.length,0);
  assert.deepEqual(state,before);
- assert.ok(scene.motes.length>0);
 });

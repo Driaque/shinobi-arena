@@ -3,6 +3,7 @@ import {createControls} from './controls.js';
 import {createTechniqueTray} from './technique-tray.js';
 import {createControllerUI} from './controller-ui.js';
 import {createExperience,experience} from './experience.js';
+import {impactPauseMs} from './packages/presentation/impact.js';
 import {WEAPONS} from './packages/engine/index.js';
 import {ITEMS} from './packages/engine/items.js';
 mountCombatControls(document.querySelector('.arena'));
@@ -64,6 +65,7 @@ $('#jutsu-toggle').hidden=true;
 const gamepads=createControllerUI({inputs,isPlaying:()=>active()&&!controls.editing,isLocal:()=>false,onPause:()=>{if(mode==='coop')$('#experience-settings').click();else pauseStory();}});
 function clearInput(){controls.reset();document.querySelectorAll('.active').forEach(b=>b.classList.remove('active'));pauseStory();}
 window.addEventListener('blur',clearInput);document.addEventListener('visibilitychange',()=>{if(document.hidden)clearInput();});window.addEventListener('pagehide',()=>{closeConnection();render.dispose();});
+let impactUntil=0,finishing=null;const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
 let hudKey='';function hud(){const title=state.coop?`Wave ${state.coop.wave}/${state.coop.totalWaves}`:`Encounter ${index+1}/3`;$('#adventure-clock').textContent=state.coop?.breakTicks?'Regrouping…':`${Math.ceil(state.remainingTicks/60)}s`;const next=JSON.stringify(state.fighters.map(f=>[f.character,f.hp,f.chakra,f.stamina,f.guard]));if(next!==hudKey){hudKey=next;const list=$('#adventure-vitals');list.replaceChildren();state.fighters.forEach((f,i)=>{const n=document.createElement('div');n.className='vital'+(state.coop?f.team===1?' enemy':'':i===1?' enemy':'');const name=document.createElement('strong');name.textContent=`${state.coop?(f.team===0?i===slot?'YOU · ':'ALLY · ':'ENEMY · '):''}${f.name} · ${Math.ceil(f.hp)} HP`;const bar=document.createElement('meter');bar.min=0;bar.max=1000;bar.value=f.hp;bar.setAttribute('aria-label',`${f.name} health`);const meta=document.createElement('span');meta.textContent=`Chakra ${Math.floor(f.chakra)} · Stamina ${Math.floor(f.stamina)}`;n.append(name,bar,meta);list.append(n);});}
  const me=state.fighters[mode==='coop'?slot:0];
  for(const [action,name,meta]of [['special1','s1-name','s1-meta'],['special2','s2-name','s2-meta'],['bloodline','bl-name','bl-meta']]){
@@ -85,4 +87,8 @@ let hudKey='';function hud(){const title=state.coop?`Wave ${state.coop.wave}/${s
  techniques.draw();$('#jutsu-toggle').hidden=!active();
  $('#adventure-feedback').textContent=state.coop?state.coop.breakTicks?'Wave cleared. Allies recover before the next wave.':me.hp<=0?'Knocked out. Your ally can clear this wave to bring you back.':`${title} · Blue team holds together. No friendly fire.`:`${title} · ${state.wins[0]} – ${state.wins[1]} rounds`;
 }
-function frame(now){gamepads.poll();if(state){if(active()){accumulator+=last?Math.min((now-last)/1000,.1):0;while(accumulator>=1/60&&active()){const commands=input.consume();if(mode==='coop'){if(socket?.readyState===WebSocket.OPEN)socket.send(JSON.stringify({type:'input',seq:seq++,input:commands}));}else{stepMatch(state,[commands,computerInput(state)]);if(state.status!=='playing')finishStory();}accumulator-=1/60;}}else accumulator=0;render(state,{interpolate:mode==='coop',localAlpha:mode==='story'?accumulator*60:0});hud();}last=now;requestAnimationFrame(frame);}requestAnimationFrame(frame);
+function frame(now){gamepads.poll();if(state){if(active()){
+ // Story fights hold the struck frame briefly; co-op stays server-timed.
+ if(mode==='story'&&now<impactUntil)accumulator=0;else accumulator+=last?Math.min((now-last)/1000,.1):0;
+ while(accumulator>=1/60&&active()){const commands=input.consume();if(mode==='coop'){if(socket?.readyState===WebSocket.OPEN)socket.send(JSON.stringify({type:'input',seq:seq++,input:commands}));accumulator-=1/60;}else{stepMatch(state,[commands,computerInput(state)]);accumulator-=1/60;const hold=experience().impact&&!reducedMotion.matches?impactPauseMs(state.events):0;if(hold){impactUntil=now+hold;accumulator=0;}if(state.status!=='playing'){if(hold)finishing=state;else finishStory();}}}}else accumulator=0;
+ if(finishing&&(finishing!==state||mode!=='story'||state.status==='playing'))finishing=null;else if(finishing&&now>=impactUntil){finishing=null;finishStory();}render(state,{interpolate:mode==='coop',localAlpha:mode==='story'?accumulator*60:0});hud();}last=now;requestAnimationFrame(frame);}requestAnimationFrame(frame);

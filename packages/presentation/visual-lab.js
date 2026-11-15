@@ -1,5 +1,6 @@
 import { MOVES } from "../engine/index.js";
 import { motionFor } from './motion.js';
+import { guardCuesFor } from './guard.js';
 import { createTraining, chargeTrainingAwakening } from "../engine/training.js";
 
 export const WORLD = { width: 1600, height: 900, floor: 650 };
@@ -85,6 +86,13 @@ export function poseFor(f, tick, reduced = false) {
   if (f.action) {
     const m = MOVES[f.action.move],
       age = f.action.age;
+    if (f.action.source === "useItem" && f.action.move !== "waypointWarp") {
+      // Items come out of the pouch at the chest, then are thrown or released.
+      if (age < m.startup) return { frame: 8, name: "Item ready" };
+      if (m.projectile)
+        return { frame: f.y > 0 ? 11 : age < m.startup + 8 ? 9 : 10, name: "Item throw" };
+      return { frame: f.action.move === "itemPoison" ? 8 : 15, name: "Item release" };
+    }
     if (m.ground || m.projectile || m.buff)
       return { frame: 15, name: "Elemental art" };
     if (f.y > 0)
@@ -175,6 +183,9 @@ export function sceneFor(state, { reduced = false, effects = true } = {}) {
           x: f.x,
           y: WORLD.floor + (f.depth ?? 0) * 0.65 - f.y - 65,
           age: state.tick - f.lastHit,
+          blocked: Boolean(f.blockedHit),
+          power: f.lastDamage ?? 0,
+          seed: f.lastHit,
         }))
     : [];
   return {
@@ -183,6 +194,8 @@ export function sceneFor(state, { reduced = false, effects = true } = {}) {
     fighters,
     motes,
     bursts,
+    // Guard crest and, in live fights, item cues: plain shapes and painted props.
+    cues: { shapes: guardCuesFor(state, { reduced, effects }), props: [] },
     zones: state.zones,
     projectiles: state.projectiles,
     parallax: reduced

@@ -1,4 +1,4 @@
-import {clickGame,selectGame,openNavigation} from './navigation-helper.mjs';
+import {clickGame,selectGame,openNavigation,steadyTiming} from './navigation-helper.mjs';
 import {legacyRoster} from './loadout-helper.mjs';
 import {chromium} from 'playwright';
 import {spawn} from 'node:child_process';
@@ -11,7 +11,7 @@ try{
  browser=await chromium.launch({args:['--enable-unsafe-swiftshader'],headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH,args:['--no-sandbox','--disable-dev-shm-usage','--enable-unsafe-swiftshader']}: {})});
  await mkdir('test-results',{recursive:true});
  const page=await browser.newPage({viewport:{width:1280,height:900}}),errors=[];page.on('pageerror',e=>{errors.push(e.message);console.error(e.stack);});
- await page.clock.install({time:new Date('2030-01-01T00:00:00Z')});await page.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));await page.goto('http://127.0.0.1:4184');await legacyRoster(page);
+ await steadyTiming(page);await page.clock.install({time:new Date('2030-01-01T00:00:00Z')});await page.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));await page.goto('http://127.0.0.1:4184');await legacyRoster(page);
  await selectGame(page,'#mode','training');assert.equal(await page.locator('#opponent-label').innerText(),'TRAINING DUMMY');assert.equal(await page.locator('.difficulty-label').isVisible(),false);
  await clickGame(page,'#play');await page.clock.runFor(32);assert.equal(await page.locator('#timer').innerText(),'∞');assert.match(await page.locator('#training-coach-title').innerText(),/FREE PRACTICE/);
  // Miss explanation and an instant arena reset, without injecting game state.
@@ -33,7 +33,7 @@ try{
  await page.selectOption('#training-drill','free');await page.check('#training-cooldowns');await page.click('#training-start');await clickGame(page,'#training-settings');assert.equal(await page.locator('#training-charge').isDisabled(),false);await page.click('#training-charge');await page.click('#training-close');await clickGame(page,'#play');await tap('KeyT',40);assert.match(await page.locator('#awakening-label0').innerText(),/SUNFORGE/);
  await selectGame(page,'#mode','cpu');await page.clock.runFor(32);assert.equal(await page.locator('#training-coach').isVisible(),false);assert.equal(await page.locator('#training-settings').isVisible(),false);assert.equal(await page.locator('#timer').innerText(),'90');await openNavigation(page,'#difficulty');assert.equal(await page.locator('.difficulty-label').isVisible(),true);assert.deepEqual(errors,[]);await page.close();
  const context=await browser.newContext({viewport:{width:844,height:390},isMobile:true,hasTouch:true});const mobile=await context.newPage(),mobileErrors=[];mobile.on('pageerror',e=>mobileErrors.push(e.message));
- await mobile.clock.install({time:new Date('2030-01-01T00:00:00Z')});await mobile.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));await mobile.goto('http://127.0.0.1:4184');await legacyRoster(mobile);await selectGame(mobile,'#mode','training');await clickGame(mobile,'#play');await mobile.clock.runFor(32);
+ await steadyTiming(mobile);await mobile.clock.install({time:new Date('2030-01-01T00:00:00Z')});await mobile.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));await mobile.goto('http://127.0.0.1:4184');await legacyRoster(mobile);await selectGame(mobile,'#mode','training');await clickGame(mobile,'#play');await mobile.clock.runFor(32);
  const mobileDrill=async id=>{await clickGame(mobile,'#training-settings');await mobile.selectOption('#training-drill',id);await mobile.click('#training-start');await mobile.clock.runFor(32);};
  await mobileDrill('movement');const cdp=await context.newCDPSession(mobile),jump=await mobile.locator('[data-action=jump]').boundingBox(),dash=await mobile.locator('[data-action=dashForward]').boundingBox();const point=(r,id)=>({x:r.x+r.width/2,y:r.y+r.height/2,id}),j=point(jump,1),d=point(dash,2);
  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[j]});await mobile.clock.runFor(40);await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await mobile.clock.runFor(80);

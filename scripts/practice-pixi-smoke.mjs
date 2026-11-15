@@ -1,4 +1,4 @@
-import {clickGame,selectGame,openNavigation} from './navigation-helper.mjs';
+import {clickGame,selectGame,openNavigation,steadyTiming} from './navigation-helper.mjs';
 import {legacyRoster} from './loadout-helper.mjs';
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
@@ -40,6 +40,7 @@ try {
       errors.push(e.message);
       console.error("PAGE ERROR", e.message);
     });
+    await steadyTiming(page);
     return { context, page };
   }
   async function graphics(p, value, expected) {

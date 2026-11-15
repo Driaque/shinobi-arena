@@ -2,6 +2,8 @@ import { sceneFor } from "./visual-lab.js";
 import { MOVES } from '../engine/index.js';
 import { FIGHTER_FRAMES, fighterAtlasData } from './fighter-atlases.js';
 import {runningFrameFor,runningAtlasData} from './running-atlases.js';
+import {weaponPoseFor,strikeArcFor} from './weapons.js';
+import {itemCuesFor,ITEM_PROJECTILES} from './items.js';
 
 // Presentation only: the selected character IDs, loadouts, physics and results stay intact.
 export function practiceSceneFor(state, viewport, settings = {}) {
@@ -14,6 +16,9 @@ export function practiceSceneFor(state, viewport, settings = {}) {
     // The standing atlas pose is 302px tall; match the engine's 120*scale body height.
     actor.scale = (120 / 302) * (fighter.scale ?? 1);
     actor.alpha = fighter.invulnerable > 0 ? 0.45 : 1;
+    // Painted weapon in hand during its attack; unarmed strikes get a swoosh.
+    actor.weapon=weaponPoseFor(fighter,state.tick,settings.reduced,actor.frameIndex);
+    actor.arc=actor.weapon?actor.weapon.trail:strikeArcFor(fighter);
     if(settings.selected && settings.atlasFighters?.includes(fighter.character)){
       actor.atlasId=fighter.character;
       actor.frame=FIGHTER_FRAMES[actor.frameIndex];
@@ -28,11 +33,24 @@ export function practiceSceneFor(state, viewport, settings = {}) {
       }
     }
   }
-  // Fluid bodies are drawn continuously by the original foreground renderer.
-  if(settings.fluid)scene.fighters=[];
-  // Native elemental fields; smoke, item cues and all text stay in the overlay.
+  // The live renderer times impacts in real time, so sparks and flashes keep
+  // moving while a local fight holds its struck frame.
+  const hits=viewport?.hits;
+  if(hits){
+    scene.bursts=[];
+    for(const actor of scene.fighters){
+      const fighter=state.fighters[actor.id],ms=hits[fighter.id];
+      if(ms===undefined||settings.reduced)continue;
+      if(scene.decorative&&ms<200)scene.bursts.push({x:actor.x,y:actor.y-65,age:ms*.06,blocked:Boolean(fighter.blockedHit),power:fighter.lastDamage??0,seed:fighter.lastHit});
+      if(!fighter.blockedHit&&ms<150){actor.flash=1-ms/150;actor.jolt=Math.sin(ms*.09)*4*actor.flash;}
+    }
+  }
+  // Items in hand, in flight and on the ground join the guard crest in the sprite layer.
+  const items=itemCuesFor(state,{reduced:settings.reduced,effects:settings.effects!==false,frames:Object.fromEntries(scene.fighters.map(a=>[a.id,a.frameIndex]))});
+  scene.cues={shapes:[...scene.cues.shapes,...items.shapes],props:items.props};
+  // Native elemental fields; labels and other text stay in the overlay.
   scene.zones = (state.zones ?? []).filter(z => z.kind === 'elemental').map(z => ({...z, element: MOVES[z.move]?.ground?.element ?? 'water'}));
-  scene.projectiles = (state.projectiles??[]).map(p=>({...p,color:settings.catalog?.moves?.[p.move]?.color??MOVES[p.move]?.color??'#ffcb88',element:settings.catalog?.moves?.[p.move]?.element??MOVES[p.move]?.element??(MOVES[p.move]?.effect==='burn'?'fire':undefined)}));
+  scene.projectiles = (state.projectiles??[]).map(p=>({...p,sprite:p.move==='orbitDisc'||p.move==='itemOrbit'?'orbitDisc':undefined,cue:ITEM_PROJECTILES.includes(p.move),color:settings.catalog?.moves?.[p.move]?.color??MOVES[p.move]?.color??'#ffcb88',element:settings.catalog?.moves?.[p.move]?.element??MOVES[p.move]?.element??(MOVES[p.move]?.effect==='burn'?'fire':undefined)}));
   if(settings.selected)scene.fighters=scene.fighters.filter(f=>state.fighters[f.id].character==='aren'||settings.atlasFighters?.includes(state.fighters[f.id].character));
   return scene;
 }
