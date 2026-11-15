@@ -189,3 +189,22 @@ On 2026-11-15 the user asked in the conversation to open a PR with all changes s
 
 ### Next action
 Push, open the PR, wait for CI (Build and unit checks plus five browser groups), merge, watch Deploy Render, then confirm version 0.41.0 and the merge commit at https://shinobi-arena-online.onrender.com/health and that Release notes published v0.41.0. Do not call it live before /health matches. Record the PR number, merge commit and deployment result in the next checkpoint.
+
+## Release 0.41.0 live on Render, 2026-11-15
+
+### Result
+- PR #64 (https://github.com/Driaque/shinobi-arena/pull/64) merged to main as 990339587d5df1dba9b8dae800cdb499572571b7 after all seven PR checks passed on f1cd0c5.
+- CI on main: run 43686295765, success. Deploy Render: run 43686849692, success. Release notes: run 43686849661, success; GitHub Release v0.41.0 published 2026-11-15T06:46:39Z.
+- https://shinobi-arena-online.onrender.com/health reports version 0.41.0 and commit 990339587d5df1dba9b8dae800cdb499572571b7. The previous production build was 0.40.1 at ec9cf11. Nothing was published to GitHub Pages.
+
+### Stage paintings on phones
+- Before this release, production served truncated stages/skyglass-1280.png (196,673 bytes; requested by screens up to 900px wide) and stages/forge-1600.png (1,638,729 bytes; wider screens). Neither decoded in a phone-sized headless Chromium.
+- On 0.41.0 all ten stage exports the game can request (five stages at 1280 and 1600) decode fully from production in the same check.
+- Not checked: a physical phone. If other stages fail to load on a device, that is a different cause.
+
+### Limits
+- The new sounds were not checked by ear, and physical phones and controllers were not checked.
+- This checkpoint is on branch docs/checkpoint-0.41.0, not on main, so that a docs-only commit does not start another production deploy. Merge it with the next change.
+
+### Next action
+The user plays 0.41.0 on their phone and reports back. Sprite-sheet and stage art quality is planned on a separate branch; it needs the art masters and an image generator, neither of which is in this checkout.
