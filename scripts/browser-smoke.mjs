@@ -66,6 +66,8 @@ try {
  await page.keyboard.down('KeyJ');await page.clock.runFor(100);await page.keyboard.up('KeyJ');await page.clock.runFor(16);
  await page.keyboard.down('KeyJ');await page.clock.runFor(100);await page.keyboard.up('KeyJ');await page.clock.runFor(100);
  await page.keyboard.down('KeyJ');await page.clock.runFor(200);await page.keyboard.up('KeyJ');
+ // Impact pauses hold each hit briefly, so the third lands a little later in real time.
+ for(let i=0;i<20&&!/3 HITS/.test(await page.locator('#combo0').innerText());i++)await page.clock.runFor(16);
  assert.match(await page.locator('#combo0').innerText(),/3 HITS/);await page.screenshot({path:'test-results/combo.png'});
  // A real complete match, using local P1 attacks against idle P2.
  for(let round=0;round<2;round++){
