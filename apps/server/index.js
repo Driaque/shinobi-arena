@@ -119,8 +119,15 @@ export function createOnlineServer({origins=[],port=Number(process.env.PORT||417
  server.on('upgrade',(req,socket,head)=>{if(req.url!=='/ws'||!trusted(req)||!req.headers.origin||arena.stats().connections>=200){socket.write('HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n');socket.destroy();return;}wss.handleUpgrade(req,socket,head,ws=>wss.emit('connection',ws,req));});
  wss.on('connection',ws=>{
   let alive=true,chain=Promise.resolve();
-  const client=arena.connect(value=>{if(ws.readyState!==WebSocket.OPEN)return;if(ws.bufferedAmount>256*1024){ws.terminate();return;}ws.send(JSON.stringify(value));});if(!client){ws.close(1013,'Server full');return;}
-  ws.on('message',data=>{chain=chain.then(async()=>{try{const msg=JSON.parse(data.toString());if(msg.type==='join'||msg.type==='lounge'){
+  const client=arena.connect(value=>{if(ws.readyState!==WebSocket.OPEN)return;if(ws.bufferedAmount>256*1024){ws.terminate();return;}ws.send(JSON.stringify(value));},()=>ws.terminate());if(!client){ws.close(1013,'Server full');return;}
+  ws.on('message',data=>{chain=chain.then(async()=>{try{if(client.closed)return;const msg=JSON.parse(data.toString());if(msg.type==='resume'){
+    if(msg.token){
+     const store=await storeReady,identity=await store.identity(msg.token);
+     if(!identity)throw new Error('Player profile expired. Restore or create a profile.');
+     if(client.profile||client.spectating||arena.isQueued(client))return;
+     client.playerId=identity.id;authenticatedSockets.set(ws,createHash('sha256').update(msg.token).digest('hex'));
+    }
+   }else if(msg.type==='join'||msg.type==='lounge'){
     if(msg.protocol!==PROTOCOL_VERSION||msg.rules!==RULES_VERSION)throw new TournamentError('Game version changed. Refresh before joining.');
     if(client.match||arena.isQueued(client)||client.spectating)throw new Error('Already in a queue, match or spectator session.');
     const store=await storeReady;client.tournament=null;if(msg.queue==='ranked'&&(!store.durable||!storageHealthy))throw new Error('Ranked storage is temporarily unavailable. Casual play is available.');
@@ -129,7 +136,7 @@ export function createOnlineServer({origins=[],port=Number(process.env.PORT||417
     if(msg.tournamentId){if(!store.durable||!storageHealthy||!client.playerId)throw new TournamentError('Tournament play requires a saved profile and persistent storage.');await tournamentAction(async()=>{client.tournament=await store.tournaments.prepare(msg.tournamentId,client.playerId,profile.character);arena.message(client,msg);});return;}
    }arena.message(client,msg);if(client.closed)ws.close(1008,'Rate limit exceeded');}catch(e){if(e instanceof SyntaxError)ws.close(1008,'Invalid JSON');else if(ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:'error',message:e instanceof TournamentError||e.message?.startsWith('Player profile')||e.message?.startsWith('Ranked storage')?e.message:'Unable to join. Check your profile and loadout.'}));}});});
   ws.on('pong',()=>{alive=true;});const handshakeTimeout=setTimeout(()=>{if(!client.profile&&!client.spectating)ws.close(1008,'Join timeout');},30000);handshakeTimeout.unref();const heartbeat=setInterval(()=>{if(!alive){ws.terminate();return;}alive=false;ws.ping();},10000);heartbeat.unref();
-  ws.on('error',()=>{});ws.on('close',()=>{authenticatedSockets.delete(ws);clearInterval(heartbeat);clearTimeout(handshakeTimeout);arena.disconnect(client);});
+  ws.on('error',()=>{});ws.on('close',(code,reason)=>{authenticatedSockets.delete(ws);clearInterval(heartbeat);clearTimeout(handshakeTimeout);arena.disconnect(client,{allowResume:!(code===1000&&reason.toString()==='Signed out')});});
  });
  let last=performance.now(),accumulator=0;const timer=setInterval(()=>{const current=performance.now();accumulator+=Math.min(current-last,100);last=current;while(accumulator>=1000/60){arena.advance();accumulator-=1000/60;}},4);timer.unref();
  return {server,arena,storeReady,flushResults:flush,listen:async()=>{const store=await storeReady;await store.tournaments?.recover();return new Promise(r=>server.listen(port,host,r));},close:async()=>{clearInterval(timer);clearInterval(retry);arena.close();for(const ws of wss.clients)ws.close(1001,'Server shutting down');const closing=new Promise(r=>{wss.close();server.close(r);setTimeout(()=>{for(const ws of wss.clients)ws.terminate();},100).unref();});await flush();const store=await storeReady;await store.close();await closing;}};

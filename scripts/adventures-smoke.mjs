@@ -18,5 +18,9 @@ assert.equal(await q.locator('#joystick').isVisible(),true);
 assert.equal(await q.locator('[data-quick-action=crouchGuard]').isVisible(),true);
 assert.equal(await q.locator('[data-quick-action=charge]').isVisible(),true);
 const stick=await q.locator('#joystick').boundingBox();await q.mouse.move(stick.x+stick.width/2,stick.y+stick.height/2);await q.mouse.down();await q.mouse.move(stick.x+stick.width*.9,stick.y+stick.height/2);await q.mouse.up();
-await p.screenshot({path:'test-results/coop-desktop.png'});await q.screenshot({path:'test-results/coop-mobile.png'});await q.click('#leave-adventure');await p.waitForFunction(()=>document.querySelector('#adventure-status').textContent.includes('ally left'));assert.deepEqual(errors,[]);await ctx.close();await mobile.close();console.log('Adventures browser checks passed: story dialogue/pause, two-client private co-op, four-fighter rendering, desktop/mobile controls and ally disconnect.');
+await p.screenshot({path:'test-results/coop-desktop.png'});await q.screenshot({path:'test-results/coop-mobile.png'});await q.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));});
+await p.getByText('Waiting for your ally to reconnect…',{exact:true}).waitFor();
+await q.evaluate(()=>{delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));});
+for(const page of [p,q])await page.waitForFunction(()=>document.querySelector('#adventure-status').textContent.includes('You control'));
+await q.click('#leave-adventure');await p.waitForFunction(()=>document.querySelector('#adventure-status').textContent.includes('ally left'));assert.deepEqual(errors,[]);await ctx.close();await mobile.close();console.log('Adventures browser checks passed: story dialogue/pause, two-client private co-op, four-fighter rendering, desktop/mobile controls and ally disconnect.');
 }finally{await browser?.close();await app.close();await rm(dir,{recursive:true,force:true});}

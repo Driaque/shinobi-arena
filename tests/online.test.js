@@ -41,6 +41,44 @@ test('round transition requires both players ready and retains scores',()=>{
 test('disconnect forfeits the match, frees capacity and permits requeue',()=>{
  const {a,p,q}=paired();a.disconnect(p.c);assert.equal(q.last('ended').reason,'opponent-disconnected');assert.equal(q.last('ended').winner,1);assert.equal(a.stats().matches,0);join(a,q.c,'Again');assert.equal(q.last('queued').position,1);a.close();
 });
+test('reconnect restores the same slot and state, clears stale input, and enforces a cumulative deadline',()=>{
+ let time=100;const {a,make}=fixture({now:()=>time,reconnectMs:1000}),p=make(),q=make();
+ const versions={protocol:PROTOCOL_VERSION,rules:RULES_VERSION};
+ p.c.playerId='original-player';
+ for(const [client,name] of [[p,'One'],[q,'Two']])a.message(client.c,{type:'join',...versions,reconnect:true,profile:profile(name)});
+ const {id,resumeKey}=p.last('matched'),match=p.c.match;
+ assert.notEqual(resumeKey,q.last('matched').resumeKey);
+ a.advance();a.message(p.c,{type:'input',seq:17,input:{right:true}});a.advance();
+ const frozen=structuredClone(match.state);
+ a.disconnect(p.c);
+ assert.deepEqual(q.last('snapshot').reconnecting,[true,false]);
+ a.message(q.c,{type:'input',seq:2,input:{left:true}});
+ for(let i=0;i<20;i++)a.advance();
+ assert.deepEqual(match.state,frozen);
+ const replacement=make();
+ a.message(replacement.c,{type:'resume',...versions,id,resumeKey});
+ assert.match(replacement.last('error').message,/expired or the match ended/);
+ time+=600;replacement.c.playerId='original-player';
+ a.message(replacement.c,{type:'resume',...versions,id,resumeKey});
+ assert.equal(replacement.last('matched').slot,0);
+ assert.equal(replacement.last('matched').id,id);
+ assert.equal(replacement.last('matched').reconnectMs,400);
+ assert.deepEqual(replacement.last('matched').state,frozen);
+ a.message(replacement.c,{type:'input',seq:18,input:{left:true}});a.advance();
+ assert.equal(replacement.c.appliedSeq,18);
+ a.disconnect(replacement.c);time+=400;a.advance();
+ assert.equal(q.last('ended').reason,'opponent-disconnected');
+ assert.equal(q.last('ended').winner,1);assert.equal(a.stats().matches,0);a.close();
+});
+test('application heartbeat detects a frozen player even when its socket has not closed',()=>{
+ let time=0;const {a,make}=fixture({now:()=>time}),p=make(),q=make();
+ for(const [client,name] of [[p,'One'],[q,'Two']])
+  a.message(client.c,{type:'join',protocol:PROTOCOL_VERSION,rules:RULES_VERSION,reconnect:true,profile:profile(name)});
+ a.advance();
+ time=12000;a.message(q.c,{type:'ping',sent:time});a.advance();
+ assert.deepEqual(q.last('snapshot').reconnecting,[true,false]);
+ assert.equal(a.stats().matches,1);assert.equal(a.stats().connections,1);a.close();
+});
 test('client and input budgets are bounded and rooms expire',()=>{
  const {a,make}=fixture({maxClients:1});const p=make();assert.equal(a.connect(()=>{}),null);for(let i=0;i<181;i++)a.message(p.c,{type:'ping'});assert.equal(a.stats().connections,0);a.close();
  const f=paired();f.p.c.match.phase='matchOver';f.p.c.match.remaining=0;for(let i=0;i<7201;i++)f.a.advance();assert.equal(f.a.stats().matches,0);f.a.close();
@@ -51,9 +89,26 @@ test('real WebSocket transport shares matches and rejects cross-origin connectio
  try{
   const health=await fetch(`http://127.0.0.1:${port}/health`);assert.equal((await health.json()).ok,true);
   const open=()=>new Promise((resolve,reject)=>{const ws=new WebSocket(url,{origin:'http://game.test'});sockets.push(ws);const messages=[];ws.on('error',reject);ws.on('message',raw=>{const msg=JSON.parse(raw);messages.push(msg);if(msg.type==='hello')resolve({ws,messages});});});
-  const [p,q]=await Promise.all([open(),open()]);for(const [i,c]of [p,q].entries())c.ws.send(JSON.stringify({type:'join',protocol:PROTOCOL_VERSION,rules:RULES_VERSION,profile:profile(`Player ${i}`)}));
+  const store=await app.storeReady,{token}=await store.createIdentity('Player Zero'),versions={protocol:PROTOCOL_VERSION,rules:RULES_VERSION};
+  const [p,q]=await Promise.all([open(),open()]);
+  for(const [i,c]of [p,q].entries())c.ws.send(JSON.stringify({type:'join',...versions,token:i===0?token:null,reconnect:true,profile:profile(`Player ${i}`)}));
   await new Promise((resolve,reject)=>{const limit=setTimeout(()=>reject(new Error('No shared match')),2000);const poll=setInterval(()=>{if(p.messages.some(m=>m.type==='snapshot')&&q.messages.some(m=>m.type==='snapshot')){clearTimeout(limit);clearInterval(poll);resolve();}},10);});
   assert.equal(p.messages.find(m=>m.type==='matched').id,q.messages.find(m=>m.type==='matched').id);
+  function wait(client,predicate){return new Promise((resolve,reject)=>{
+   const existing=client.messages.find(predicate);if(existing){resolve(existing);return;}
+   const timeout=setTimeout(()=>{client.ws.off('message',handle);reject(Error('Expected WebSocket message did not arrive'));},2000);
+   function handle(raw){const value=JSON.parse(raw);if(predicate(value)){clearTimeout(timeout);client.ws.off('message',handle);resolve(value);}}
+   client.ws.on('message',handle);
+  });}
+  const {id,slot,resumeKey}=p.messages.find(m=>m.type==='matched');
+  p.ws.terminate();
+  const held=await wait(q,m=>m.reconnecting?.[slot]);
+  const recovered=await open();
+  recovered.ws.send(JSON.stringify({type:'resume',...versions,id,resumeKey,token}));
+  const resumed=await wait(recovered,m=>m.type==='matched');
+  assert.equal(resumed.slot,slot);assert.equal(resumed.id,id);assert.deepEqual(resumed.state,held.state);
+  recovered.ws.send(JSON.stringify({type:'cancel'}));
+  assert.equal((await wait(q,m=>m.type==='ended')).reason,'opponent-left');
   await new Promise(resolve=>{const bad=new WebSocket(url,{origin:'https://evil.test'});bad.on('unexpected-response',(_,res)=>{assert.equal(res.statusCode,403);res.resume();bad.terminate();resolve();});bad.on('error',()=>{});});
  }finally{for(const ws of sockets)ws.terminate();await app.close();}
 });
