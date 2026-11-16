@@ -168,7 +168,7 @@ try {
       );
       await p.screenshot({ path: "test-results/practice-pixi-mobile.png" });
       await p.clock.runFor(600);
-      await p.locator("#touch-kit-toggle").tap();
+
       const guard = p.locator("[data-quick-action=crouchGuard]");
       await guard.hover();
       const r = await guard.boundingBox();

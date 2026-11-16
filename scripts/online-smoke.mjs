@@ -19,7 +19,7 @@ await context2.addInitScript(({key,value})=>{if(!localStorage.getItem(key))local
  const p=await context1.newPage(),q=await context2.newPage();let snapshot,matchId;const mobileMatches=[];
  q.on('websocket',socket=>socket.on('framereceived',({payload})=>{try{const msg=JSON.parse(payload);if(msg.state){snapshot=msg.state;matchId=msg.id;}if(msg.type==='matched')mobileMatches.push({id:msg.id,slot:msg.slot});}catch{}}));
  const near=async()=>{const until=Date.now()+5000;while(Date.now()<until){if(snapshot&&Math.abs(snapshot.fighters[0].x-snapshot.fighters[1].x)<=60)return;await new Promise(r=>setTimeout(r,20));}throw new Error(`Did not approach: ${snapshot?.fighters.map(f=>f.x)}`);};
- for(const page of [p,q]){if(process.env.ONLINE_TEST_URL)page.on('console',m=>{if(m.type()==='error')console.error(m.text());});page.on('pageerror',e=>{errors.push(e.stack);console.error(e.stack);});await page.addInitScript(()=>localStorage.setItem('shinobi.experience.v1',JSON.stringify({prediction:true})));await page.goto(baseURL);await legacyRoster(page);await selectGame(page,'#mode','online');}
+ for(const page of [p,q]){if(process.env.ONLINE_TEST_URL)page.on('console',m=>{if(m.type()==='error')console.error(m.text());});page.on('pageerror',e=>{errors.push(e.stack);console.error(e.stack);});await page.addInitScript(()=>localStorage.setItem('shinobi.experience.v1',JSON.stringify({prediction:true})));const url=new URL(baseURL);if(page===q)url.searchParams.set('touchTiming','1');await page.goto(url.href);await legacyRoster(page);await selectGame(page,'#mode','online');}
  await p.fill('#player-name','Silent');await p.locator('#character0 input[value=silent]').check();await equip(p,'#weapon0','frostmereSaber');await equip(p,'#weapon-secondary0','oathknife');await equip(p,'#item0-0','veilCanister');
  // Cancelling during a delayed profile request must not open a ghost queue entry.
  let releaseIdentity;const identityStarted=new Promise(resolve=>{releaseIdentity=resolve;});
@@ -58,6 +58,8 @@ await context2.addInitScript(({key,value})=>{if(!localStorage.getItem(key))local
  const attack=await q.locator('[data-action=attack]').boundingBox(),point={x:attack.x+attack.width/2,y:attack.y+attack.height/2,id:2};
  for(let i=0;i<2;i++){await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[point]});await q.waitForTimeout(80);await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await q.waitForTimeout(250);}
  await q.waitForFunction(()=>Number(document.querySelector('#hp0').textContent)<1000);
+ const touchSample=await q.waitForFunction(()=>performance.getEntriesByName('touch-to-render').find(e=>e.detail.online&&e.detail.action==='attack')?.duration);
+ console.log('Local-server online touch attack acknowledged and submitted in '+Math.round(await touchSample.jsonValue())+' ms');
  await p.waitForFunction(hp=>document.querySelector('#hp0').textContent===hp,await q.locator('#hp0').innerText());
  assert.equal(await p.locator('#hp1').innerText(),await q.locator('#hp1').innerText());
  await q.waitForTimeout(500);await q.locator('[data-action=special1]').tap();await p.waitForFunction(()=>document.querySelector('#effects0').textContent.includes('WEAKEN'));

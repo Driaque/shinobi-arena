@@ -4,7 +4,7 @@ import {createStickGestures} from './packages/input/analog.js';
 import { ACTIONS } from './packages/input/index.js';
 import { STORAGE_KEY, VISIBILITY_IDS, CONTROL_IDS, DEFAULT_KEYS, freshSettings, readSettings, stickVector, defaultLayout, defaultDockLayout, layoutProfile, projectControl, layoutOverlaps, rebind, keyLabel, keyForAction } from './packages/input/preferences.js';
 export const ACTION_LABELS={crouchGuard:'Crouch Guard',jutsu4:'Jutsu 4',jutsu5:'Jutsu 5',jutsu6:'Jutsu 6',jutsu7:'Jutsu 7',depthUp:'Move toward rear',depthDown:'Move toward front',charge:'Charge chakra',swapWeapon:'Swap weapon',cycleItem:'Choose consumable',useItem:'Use consumable',crouch:'Crouch',awakening:'Awakening',stick:'Movement stick',left:'Move left',right:'Move right',jump:'Double jump',attack:'Basic attack',weapon:'Weapon',block:'Guard',special1:'Signature 1',special2:'Signature 2',bloodline:'Bloodline',replacement:'Replacement',dashForward:'Dash forward',dashBack:'Dash backward'};
-export function createControls({inputs,onPause,isPlaying,onOpen=onPause}) {
+export function createControls({inputs,onPause,isPlaying,onOpen=onPause,onTouch=()=>{}}) {
   const $=s=>document.querySelector(s),arena=$('.arena'),stick=$('#joystick');
   const nodes=Object.fromEntries(CONTROL_IDS.map(id=>[id,$(`[data-control="${id}"]`)]));
   const editor=$('#layout-editor'),keysDialog=$('#keys-dialog'),overlay=$('#overlay')??{hidden:true};
@@ -82,7 +82,7 @@ export function createControls({inputs,onPause,isPlaying,onOpen=onPause}) {
       if(id==='stick'){
         if(stickPointer!==null)return;
         event.preventDefault();if(experience().floating){const r=arena.getBoundingClientRect();stick.style.left=Math.max(48,Math.min(r.width-48,event.clientX-r.left))+'px';stick.style.top=Math.max(48,Math.min(r.height-48,event.clientY-r.top))+'px';}stickPointer=event.pointerId;node.setPointerCapture(event.pointerId);moveStick(event);
-      }else{event.preventDefault();node.setPointerCapture(event.pointerId);inputs[0].press(id,`pointer:${event.pointerId}`);node.classList.add('active');}
+      }else{event.preventDefault();node.setPointerCapture(event.pointerId);inputs[0].press(id,`pointer:${event.pointerId}`);onTouch(event,id);node.classList.add('active');}
     });
     node.addEventListener('pointermove',event=>{if(editing)dragMove(event);else if(id==='stick')moveStick(event);});
     for(const type of ['pointerup','pointercancel','lostpointercapture'])node.addEventListener(type,event=>{
@@ -138,7 +138,7 @@ export function createControls({inputs,onPause,isPlaying,onOpen=onPause}) {
   $('#control-opacity').addEventListener('input',event=>{draft.opacity=Number(event.target.value)/100;applyLayout();});
   $('#control-placement').addEventListener('change',event=>{reset();draft.placement=event.target.value;applyLayout();});
   // Suppress native zoom/scroll only on the live play surface; menus retain normal scrolling.
-  const preventPlayGesture=event=>{if(!editing&&isPlaying()&&!event.target.closest('#overlay,#layout-editor,#jutsu-tray,#touch-kit-toggle,#training-coach,dialog'))event.preventDefault();};
+  const preventPlayGesture=event=>{if(!editing&&isPlaying()&&!event.target.closest('#overlay,#layout-editor,#jutsu-tray,#touch-combat-actions,#training-coach,dialog'))event.preventDefault();};
   for(const type of ['touchstart','touchmove','gesturestart','gesturechange','gestureend','dblclick'])arena.addEventListener(type,preventPlayGesture,{passive:false});
   for(const id of CONTROL_IDS)$('#control-select').add(new Option(ACTION_LABELS[id],id));
   $('#control-select').addEventListener('change',event=>select(event.target.value));

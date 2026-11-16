@@ -23,12 +23,16 @@ import {stepTraining} from './packages/engine/training.js';
 import { createInput } from './packages/input/index.js';
 import { createMatch, stepMatch, nextRound, computerInput, difficultyFor, TICK_RATE, CHARACTERS, WEAPONS, ITEMS, MOVES, moveFor, staminaCost, awakeningFor, activeAwakening, awakeningReady } from './packages/engine/index.js';
 import { createRoster } from './roster.js';
+import {createTouchTiming} from './touch-timing.js';
 import { createControls } from './controls.js';
 import {createPracticeRenderer} from './practice-renderer.js';
 const $ = selector => document.querySelector(selector);
 installMobileUI();
 const sound=createAudio({moves:MOVES,onOpen:()=>{clearInputs();pause();}});
 const prediction=createPrediction();const frameTimes=[];
+const touchTiming=createTouchTiming(new URLSearchParams(location.search).has('touchTiming'));
+let inputAck=-1,lastNetworkHud=0;
+
 const inputs=[createInput(),createInput()];
 const buttons=[...document.querySelectorAll('[data-action]')];
 const render=createPracticeRenderer($('#canvas'),{getMode:()=>mode,onSettings:()=>{clearInputs();pause();}});
@@ -90,7 +94,7 @@ function filterRoster(){
 }
 $('#roster-search').addEventListener('input',filterRoster);$('#roster-era').addEventListener('change',filterRoster);
 describeLoadouts();filterRoster();
-function clearInputs(){controls?.reset();inputs.forEach(i=>i.reset());cpu={};buttons.forEach(b=>b.classList.remove('active'));}
+function clearInputs(){touchTiming.reset();controls?.reset();inputs.forEach(i=>i.reset());cpu={};buttons.forEach(b=>b.classList.remove('active'));}
 function dialog(kicker,title,description,button){
   $('#overlay-kicker').textContent=kicker;$('#overlay-title').textContent=title;
   $('#overlay-description').textContent=description;$('#play').textContent=button;
@@ -146,7 +150,7 @@ $('#mode').addEventListener('change',event=>{
   if(mode==='online'){$('#overlay-description').textContent='Choose your fighter, two weapons and four consumables. Your opponent chooses their own.';$('#overlay-hint').textContent='Brief connection interruptions can be resumed. Leave match ends your fight.';}
   trainingUI?.draw();
 });
-controls=createControls({inputs,onPause:pause,isPlaying:()=>!paused&&state.status==='playing'&&$('#rotate').hidden});
+controls=createControls({inputs,onPause:pause,onTouch:touchTiming.press,isPlaying:()=>!paused&&state.status==='playing'&&$('#rotate').hidden});
 function useTrainingState(next){
  state=next;started=true;filterRoster();
  for(const i of [0,1]){$(`#character${i} input[value="${state.loadouts[i].character}"]`).checked=true;loadoutUI.update(i,state.loadouts[i]);$(`#weapon${i}`).value=state.loadouts[i].weapon;$(`#weapon-secondary${i}`).value=state.loadouts[i].weapons[1]??'';for(const slot of [0,1,2,3])$(`#item${i}-${slot}`).value=state.loadouts[i].items[slot]??'';}
@@ -170,7 +174,7 @@ online=createOnline({onReconnect:showMatchReconnect,onSocial:socialUI.update,onP
  dialog('ONLINE ARENA',activeTournament?'Tournament update':'Return to the lobby',message,activeTournament?'View tournament bracket':'Find opponent');$('#play').disabled=false;
 },onState:(message,slot)=>{
  if(mode!=='online')return;if(message.tournament)activeTournament=message.tournament.id;if(message.players)onlinePlayers=message.players;
- prediction.reconcile(message,slot);state=message.state;started=true;paused=false;
+ inputAck=message.acks?.[slot]??-1;prediction.reconcile(message,slot);state=message.state;started=true;paused=false;
  if(message.reconnecting?.some(Boolean)){showMatchReconnect(false);return;}
 
  const key=`${message.phase}:${state.round}`;
@@ -197,7 +201,7 @@ const netLabel=document.createElement('span');netLabel.id='network-quality';docu
 const arenaHub=createArenaHub({onFight:id=>{online.reset();$('#mode').value='online';$('#mode').dispatchEvent(new Event('change'));activeTournament=id;online.join({tournamentId:id});},onTakeover:next=>{online.reset();$('#mode').value='training';$('#mode').dispatchEvent(new Event('change'));next.status='playing';next.result=null;next.training={drill:'free',dummy:'attack',unlimitedResources:false,refillHealth:true,instantCooldowns:false,showRanges:true,step:0,completed:false,feedback:'Replay takeover: practice from the preceding recorded sample as P1.',feedbackUntil:next.tick+240,stats:{damage:0,hits:0,bestCombo:0}};for(const f of next.fighters)f.hp=Math.max(1,f.hp);useTrainingState(next);$('#overlay').hidden=true;paused=false;started=true;clearInputs();},onOpen:()=>{clearInputs();pause();},isBusy:()=>mode==='online'&&['connecting','queued','playing','countdown','roundOver','lounge','reconnecting'].includes(online.phase)});
 createNavigation({hub:arenaHub,isBusy:()=>mode==='online'&&online.busy});
 showSetupStep('characters');
-techniqueTray=createTechniqueTray({input:inputs[0],getPlayer:()=>state.fighters[mode==='online'?online.slot:0],isPlaying:()=>started&&!paused&&!controls?.editing&&$('#rotate').hidden&&state.status==='playing'&&(mode!=='online'||online.phase==='playing'),binding:key=>controls.binding(0,key),visible:key=>controls.visible(key)});
+techniqueTray=createTechniqueTray({input:inputs[0],onTouch:touchTiming.press,getPlayer:()=>state.fighters[mode==='online'?online.slot:0],isPlaying:()=>started&&!paused&&!controls?.editing&&$('#rotate').hidden&&state.status==='playing'&&(mode!=='online'||online.phase==='playing'),binding:key=>controls.binding(0,key),visible:key=>controls.visible(key)});
 window.addEventListener('blur',()=>{clearInputs();pause();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){clearInputs();pause();}});
 portrait.addEventListener('change',orientation);touch.addEventListener('change',orientation);
@@ -286,13 +290,14 @@ function frame(now){
   if(!lastTime)lastTime=now;
   if(mode==='online'){
     accumulator+=Math.min((now-lastTime)/1000,.1);
-    while(accumulator>=1/TICK_RATE){const input=$('#rotate').hidden?inputs[0].consume():{},seq=online.send(input);if(seq!==null)prediction.push(seq,input);inputs[1].reset();accumulator-=1/TICK_RATE;}
+    while(accumulator>=1/TICK_RATE){const input=$('#rotate').hidden?inputs[0].consume():{},seq=online.send(input);if(seq!==null)prediction.push(seq,input);touchTiming.consume(input,true,seq);inputs[1].reset();accumulator-=1/TICK_RATE;}
   }else if(!paused&&state.status==='playing'){
     // Impact pause: hold the struck frame briefly before the next engine step.
     if(now<impactUntil)accumulator=0;else accumulator+=Math.min((now-lastTime)/1000,.1)*(mode==='training'?experience().speed:1);
     while(accumulator>=1/TICK_RATE&&state.status==='playing'){
       if(mode==='cpu')cpu=computerInput(state);
-      if(mode==='training')stepTraining(state,inputs[0].consume());else stepMatch(state,[inputs[0].consume(),mode==='cpu'?cpu:inputs[1].consume()]);accumulator-=1/TICK_RATE;
+      const input=inputs[0].consume();touchTiming.consume(input,false);
+      if(mode==='training')stepTraining(state,input);else stepMatch(state,[input,mode==='cpu'?cpu:inputs[1].consume()]);accumulator-=1/TICK_RATE;
       const event=state.events.find(e=>['jutsuLink','aerialBlocked','airChase','airFinish','airEscape','weaponSwap','waypointWarp','smokeBlocked','parry','guardBreak','punish','exhausted','hit','block','empty','pierce','replacement','unavailable','poison','burn','cooldown','awakeningBlocked'].includes(e.type));
       if(event){const messages={jutsuLink:'JUTSU LINK · FULL COST / WATCH THE COUNTER',aerialBlocked:event.reason,airChase:'AIR CHASE · LINK BASIC OR AERIAL JUTSU',airFinish:'AERIAL FINISHER',airEscape:'JUGGLE LIMIT · AIR RECOVERY',weaponSwap:'WEAPON SWAPPED',waypointWarp:'WAYPOINT · WARP',smokeBlocked:'SMOKE BLOCKED PROJECTILE',parry:'PARRY · COUNTER NOW',guardBreak:'GUARD BROKEN',punish:'RECOVERY PUNISH · +20%',exhausted:'LOW STAMINA · CREATE SPACE',empty:'NOT ENOUGH CHAKRA',block:'GUARDED',replacement:'REPLACEMENT JUTSU',unavailable:'NO TECHNIQUE OR ITEM AVAILABLE',cooldown:'TECHNIQUE ON COOLDOWN',awakeningBlocked:'AWAKENING NOT READY OR UNABLE TO ACT'};
         $('#feedback').textContent=messages[event.type]??`${event.type==='pierce'?'GUARD PIERCED · ':event.type==='poison'?'POISON · ':event.type==='burn'?'BURN · ':''}${event.damage} DAMAGE`;feedbackUntil=now+700;}
@@ -304,8 +309,9 @@ function frame(now){
   }else accumulator=0;
   if(finishing&&(finishing!==state||!started||mode==='online'||state.status==='playing'))finishing=null;
   else if(finishing&&now>=impactUntil){finishing=null;finish();}
-  if(lastTime&&now-lastTime<250){frameTimes.push(now-lastTime);if(frameTimes.length>120)frameTimes.shift();}const q=online?.quality;netLabel.textContent=mode==='online'?`${q?.label??'Measuring'} · RTT ${q?.rtt??'—'}ms · jitter ${q?.jitter??0}ms · ${experience().prediction?'movement prediction':'authoritative movement'}`:mode==='training'?`Practice ${experience().speed}× · frame p95 ${Math.round([...frameTimes].sort((a,b)=>a-b)[Math.floor(frameTimes.length*.95)]??0)}ms · ${render.status().label}`:'';
-  lastTime=now;if(now>feedbackUntil)$('#feedback').textContent='';render(state,{localAlpha:mode!=='online'&&!paused&&state.status==='playing'?accumulator*TICK_RATE:0,interpolate:mode==='online',predicted:mode==='online'&&experience().prediction?prediction.sample(state):null,localSlot:online?.slot??0});sound.update(state,started&&!paused&&$('#rotate').hidden);paintHud();requestAnimationFrame(frame);
+  if(lastTime&&now-lastTime<250){frameTimes.push(now-lastTime);if(frameTimes.length>120)frameTimes.shift();}
+  if(now-lastNetworkHud>=250){lastNetworkHud=now;const q=online?.quality;netLabel.textContent=mode==='online'?`${q?.label??'Measuring'} · RTT ${q?.rtt??'—'}ms · jitter ${q?.jitter??0}ms · ${experience().prediction?'movement prediction':'authoritative movement'}`:mode==='training'?`Practice ${experience().speed}× · frame p95 ${Math.round([...frameTimes].sort((a,b)=>a-b)[Math.floor(frameTimes.length*.95)]??0)}ms · ${render.status().label}` : '';}
+  lastTime=now;if(now>feedbackUntil)$('#feedback').textContent='';render(state,{localAlpha:mode!=='online'&&!paused&&state.status==='playing'?accumulator*TICK_RATE:0,interpolate:mode==='online',predicted:mode==='online'&&experience().prediction?prediction.sample(state):null,localSlot:online?.slot??0});touchTiming.rendered(inputAck);sound.update(state,started&&!paused&&$('#rotate').hidden);paintHud();requestAnimationFrame(frame);
 }
 $('#overlay-hint').textContent=`${difficultyFor(difficulty).name} · ${difficultyFor(difficulty).description}`;
 orientation();requestAnimationFrame(frame);

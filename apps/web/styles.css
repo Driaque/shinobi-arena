@@ -353,110 +353,97 @@ html[data-setup-controllers=paired] [data-setup-player]>.roster-heading::after{c
 .arena[data-control-placement=expanded][data-touch-handed=left] .controls [data-control=dashBack] {
   left: calc(var(--touch-edge) + var(--touch-step) * 2);
 }
-#touch-kit-toggle {
+#touch-combat-actions {
   position:absolute;
   z-index:4;
-  right:calc(var(--touch-edge) + var(--touch-step));
   bottom:var(--touch-bottom);
-  width:var(--touch-size);
-  min-height:var(--touch-size);
-  padding:4px;
-  line-height:1.1;
-  background:#152b3dd9;
-  border-color:#7dabbd88;
-  touch-action:manipulation;
-}
-#touch-kit-toggle[hidden]{display:none}
-#touch-kit-toggle small {display:block;margin-top:3px;font-size:8px;color:#d4e6ee}
-.arena[data-touch-handed=left] #touch-kit-toggle {
-  left:calc(var(--touch-edge) + var(--touch-step));
-  right:auto;
-}
-.touch-kit #jutsu-tray {
-  bottom:calc(var(--touch-bottom) + var(--touch-step) * 2);
-  right:var(--touch-edge);
-  width:min(460px,calc(100% - var(--touch-edge) * 2));
-  max-height:calc(100% - var(--touch-bottom) - var(--touch-step) * 2 - 10px);
-  overflow:auto;
-  overscroll-behavior:contain;
-  padding:7px;
-}
-.touch-kit[data-touch-handed=left] #jutsu-tray {left:var(--touch-edge);right:auto}
-.touch-kit #jutsu-tray header {margin:0 0 6px}
-.touch-kit #jutsu-tray header button {min-height:40px}
-.touch-kit #jutsu-tray>.jutsu-quick-grid,
-.touch-kit #jutsu-tray>#charge-chakra,
-.touch-kit #jutsu-tray>small {display:none}
-.touch-kit .touch-kit-equipment, .touch-kit #jutsu-tray #combat-techniques:not([hidden]) {
+  left:50%;
+  transform:translateX(-50%);
+  width:min(395px,calc(100% - 392px));
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(62px,1fr));
-  gap:5px;
+  gap:4px;
+  pointer-events:none;
 }
-.touch-kit .touch-kit-equipment button, .touch-kit #jutsu-tray #combat-techniques button {
-  width:auto;
-  max-width:none;
+#touch-combat-actions[hidden]{display:none}
+.touch-actions-next{grid-column:5}
+.touch-actions-primary,.touch-actions-extra {
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:4px;
+}
+#touch-combat-actions button {
+  pointer-events:auto;
   min-width:0;
   min-height:44px;
-  height:auto;
-  padding:4px;
+  padding:3px;
+  line-height:1.1;
   font-size:9px;
+  background:#112639db;
+  border-color:#809fb378;
   touch-action:none;
+  user-select:none;
 }
-.touch-kit .touch-kit-equipment small {display:block;font-size:8px;color:#b6d3e5}
-.touch-kit #jutsu-tray #combat-techniques {
-  position:static;
-  height:auto;
-  margin-top:6px;
-  transform:none;
-  opacity:1;
-  overflow:visible;
+#touch-combat-actions button[hidden],
+.touch-actions-extra > :not(.on-page):not(.touch-actions-next){display:none!important}
+#touch-combat-actions button:disabled{opacity:.45}
+#touch-combat-actions button:is(.active,.input-accepted){background:#3c687a;border-color:#f0c57e}
+#touch-combat-actions small {display:block;font-size:7px;color:#d3e5ee;margin-top:2px}
+#touch-combat-actions .technique-art,
+#touch-combat-actions .equipment-control-art {display:block;width:19px;height:19px;margin:0 auto 2px}
+#touch-combat-actions .jutsu-name {
+  display:block;position:static;inline-size:auto;block-size:auto;
+  margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;clip-path:none
 }
-.touch-kit #jutsu-tray #combat-techniques .technique-art {height:22px;width:22px}
-#game:has(.arena.touch-kit) #jutsu-toggle {display:none}
+#touch-combat-actions .jutsu-status{display:block}
+#touch-combat-actions [data-control] small {
+  display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+#touch-combat-actions [data-control=weapon] small,
+#touch-combat-actions [data-control=swapWeapon] small {max-height:9px}
+@media(orientation:portrait), (max-width:639px){
+  .arena[data-control-placement=expanded] .controls {
+    bottom:98px
+  }
+  #touch-combat-actions {width:min(395px,calc(100% - 24px))}
+}
+#game:has(.arena.touch-actions) #jutsu-toggle {display:none}
 @media(any-pointer:coarse){
-  html.in-match #game:has(.arena.touch-kit){
+  html.in-match #game:has(.arena.touch-actions){
     height:100dvh;
     max-height:none;
     padding-inline:env(safe-area-inset-left) env(safe-area-inset-right);
     padding-bottom:0;
   }
-  html.in-match #game:has(.arena.touch-kit) .arena{border:0;border-radius:0}
-  html.in-match #game:has(.arena.touch-kit) #landscape-tip{display:none}
-  html.in-match #game:has(.arena.touch-kit) .topbar>.brand{display:none}
-  html.in-match #game:has(.arena.touch-kit) .topbar .tools {
+  html.in-match #game:has(.arena.touch-actions) .arena{border:0;border-radius:0}
+  html.in-match #game:has(.arena.touch-actions) #landscape-tip{display:none}
+  html.in-match #game:has(.arena.touch-actions) .topbar>.brand{display:none}
+  html.in-match #game:has(.arena.touch-actions) .topbar .tools {
     width:100%;
     justify-content:flex-end;
     padding-inline:6px;
   }
-  html.in-match #game:has(.arena.touch-kit) .topbar .tools >
+  html.in-match #game:has(.arena.touch-actions) .topbar .tools >
   :not(:is(#pause,#fullscreen,#control-settings,#online-leave,#training-settings,#training-reset,#training-coach-toggle,#game-settings,#game-menu)) {display:none}
-  html.in-match #game:has(.arena.touch-kit) .topbar button:not([hidden]){min-height:36px;padding:5px 9px}
+  html.in-match #game:has(.arena.touch-actions) .topbar button:not([hidden]){min-height:36px;padding:5px 9px}
 }
 
 
-.touch-kit .controls{z-index:3}
-.training-mode .touch-kit #training-coach{
+.touch-actions .controls{z-index:3}
+.training-mode .touch-actions #training-coach{
   top:116px;bottom:auto;left:12px;right:12px;max-width:420px;max-height:65px;overflow:auto
 }
 @media (orientation:landscape) {
-  .training-mode .touch-kit #training-coach{top:80px;max-height:52px}
+  .training-mode .touch-actions #training-coach{top:80px;max-height:52px}
 }
 
 @media(any-pointer:coarse){
-  html.in-match #game:has(.arena.touch-kit) .topbar .tools{justify-content:center}
-  html.in-match #game:has(.arena.touch-kit) .nav-group>summary{
+  html.in-match #game:has(.arena.touch-actions) .topbar .tools{justify-content:center}
+  html.in-match #game:has(.arena.touch-actions) .nav-group>summary{
     min-height:36px;padding:8px;font-size:11px
   }
-  html.in-match #game:has(.arena.touch-kit) .topbar .tools>button:not([hidden]){
+  html.in-match #game:has(.arena.touch-actions) .topbar .tools>button:not([hidden]){
     padding-inline:6px;font-size:10px
   }
-  html.in-match #game.training-mode:has(.arena.touch-kit) #network-quality,
-  html.in-match body.training-mode #game:has(.arena.touch-kit) #network-quality{display:none}
-}
-
-@media (orientation:landscape) and (max-height:520px) {
-  .touch-kit #jutsu-tray {width:min(620px,calc(100% - var(--touch-edge) * 2))}
-  .touch-kit #jutsu-tray #combat-techniques:not([hidden]) {
-    grid-template-columns:repeat(auto-fit,minmax(54px,1fr))
-  }
+  html.in-match #game.training-mode:has(.arena.touch-actions) #network-quality,
+  html.in-match body.training-mode #game:has(.arena.touch-actions) #network-quality{display:none}
 }
