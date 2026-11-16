@@ -266,3 +266,9 @@ The shared checkout's npm run verify passed 388 tests plus build, with separate 
 ### v0.42.2 stage floors release preparation
 
 User authorized production deployment of the four remaining stage floor updates. Feature commit 37ef1e2 on feat/stage-floor-expansion, based on production main 1e4b560 plus its recovery checkpoint. Scope covers the floor art, v0.42.2 release metadata, PR merge after passing checks, existing Render workflow and matching GitHub Release. Separate uncommitted co-op work in the original checkout is outside the isolated release. Next action is verify and merge the release PR. No production deploy has started.
+
+### v0.42.2 verified live
+
+PR #70 merged at 99edb5049b1184e639304bc9d58bfb4fd59ef4ab, release head f2b596f. The isolated checkout passed npm run verify with 386 tests and passed painted-art smoke for all five stages in mobile portrait and landscape. PR CI 43810246269 passed. Main CI 43810842838 passed after retrying a graphics job timeout. Deploy Render run 43812080970 succeeded. A separate public Render /health request confirmed ok and storageHealthy with version 0.42.2 and the exact merge commit. Release workflow 43812227214 succeeded and published v0.42.2 targeting the same commit. This result is recorded on docs/checkpoint-0.42.2.
+
+All five extended floors are live. Next action is real-device stage feedback. The original checkout's separate co-op work was kept outside this release.
