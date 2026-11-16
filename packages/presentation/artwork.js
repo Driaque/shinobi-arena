@@ -4,7 +4,7 @@ const path = file => new URL(file, root).href;
 export function portraitSources(id) {
   return {src:path(`portraits/${id}-192.png`),srcset:[192,384,768].map(w=>`${path(`portraits/${id}-${w}.png`)} ${w}w`).join(', ')};
 }
-const stageFile=id=>id==='frost'?'frost-floor':id;
+const stageFile=id=>id+'-floor';
 export function stageSources(id) {
   return {src:path(`stages/${stageFile(id)}-640.png`),srcset:[320,640,1280].map(w=>`${path(`stages/${stageFile(id)}-${w}.png`)} ${w}w`).join(', ')};
 }

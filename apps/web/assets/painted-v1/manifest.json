@@ -314,28 +314,28 @@
       ],
       "exports": [
         {
-          "file": "stages/skyglass-320.png",
           "width": 320,
           "height": 180,
-          "bytes": 127973
+          "file": "stages/skyglass-floor-320.png",
+          "bytes": 169678
         },
         {
-          "file": "stages/skyglass-640.png",
           "width": 640,
           "height": 360,
-          "bytes": 473635
+          "file": "stages/skyglass-floor-640.png",
+          "bytes": 660377
         },
         {
-          "file": "stages/skyglass-1280.png",
           "width": 1280,
           "height": 720,
-          "bytes": 1631518
+          "file": "stages/skyglass-floor-1280.png",
+          "bytes": 2573275
         },
         {
-          "file": "stages/skyglass-1600.png",
           "width": 1600,
           "height": 900,
-          "bytes": 2499188
+          "file": "stages/skyglass-floor-1600.png",
+          "bytes": 3980099
         }
       ]
     },
@@ -386,28 +386,28 @@
       ],
       "exports": [
         {
-          "file": "stages/forge-320.png",
           "width": 320,
           "height": 180,
-          "bytes": 98442
+          "file": "stages/forge-floor-320.png",
+          "bytes": 133366
         },
         {
-          "file": "stages/forge-640.png",
           "width": 640,
           "height": 360,
-          "bytes": 361587
+          "file": "stages/forge-floor-640.png",
+          "bytes": 506560
         },
         {
-          "file": "stages/forge-1280.png",
           "width": 1280,
           "height": 720,
-          "bytes": 1334332
+          "file": "stages/forge-floor-1280.png",
+          "bytes": 1962356
         },
         {
-          "file": "stages/forge-1600.png",
           "width": 1600,
           "height": 900,
-          "bytes": 1988685
+          "file": "stages/forge-floor-1600.png",
+          "bytes": 3024359
         }
       ]
     },
@@ -422,28 +422,28 @@
       ],
       "exports": [
         {
-          "file": "stages/grove-320.png",
           "width": 320,
           "height": 180,
-          "bytes": 116149
+          "file": "stages/grove-floor-320.png",
+          "bytes": 161492
         },
         {
-          "file": "stages/grove-640.png",
           "width": 640,
           "height": 360,
-          "bytes": 439187
+          "file": "stages/grove-floor-640.png",
+          "bytes": 626588
         },
         {
-          "file": "stages/grove-1280.png",
           "width": 1280,
           "height": 720,
-          "bytes": 1592431
+          "file": "stages/grove-floor-1280.png",
+          "bytes": 2438064
         },
         {
-          "file": "stages/grove-1600.png",
           "width": 1600,
           "height": 900,
-          "bytes": 2382046
+          "file": "stages/grove-floor-1600.png",
+          "bytes": 3764232
         }
       ]
     },
@@ -458,28 +458,28 @@
       ],
       "exports": [
         {
-          "file": "stages/court-320.png",
           "width": 320,
           "height": 180,
-          "bytes": 134220
+          "file": "stages/court-floor-320.png",
+          "bytes": 172245
         },
         {
-          "file": "stages/court-640.png",
           "width": 640,
           "height": 360,
-          "bytes": 501312
+          "file": "stages/court-floor-640.png",
+          "bytes": 675127
         },
         {
-          "file": "stages/court-1280.png",
           "width": 1280,
           "height": 720,
-          "bytes": 1797889
+          "file": "stages/court-floor-1280.png",
+          "bytes": 2642599
         },
         {
-          "file": "stages/court-1600.png",
           "width": 1600,
           "height": 900,
-          "bytes": 2680689
+          "file": "stages/court-floor-1600.png",
+          "bytes": 4093018
         }
       ]
     }

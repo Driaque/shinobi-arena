@@ -1,6 +1,7 @@
 import {chromium} from 'playwright';
 import {spawn} from 'node:child_process';
 import assert from 'node:assert/strict';
+import {selectGame} from './navigation-helper.mjs';
 import {mkdir} from 'node:fs/promises';
 const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'4227'},stdio:['ignore','pipe','inherit']});let browser;
 try{
@@ -8,7 +9,8 @@ try{
  browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{}),args:['--no-sandbox','--disable-dev-shm-usage','--enable-unsafe-swiftshader']});
  await mkdir('test-results',{recursive:true});
  for(const viewport of [{width:1440,height:900},{width:390,height:844},{width:844,height:390},{width:768,height:1024}]){
-  const context=await browser.newContext({viewport,deviceScaleFactor:2}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+  const mobile=Math.min(viewport.width,viewport.height)<500;
+  const context=await browser.newContext({viewport,deviceScaleFactor:2,isMobile:mobile,hasTouch:mobile}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto('http://127.0.0.1:4227');await page.click('#entry-guest');
   assert.equal(await page.locator('#character0 .character-card:not([hidden]) img[src*="painted-v1/portraits/"]').count(),10);
   for(const id of ['silent','winta','dora','aren','eira','kael','nyra','rook','veyra','oryn']){
@@ -20,13 +22,19 @@ try{
   for(const id of ['skyglass','frost','forge','grove','court']){
    const card=page.locator(`.stage-card[data-stage=${id}]`);await card.scrollIntoViewIfNeeded();await card.locator('img').evaluate(img=>img.decode());
    assert.ok(await card.locator('img').evaluate(img=>img.naturalWidth>0));
+   assert.ok(new URL(await card.locator('img').evaluate(img=>img.currentSrc)).pathname.split('/').at(-1).startsWith(id+'-floor-'));
   }
-  await page.locator('.stage-card[data-stage=court]').click();await page.click('#play');
-  await page.waitForFunction(()=>document.querySelector('[data-practice-art]:not([hidden])')?.dataset.paintedStage==='court');
-  await page.screenshot({path:`test-results/painted-art-${viewport.width}x${viewport.height}.png`});
+  const liveStages=mobile?['skyglass','forge','grove','court','frost']:['court'];
+  for(const [index,id] of liveStages.entries()){
+   if(index){await selectGame(page,'#mode','cpu');await page.click('#play');}
+   await page.locator('.stage-card[data-stage='+id+']').click();
+   await page.click('#play');
+   await page.waitForFunction(stage=>document.querySelector('[data-practice-art]:not([hidden])')?.dataset.paintedStage===stage,id);
+   await page.screenshot({path:'test-results/painted-floor-'+id+'-'+viewport.width+'x'+viewport.height+'.png'});
+  }
   assert.deepEqual(errors,[]);await context.close();
  }
  // A failed thumbnail keeps stage selection playable using procedural scenery.
- const page=await browser.newPage();await page.route('**/painted-v1/stages/forge-*.png',route=>route.abort());await page.goto('http://127.0.0.1:4227');await page.click('#entry-guest');await page.click('#play');await page.locator('.stage-card[data-stage=forge]').scrollIntoViewIfNeeded();await page.locator('[data-stage=forge] svg').waitFor();await page.locator('.stage-card[data-stage=forge]').click();assert.equal(await page.locator('.stage-card[data-stage=forge]').getAttribute('aria-pressed'),'true');
- console.log('Painted art: ten original PNG portraits, five stage previews, four viewports, live painted stage and failed-image fallback passed.');
+ const page=await browser.newPage();await page.route('**/painted-v1/stages/forge-floor-*.png',route=>route.abort());await page.goto('http://127.0.0.1:4227');await page.click('#entry-guest');await page.click('#play');await page.locator('.stage-card[data-stage=forge]').scrollIntoViewIfNeeded();await page.locator('[data-stage=forge] svg').waitFor();await page.locator('.stage-card[data-stage=forge]').click();assert.equal(await page.locator('.stage-card[data-stage=forge]').getAttribute('aria-pressed'),'true');
+ console.log('Painted art: ten original PNG portraits, five stage previews, four viewports, all five live stages on touch and failed-image fallback passed.');
 }finally{await browser?.close();server.kill();}
