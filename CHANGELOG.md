@@ -1,5 +1,9 @@
 # Release notes
 
+## 0.42.2
+
+- Extend the painted floors in Skyglass Terrace, Ember Forge, Moonlit Grove and Sunken Court to cover both movement lanes.
+
 ## 0.42.1
 
 - Put Weapon, Item, two Jutsus and Replacement directly on the Expanded touch battlefield. More cycles the secondary row in place.
