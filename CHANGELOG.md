@@ -1,5 +1,11 @@
 # Release notes
 
+## 0.42.1
+
+- Put Weapon, Item, two Jutsus and Replacement directly on the Expanded touch battlefield. More cycles the secondary row in place.
+- Extend Frost’s painted ice across both movement lanes.
+- Skip updates to the closed jutsu tray and add opt-in touch-to-render timing for device testing.
+
 ## 0.42.0
 
 - Expanded touch fills the battle surface and puts primary controls at the corners. The Kit shows items remaining and ready jutsus.
