@@ -232,3 +232,21 @@ User requested deployment to the existing Render production service for physical
 Release PR is #66. Local npm run verify passed with 386 tests and a v0.42.0 build. Browser CI is required before merge. Existing tests with explicit dock layout, direct control buttons and portrait tip assertions seed the saved dock preset. Expanded touch has separate portrait and landscape coverage in the global graphics smoke.
 
 Hosted PR #66 confirmed the build, arena, experience and network groups. The follow-up commit updates the Practice and low guard browser scenarios to open Kit, and widens the landscape Kit so the techniques fit. Local npm run verify (386 tests), Practice Pixi, Visual Lab and shield-scale checks passed. Hosted checks rerun on the latest head before merge.
+
+### v0.42.0 verified live
+
+PR #66 merged on 2026-11-15 at commit 8fb2734516be9f682a38d78a74ac87ae75a1550b. Feature head 8314d71. Local npm run verify passed 386 tests. The PR CI run 43756400644 and main CI run 43756889965 passed every browser group and the build. Deploy Render run 43757667003 succeeded on the existing shinobi-arena-online service. A separate GET https://shinobi-arena-online.onrender.com/health returned ok and storageHealthy with exactly v0.42.0 and the merge commit above. GitHub Release v0.42.0 was published successfully by run 43757786072 and its targetCommitish matched the same commit. The recovery result is on docs/checkpoint-0.42.0.
+
+The production mobile test is ready. Open the existing Render URL and start a match. If the phone has saved touch controls, choose Settings > Controls > Placement > Expanded touch and Save. Real-device feedback is the next action. All 35 roster slots remain selectable in this test release. No additional deployment is authorized by this checkpoint.
+
+### Direct mobile actions and Frost floor prototype
+
+Feature branch feat/direct-touch-and-frost-floor, based on docs/checkpoint-0.42.0 at a425ebd. Expanded touch uses a fixed combat strip with Weapon, current Item, first two Jutsus and Replacement on one press. A second row offers secondary actions and a More button cycles the row in place. The Frost floor exports are apps/web/assets/painted-v1/stages/frost-floor-{320,640,1280,1600}.png. Stage preview and live renderers use the versioned exports. Previous Frost art remains in the tree. Scope is the Frost pilot.
+
+The optional ?touchTiming=1 diagnostic records User Timing entry touch-to-render. It measures until a frame containing the locally consumed or server-acknowledged input is submitted. It excludes screen scanout and is not a phone/network benchmark. Browser samples on this workstation were 42/44 ms for Training item cycle in portrait/landscape and 147 ms for a local-server online attack. Hidden jutsu palette refresh work is skipped and performance labels refresh four times per second. No network tuning or combat timing changes. Next action is physical-device profiling with the same move in Training and online, then a versioned release if requested.
+
+npm run verify passed 386 tests. Chrome global graphics, online, low guard, aerial, Adventures and Practice Pixi checks passed. Inspected Frost screenshots test-results/expanded-touch-390.png and test-results/expanded-touch-844.png. Production still serves v0.42.0. Feature branch push only.
+
+### v0.42.1 production release preparation
+
+User authorized pushing and deploying the direct controls and Frost floor for physical-device testing. Release branch feat/direct-touch-and-frost-floor carries bf8c0fb and this version bump. Production baseline v0.42.0 matched main 8fb2734516be9f682a38d78a74ac87ae75a1550b. Notes at docs/releases/0.42.1.md. Approval covers this release PR, merge after verified browser CI, the existing Render deployment workflow, and the matching GitHub Release. Next action is build, gameplay browser checks and release PR review. No deployment has started.

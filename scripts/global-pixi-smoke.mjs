@@ -6,7 +6,7 @@ try{
  browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{}),args:['--no-sandbox','--disable-dev-shm-usage','--enable-unsafe-swiftshader']});
  for(const mobile of [false,true]){
   const context=await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1440,height:960},isMobile:mobile,hasTouch:mobile}),p=await context.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));
-  await p.goto('http://127.0.0.1:4202');await p.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-pixi');
+  await p.goto('http://127.0.0.1:4202/?touchTiming=1');await p.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-pixi');
   for(const stage of ['frost','forge','grove','court','skyglass']){
    if(await p.locator('#loadout-panel').isVisible())await p.locator('#play').click();await p.click(`[data-stage=${stage}]`);
    await p.waitForFunction(id=>document.querySelector('#canvas').dataset.stage===id,stage);
@@ -34,7 +34,12 @@ try{
   for(const mode of ['cpu','local','training','online']){await selectGame(p,'#mode',mode);if(mode!=='online'){await clickGame(p,'#play');await p.waitForTimeout(100);}await p.waitForFunction(()=>document.querySelector('#canvas').dataset.presentation==='selected-pixi');assert.doesNotMatch(await p.locator('#name1').innerText(),/SPARRING ECHO/);}
   await selectGame(p,'#mode','training');await clickGame(p,'#play');await clickGame(p,'#training-settings');assert.equal(await p.locator('#training-charge').isDisabled(),true,'Aren has no awakening to charge');await p.click('#training-close');await clickGame(p,'#play');await p.screenshot({path:`test-results/global-pixi-${mobile?'portrait':'desktop'}.png`});
   if(mobile){
-   await p.waitForSelector('#touch-kit-toggle:visible');
+   await selectGame(p,'#mode','training');
+   await p.locator('#play').click();
+   await p.locator('[data-stage=frost]').click();
+   await p.locator('#play').click();
+   await p.waitForFunction(()=>document.querySelector('[data-practice-art]:not([hidden])')?.dataset.paintedStage==='frost');
+   await p.waitForSelector('#touch-combat-actions:visible');
    assert.equal(await p.locator('.arena').getAttribute('data-control-placement'),'expanded');
    for(const size of [{width:390,height:844},{width:844,height:390}]){
     await p.setViewportSize(size);
@@ -44,14 +49,18 @@ try{
     assert.ok(stick.x+stick.width<attack.x&&attack.y+attack.height<=size.height,'controls stay apart and on-screen');
     await p.locator('[data-action=jump]').tap();
     await p.waitForFunction(()=>document.querySelector('#movement-state').textContent.includes('AIR'));
-    await p.locator('#touch-kit-toggle').tap();
-    assert.equal(await p.locator('#touch-kit-toggle').getAttribute('aria-expanded'),'true');
-    assert.match(await p.locator('#touch-kit-toggle').innerText(),/items?.*jutsu ready/);
-    assert.equal(await p.locator('#jutsu-tray [data-action=weapon]').isVisible(),true);
+    assert.equal(await p.locator('#jutsu-tray').isVisible(),false);
+    for(const control of ['weapon','useItem','replacement'])assert.equal(await p.locator('#touch-combat-actions [data-action='+control+']').isVisible(),true);
+    assert.ok(await p.locator('#touch-combat-actions [data-quick-action=special1]').isVisible());
+    const bounds=await p.locator('#touch-combat-actions').boundingBox();
+    const battle=await p.locator('.battle-view').boundingBox();
+    assert.ok(bounds.y>=battle.y+battle.height*2/3,'the combat strip stays in the bottom band');
     const item=await p.locator('#item-cycle-meta').innerText();
-    await p.locator('#jutsu-tray [data-action=cycleItem]').tap();
+    await p.locator('#touch-combat-actions [data-action=cycleItem]').tap();
     await p.waitForFunction(item=>document.querySelector('#item-cycle-meta').textContent!==item,item);
-    await p.locator('#jutsu-tray header button').tap();
+    const measured=await p.evaluate(()=>{const e=performance.getEntriesByName('touch-to-render').findLast(e=>e.detail.action==='cycleItem');return e&&{duration:e.duration,detail:e.detail};});
+    assert.ok(measured&&measured.duration>=0&&!measured.detail.online);
+    console.log('Local touch '+size.width+'px: item cycle submitted in '+Math.round(measured.duration)+' ms');
     assert.equal(await p.locator('#jutsu-tray').isVisible(),false);
     await p.screenshot({path:'test-results/expanded-touch-'+size.width+'.png'});
    }

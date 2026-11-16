@@ -4,8 +4,9 @@ const path = file => new URL(file, root).href;
 export function portraitSources(id) {
   return {src:path(`portraits/${id}-192.png`),srcset:[192,384,768].map(w=>`${path(`portraits/${id}-${w}.png`)} ${w}w`).join(', ')};
 }
+const stageFile=id=>id==='frost'?'frost-floor':id;
 export function stageSources(id) {
-  return {src:path(`stages/${id}-640.png`),srcset:[320,640,1280].map(w=>`${path(`stages/${id}-${w}.png`)} ${w}w`).join(', ')};
+  return {src:path(`stages/${stageFile(id)}-640.png`),srcset:[320,640,1280].map(w=>`${path(`stages/${stageFile(id)}-${w}.png`)} ${w}w`).join(', ')};
 }
 const scenes = new Map();
 export function stageArtwork(id = 'skyglass') {
@@ -15,7 +16,7 @@ export function stageArtwork(id = 'skyglass') {
     const width=typeof matchMedia==='function'&&matchMedia('(max-width: 900px)').matches?1280:1600;
     const image=new Image();const entry={image,ready:false};scenes.set(id,entry);
     image.decoding='async';image.onload=()=>{entry.ready=true;};image.onerror=()=>{entry.ready=false;};
-    image.src=path(`stages/${id}-${width}.png`);
+    image.src=path(`stages/${stageFile(id)}-${width}.png`);
   }
   const entry=scenes.get(id);return entry.ready?entry.image:null;
 }

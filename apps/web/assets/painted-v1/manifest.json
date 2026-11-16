@@ -350,28 +350,28 @@
       ],
       "exports": [
         {
-          "file": "stages/frost-320.png",
           "width": 320,
           "height": 180,
-          "bytes": 103713
+          "file": "stages/frost-floor-320.png",
+          "bytes": 145694
         },
         {
-          "file": "stages/frost-640.png",
           "width": 640,
           "height": 360,
-          "bytes": 373104
+          "file": "stages/frost-floor-640.png",
+          "bytes": 557743
         },
         {
-          "file": "stages/frost-1280.png",
           "width": 1280,
           "height": 720,
-          "bytes": 1335049
+          "file": "stages/frost-floor-1280.png",
+          "bytes": 2172713
         },
         {
-          "file": "stages/frost-1600.png",
           "width": 1600,
           "height": 900,
-          "bytes": 1993385
+          "file": "stages/frost-floor-1600.png",
+          "bytes": 3348307
         }
       ]
     },
