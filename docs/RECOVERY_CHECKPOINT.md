@@ -250,3 +250,9 @@ npm run verify passed 386 tests. Chrome global graphics, online, low guard, aeri
 ### v0.42.1 production release preparation
 
 User authorized pushing and deploying the direct controls and Frost floor for physical-device testing. Release branch feat/direct-touch-and-frost-floor carries bf8c0fb and this version bump. Production baseline v0.42.0 matched main 8fb2734516be9f682a38d78a74ac87ae75a1550b. Notes at docs/releases/0.42.1.md. Approval covers this release PR, merge after verified browser CI, the existing Render deployment workflow, and the matching GitHub Release. Next action is build, gameplay browser checks and release PR review. No deployment has started.
+
+### v0.42.1 verified live
+
+PR #67 merged at 1e4b560e2248c7fad3a9ff09fd1f7724db333596. Release head d778c23. Local npm run verify passed all 386 tests, and mobile portrait/landscape graphics smoke passed with Frost and the direct controls. Hosted PR CI 43779311550 and main CI 43779906294 passed every browser group. Deploy Render 43780573185 succeeded on the existing shinobi-arena-online service. A separate public /health check returned ok and storageHealthy with exactly v0.42.1 and the same merge commit. Published GitHub Release v0.42.1 targets that commit, and release workflow 43780711736 completed successfully. This record is pushed on docs/checkpoint-0.42.1.
+
+Next action is physical device testing. In Expanded touch, select Frost, then try direct Weapon and Jutsu input in Training and online in portrait and landscape. Use ?touchTiming=1 when collecting User Timing traces. Phone responsiveness remains unmeasured. Release authorization covered this verified production deploy and checkpoint.
